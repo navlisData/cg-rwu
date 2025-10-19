@@ -1,0 +1,26 @@
+# .NET / C#
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+TestResults/
+*.user
+*.suo
+*.userprefs
+*.cache
+*.pdb
+*.mdb
+*.opendb
+*.svclog
+*.nupkg
+*.snupkg
+
+# Rider / VS
+.idea/
+.vs/
+_ReSharper.Caches/
+*.DotSettings.user
+
+# OS
+.DS_Store
+Thumbs.db
