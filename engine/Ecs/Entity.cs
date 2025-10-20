@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
 
-namespace esc_test.Engine.Ecs;
+namespace Engine.Ecs;
 
 /// <summary>
-/// Lightweight, immutable handle to an entity inside a specific <see cref="World"/>.
+/// Lightweight, immutable handle to an entity inside a specific <see cref="world"/>.
 /// The handle is validated via (Id, Version) before each operation to guard against use-after-destroy.
 /// </summary>
 public readonly struct Entity
@@ -11,7 +11,7 @@ public readonly struct Entity
     /// <summary>
     /// Owning world (internal).
     /// </summary>
-    internal readonly World World;
+    private readonly World world;
 
     /// <summary>
     /// Numeric identifier within the world.
@@ -28,15 +28,15 @@ public readonly struct Entity
     /// </summary>
     internal Entity(World world, int id, int version)
     {
-        World = world;
+        this.world = world;
         Id = id;
         Version = version;
     }
 
     /// <summary>
-    /// Returns <c>true</c> if this handle currently refers to a live entity in <see cref="World"/>.
+    /// Returns <c>true</c> if this handle currently refers to a live entity in <see cref="world"/>.
     /// </summary>
-    public bool IsAlive => World.IsAlive(Id, Version);
+    public bool IsAlive => world.IsAlive(Id, Version);
 
     /// <summary>
     /// Gets a by-ref reference to component <typeparamref name="T"/> for this entity.
@@ -53,8 +53,8 @@ public readonly struct Entity
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly ref T Get<T>() where T : struct
     {
-        World.Validate(this);
-        return ref World.GetPool<T>().GetRef(Id);
+        world.Validate(this);
+        return ref world.GetPool<T>().GetRef(Id);
     }
 
     /// <summary>
@@ -65,8 +65,8 @@ public readonly struct Entity
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Has<T>() where T : struct
     {
-        World.Validate(this);
-        return World.GetPool<T>().Has(Id);
+        world.Validate(this);
+        return world.GetPool<T>().Has(Id);
     }
 
     /// <summary>
@@ -78,8 +78,8 @@ public readonly struct Entity
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly void Add<T>(in T value = default) where T : struct
     {
-        World.Validate(this);
-        World.GetPool<T>().Add(Id, value);
+        world.Validate(this);
+        world.GetPool<T>().Add(Id, value);
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public readonly struct Entity
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly void Remove<T>() where T : struct
     {
-        World.Validate(this);
-        World.GetPool<T>().Remove(Id);
+        world.Validate(this);
+        world.GetPool<T>().Remove(Id);
     }
 }

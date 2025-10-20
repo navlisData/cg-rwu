@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cg-rwu", "cg-rwu\cg-rwu.csproj", "{AE5DFDA3-62A8-4C9F-9812-55E63CB1C299}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unnamed", "unnamed\unnamed.csproj", "{AE5DFDA3-62A8-4C9F-9812-55E63CB1C299}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "engine", "engine\engine.csproj", "{74FA4E96-2A5B-4B75-B602-0C61F59FC9B9}"
 EndProject

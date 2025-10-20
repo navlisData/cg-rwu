@@ -1,6 +1,4 @@
-using System;
-
-namespace esc_test.Engine.Ecs.Querying;
+namespace Engine.Ecs.Querying;
 
 /// <summary>
 /// Immutable description of a component-filter query (required and excluded component types).
@@ -12,8 +10,8 @@ namespace esc_test.Engine.Ecs.Querying;
 /// </remarks>
 public sealed class Query
 {
-    private readonly Type[] _with;
-    private readonly Type[] _without;
+    private readonly Type[] with;
+    private readonly Type[] without;
 
     /// <summary>
     /// Creates a new query.
@@ -22,13 +20,13 @@ public sealed class Query
     /// <param name="without">Component types that must be absent on an entity.</param>
     internal Query(Type[] with, Type[] without)
     {
-        _with = with;
-        _without = without;
+        this.with = with;
+        this.without = without;
     }
 
     /// <summary>
     /// Returns a stack-only enumerator over entities matching this query in the given world.
     /// </summary>
     /// <param name="world">The ECS world to enumerate.</param>
-    public EntityEnumerator AsEnumerator(World world) => new(world, _with, _without);
+    public EntityEnumerator AsEnumerator(World world) => new(world, with, without);
 }
