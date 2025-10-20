@@ -12,10 +12,10 @@ public static class PrefabFactory
 {
     public static Entity CreatePlayer(World world, Vector2 startPos, Vector2 startVel, Vector2 size)
     {
-        var entity = world.CreateEntity();
+        Entity entity = world.CreateEntity();
         entity.Add(new Position { Value = startPos });
         entity.Add(new Velocity { Value = startVel });
-        entity.Add(new Transform { Size = size, Scale = 1});
+        entity.Add(new Transform { Size = size, Scale = 1 });
         entity.Add(new Player());
 
         entity.Add(new Circle());
@@ -24,4 +24,3 @@ public static class PrefabFactory
         return entity;
     }
 }
-

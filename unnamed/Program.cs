@@ -1,4 +1,4 @@
 using unnamed;
 
-Game game = new ();
+Game game = new();
 game.Run();
