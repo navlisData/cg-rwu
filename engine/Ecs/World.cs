@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
-using esc_test.Engine.Ecs.Pools;
-using esc_test.Engine.Ecs.Querying;
+using Engine.Ecs.Pools;
+using Engine.Ecs.Querying;
 
-namespace esc_test.Engine.Ecs;
+namespace Engine.Ecs;
 
 /// <summary>
 /// ECS world: owns entity lifecycle and component pools, and provides query building.
@@ -15,21 +13,21 @@ namespace esc_test.Engine.Ecs;
 /// </remarks>
 public sealed class World
 {
-    private readonly Dictionary<Type, IComponentPool> _pools = new();
-    private readonly List<int> _freeIds = new();
-    private int[] _versions = new int[256];
-    private bool[] _alive = new bool[256];
-    private int _nextId = 0;
+    private readonly Dictionary<Type, IComponentPool> pools = new();
+    private readonly List<int> freeIds = new();
+    private int[] versions = new int[256];
+    private bool[] alive = new bool[256];
+    private int nextId = 0;
 
     /// <summary>
     /// Creates a new entity and returns its handle.
     /// </summary>
     public Entity CreateEntity()
     {
-        int id = _freeIds.Count > 0 ? PopFreeId() : _nextId++;
+        int id = freeIds.Count > 0 ? PopFreeId() : nextId++;
         EnsureCapacityForId(id);
-        _alive[id] = true;
-        return new Entity(this, id, _versions[id]);
+        alive[id] = true;
+        return new Entity(this, id, versions[id]);
     }
 
     /// <summary>
@@ -40,19 +38,19 @@ public sealed class World
     public void DestroyEntity(in Entity e)
     {
         Validate(e);
-        foreach (var pool in _pools.Values)
+        foreach (var pool in pools.Values)
             if (pool.Has(e.Id)) pool.Remove(e.Id);
 
-        _alive[e.Id] = false;
-        _versions[e.Id]++; // invalidate stale handles
-        _freeIds.Add(e.Id);
+        alive[e.Id] = false;
+        versions[e.Id]++; // invalidate stale handles
+        freeIds.Add(e.Id);
     }
 
     /// <summary>
     /// Returns whether the given (id, version) pair refers to a currently live entity.
     /// </summary>
     public bool IsAlive(int id, int version)
-        => id < _alive.Length && _alive[id] && _versions[id] == version;
+        => id < alive.Length && alive[id] && versions[id] == version;
 
     /// <summary>
     /// Throws if the handle is not valid in this world at this time.
@@ -71,10 +69,10 @@ public sealed class World
     internal ComponentPool<T> GetPool<T>() where T : struct
     {
         var type = typeof(T);
-        if (!_pools.TryGetValue(type, out var pool))
+        if (!pools.TryGetValue(type, out var pool))
         {
-            var created = new ComponentPool<T>(_alive.Length, 128);
-            _pools[type] = created;
+            var created = new ComponentPool<T>(alive.Length, 128);
+            pools[type] = created;
             return created;
         }
         return (ComponentPool<T>)pool;
@@ -87,11 +85,11 @@ public sealed class World
     /// <param name="t">Component type.</param>
     internal IComponentPool GetPool(Type t)
     {
-        if (_pools.TryGetValue(t, out var pool)) return pool;
+        if (pools.TryGetValue(t, out var pool)) return pool;
 
         var concrete = typeof(ComponentPool<>).MakeGenericType(t);
-        pool = (IComponentPool)Activator.CreateInstance(concrete, _alive.Length, 128)!; // ctor(int,int)
-        _pools[t] = pool;
+        pool = (IComponentPool)Activator.CreateInstance(concrete, alive.Length, 128)!; // ctor(int,int)
+        pools[t] = pool;
         return pool;
     }
 
@@ -103,9 +101,9 @@ public sealed class World
     /// <returns><c>true</c> if the entity is alive; otherwise <c>false</c>.</returns>
     internal bool TryGetEntityVersion(int id, out int version)
     {
-        if (id < _alive.Length && _alive[id])
+        if (id < alive.Length && alive[id])
         {
-            version = _versions[id];
+            version = versions[id];
             return true;
         }
         version = 0;
@@ -117,8 +115,8 @@ public sealed class World
     /// </summary>
     private int PopFreeId()
     {
-        int i = _freeIds[^1];
-        _freeIds.RemoveAt(_freeIds.Count - 1);
+        int i = freeIds[^1];
+        freeIds.RemoveAt(freeIds.Count - 1);
         return i;
     }
 
@@ -129,12 +127,12 @@ public sealed class World
     private void EnsureCapacityForId(int id)
     {
         int needed = id + 1;
-        if (needed <= _alive.Length) return;
+        if (needed <= alive.Length) return;
 
-        int newCap = Math.Max(needed, Math.Max(4, _alive.Length * 2));
-        Array.Resize(ref _alive, newCap);
-        Array.Resize(ref _versions, newCap);
-        foreach (var pool in _pools.Values)
+        int newCap = Math.Max(needed, Math.Max(4, alive.Length * 2));
+        Array.Resize(ref alive, newCap);
+        Array.Resize(ref versions, newCap);
+        foreach (var pool in pools.Values)
             pool.EnsureEntityCapacity(newCap);
     }
 

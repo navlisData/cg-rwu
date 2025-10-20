@@ -1,7 +1,6 @@
-using System;
-using esc_test.Engine.Ecs.Querying;
+using Engine.Ecs.Querying;
 
-namespace esc_test.Engine.Ecs.Systems;
+namespace Engine.Ecs.Systems;
 
 /// <summary>
 /// Base class for systems that operate on a set of entities selected by a <see cref="Query"/>.
@@ -22,9 +21,9 @@ public abstract class EntitySetSystem<TDelta>
     /// <summary>
     /// The ECS world this system operates on.
     /// </summary>
-    protected readonly World World;
+    private readonly World world;
 
-    private readonly Query _query;
+    private readonly Query query;
 
     /// <summary>
     /// Creates a new system bound to a world and a precompiled query.
@@ -33,8 +32,8 @@ public abstract class EntitySetSystem<TDelta>
     /// <param name="query">The entity filter used by this system.</param>
     protected EntitySetSystem(World world, Query query)
     {
-        World = world ?? throw new ArgumentNullException(nameof(world));
-        _query = query ?? throw new ArgumentNullException(nameof(query));
+        this.world = world ?? throw new ArgumentNullException(nameof(world));
+        this.query = query ?? throw new ArgumentNullException(nameof(query));
     }
 
     /// <summary>
@@ -43,7 +42,7 @@ public abstract class EntitySetSystem<TDelta>
     /// <param name="dt">Delta or context payload forwarded to <see cref="Update(TDelta, in Entity)"/>.</param>
     public void Run(TDelta dt)
     {
-        var it = _query.AsEnumerator(World);
+        var it = query.AsEnumerator(world);
         foreach (var e in it)
             Update(dt, in e);
     }

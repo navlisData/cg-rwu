@@ -1,6 +1,4 @@
-using System;
-
-namespace esc_test.Engine.Ecs.Pools;
+namespace Engine.Ecs.Pools;
 
 /// <summary>
 /// Non-generic contract for sparse-set component pools used by the ECS <c>World</c>.

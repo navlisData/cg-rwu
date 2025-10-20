@@ -1,7 +1,6 @@
-using System;
-using esc_test.Engine.Ecs.Pools;
+using Engine.Ecs.Pools;
 
-namespace esc_test.Engine.Ecs.Querying;
+namespace Engine.Ecs.Querying;
 
 /// <summary>
 /// Stack-only enumerator over entities that match a given query (With / Without component constraints).
@@ -16,13 +15,13 @@ namespace esc_test.Engine.Ecs.Querying;
 /// </remarks>
 public ref struct EntityEnumerator
 {
-    private readonly World _world;
-    private readonly Type[] _with;
-    private readonly Type[] _without;
-    private readonly IComponentPool _anchorPool;
-    private readonly ReadOnlySpan<int> _anchorDense;
+    private readonly World world;
+    private readonly Type[] with;
+    private readonly Type[] without;
+    private readonly IComponentPool anchorPool;
+    private readonly ReadOnlySpan<int> anchorDense;
 
-    private int _i;
+    private int i;
 
     /// <summary>
     /// The entity at the current iterator position. Only valid after <see cref="MoveNext"/> returned <c>true</c>.
@@ -38,9 +37,9 @@ public ref struct EntityEnumerator
     /// <exception cref="InvalidOperationException">Thrown if no required component types are provided.</exception>
     public EntityEnumerator(World world, Type[] with, Type[] without)
     {
-        _world   = world   ?? throw new ArgumentNullException(nameof(world));
-        _with    = with    ?? throw new ArgumentNullException(nameof(with));
-        _without = without ?? throw new ArgumentNullException(nameof(without));
+        this.world   = world   ?? throw new ArgumentNullException(nameof(world));
+        this.with    = with    ?? throw new ArgumentNullException(nameof(with));
+        this.without = without ?? throw new ArgumentNullException(nameof(without));
 
         if (with.Length == 0)
             throw new InvalidOperationException("Query requires at least one With<T>().");
@@ -50,14 +49,14 @@ public ref struct EntityEnumerator
         int bestCount = int.MaxValue;
         foreach (var t in with)
         {
-            var pool = _world.GetPool(t);
+            var pool = this.world.GetPool(t);
             int cnt = pool.Count;
             if (cnt < bestCount) { best = pool; bestCount = cnt; }
         }
 
-        _anchorPool  = best!;
-        _anchorDense = _anchorPool.DenseEntitySpan;
-        _i = -1;
+        IComponentPool anchorPool = best!;
+        anchorDense = anchorPool.DenseEntitySpan;
+        i = -1;
         Current = default;
     }
 
@@ -72,25 +71,25 @@ public ref struct EntityEnumerator
     /// <returns><c>true</c> if a matching entity was found; otherwise <c>false</c>.</returns>
     public bool MoveNext()
     {
-        while (++_i < _anchorDense.Length)
+        while (++i < anchorDense.Length)
         {
-            int id = _anchorDense[_i];
+            int id = anchorDense[i];
 
             bool ok = true;
-            foreach (var t in _with)
-                if (!_world.GetPool(t).Has(id)) { ok = false; break; }
+            foreach (var t in with)
+                if (!world.GetPool(t).Has(id)) { ok = false; break; }
 
             if (!ok) continue;
 
-            foreach (var t in _without)
-                if (_world.GetPool(t).Has(id)) { ok = false; break; }
+            foreach (var t in without)
+                if (world.GetPool(t).Has(id)) { ok = false; break; }
 
             if (!ok) continue;
 
             // Ensure the entity handle is valid at enumeration time.
-            if (_world.TryGetEntityVersion(id, out int version))
+            if (world.TryGetEntityVersion(id, out int version))
             {
-                Current = new Entity(_world, id, version);
+                Current = new Entity(world, id, version);
                 return true;
             }
         }

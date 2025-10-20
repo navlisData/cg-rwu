@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-
-namespace esc_test.Engine.Ecs.Querying;
+namespace Engine.Ecs.Querying;
 
 /// <summary>
 /// Fluent builder for composing a component-filter query with required (<c>With</c>)
@@ -15,9 +12,8 @@ namespace esc_test.Engine.Ecs.Querying;
 /// </remarks>
 public sealed class QueryBuilder
 {
-    private readonly World _world;
-    private readonly List<Type> _with = new();
-    private readonly List<Type> _without = new();
+    private readonly List<Type> with = new();
+    private readonly List<Type> without = new();
 
     /// <summary>
     /// Creates a new builder bound to the given world.
@@ -25,8 +21,8 @@ public sealed class QueryBuilder
     /// <param name="world">ECS world that will be queried.</param>
     internal QueryBuilder(World world)
     {
-        _world = world ?? throw new ArgumentNullException(nameof(world));
-        _ = _world; // currently unused; reserved for future world-scoped features
+        World world1 = world ?? throw new ArgumentNullException(nameof(world));
+        _ = world1; // currently unused; reserved for future world-scoped features
     }
 
     /// <summary>
@@ -36,7 +32,7 @@ public sealed class QueryBuilder
     /// <returns>The same builder instance (for fluent chaining).</returns>
     public QueryBuilder With<T>() where T : struct
     {
-        _with.Add(typeof(T));
+        with.Add(typeof(T));
         return this;
     }
 
@@ -47,7 +43,7 @@ public sealed class QueryBuilder
     /// <returns>The same builder instance (for fluent chaining).</returns>
     public QueryBuilder Without<T>() where T : struct
     {
-        _without.Add(typeof(T));
+        without.Add(typeof(T));
         return this;
     }
 
@@ -57,5 +53,5 @@ public sealed class QueryBuilder
     /// </summary>
     /// <returns>A <see cref="Query"/> capturing the current With/Without sets.</returns>
     public Query Build()
-        => new(_with.ToArray(), _without.ToArray());
+        => new(with.ToArray(), without.ToArray());
 }
