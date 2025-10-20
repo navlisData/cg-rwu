@@ -1,0 +1,57 @@
+using System;
+using esc_test.Engine.Ecs.Querying;
+
+namespace esc_test.Engine.Ecs.Systems;
+
+/// <summary>
+/// Base class for systems that operate on a set of entities selected by a <see cref="Query"/>.
+/// Iterates allocation-free using the query's <see cref="EntityEnumerator"/> and calls <see cref="Update"/>
+/// for each matching entity.
+/// </summary>
+/// <typeparam name="TDelta">
+/// Time delta (or any tick/context payload) passed to <see cref="Run(TDelta)"/> and <see cref="Update(TDelta, in Entity)"/>.
+/// </typeparam>
+/// <remarks>
+/// - Not thread-safe.
+/// - Avoid structural changes that would invalidate the anchor pool during iteration
+///   (e.g., removing a component that is part of the query's required set on the current entity),
+///   as this can perturb enumeration order. Non-anchor mutations are typically safe.
+/// </remarks>
+public abstract class EntitySetSystem<TDelta>
+{
+    /// <summary>
+    /// The ECS world this system operates on.
+    /// </summary>
+    protected readonly World World;
+
+    private readonly Query _query;
+
+    /// <summary>
+    /// Creates a new system bound to a world and a precompiled query.
+    /// </summary>
+    /// <param name="world">The ECS world.</param>
+    /// <param name="query">The entity filter used by this system.</param>
+    protected EntitySetSystem(World world, Query query)
+    {
+        World = world ?? throw new ArgumentNullException(nameof(world));
+        _query = query ?? throw new ArgumentNullException(nameof(query));
+    }
+
+    /// <summary>
+    /// Executes the system once for all entities matching the query.
+    /// </summary>
+    /// <param name="dt">Delta or context payload forwarded to <see cref="Update(TDelta, in Entity)"/>.</param>
+    public void Run(TDelta dt)
+    {
+        var it = _query.AsEnumerator(World);
+        foreach (var e in it)
+            Update(dt, in e);
+    }
+
+    /// <summary>
+    /// Per-entity update hook. Implement system behavior here.
+    /// </summary>
+    /// <param name="dt">Delta or context payload.</param>
+    /// <param name="e">Current entity (validated handle).</param>
+    protected abstract void Update(TDelta dt, in Entity e);
+}
