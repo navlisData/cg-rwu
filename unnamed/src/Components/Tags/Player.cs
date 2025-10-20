@@ -1,3 +1,5 @@
 namespace unnamed.Components.Tags;
 
-public struct Player { }
+public struct Player
+{
+}

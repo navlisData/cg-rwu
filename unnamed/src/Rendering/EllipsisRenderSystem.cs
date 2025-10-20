@@ -20,12 +20,12 @@ public sealed class EllipsisRenderSystem(World world) : EntitySetSystem<float>(w
 {
     protected override void Update(float _, in Entity e)
     {
-        ref var position = ref e.Get<Position>();
-        ref var transform = ref e.Get<Transform>();
+        ref Position position = ref e.Get<Position>();
+        ref Transform transform = ref e.Get<Transform>();
 
         if (e.Has<ObjectColor>())
         {
-            ref var color = ref e.Get<ObjectColor>();
+            ref ObjectColor color = ref e.Get<ObjectColor>();
             GL.Color4(color.Rgba.X, color.Rgba.Y, color.Rgba.Z, color.Rgba.W);
         }
         else
@@ -33,7 +33,7 @@ public sealed class EllipsisRenderSystem(World world) : EntitySetSystem<float>(w
             GL.Color4(1f, 1f, 1f, 1f);
         }
 
-        Vector2 radius = new Vector2(
+        Vector2 radius = new(
             Math.Max(0.0001f, transform.Size.X),
             MathF.Max(0.0001f, transform.Size.Y)
         );
@@ -46,6 +46,7 @@ public sealed class EllipsisRenderSystem(World world) : EntitySetSystem<float>(w
             double radians = Math.PI * i / 180.0;
             GL.Vertex2(Math.Cos(radians) * radius.Y, Math.Sin(radians) * radius.X);
         }
+
         GL.End();
         GL.PopMatrix();
     }

@@ -14,16 +14,7 @@ namespace unnamed;
 
 public class Game : GameWindow
 {
-    private readonly World world = new();
-    
-    private readonly MoveSystem move;
-    private readonly PlayerInputSystem playerInput;
-
-    private readonly EllipsisRenderSystem ellipsisRenderer;
-    
-    private Entity player;
-
-    private static readonly NativeWindowSettings Settings = new ()
+    private static readonly NativeWindowSettings Settings = new()
     {
         Profile = ContextProfile.Compatability,
         Flags = ContextFlags.Default,
@@ -32,17 +23,22 @@ public class Game : GameWindow
         ClientSize = new Vector2i(500, 500)
     };
 
-    private static readonly GameWindowSettings NativeSettings = new()
-    {
-        UpdateFrequency = 60,
-    };
+    private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
+
+    private readonly EllipsisRenderSystem ellipsisRenderer;
+
+    private readonly MoveSystem move;
+    private readonly PlayerInputSystem playerInput;
+    private readonly World world = new();
+
+    private Entity player;
 
     public Game() : base(NativeSettings, Settings)
     {
-        move = new MoveSystem(world);
-        playerInput = new PlayerInputSystem(world, () => KeyboardState);
+        this.move = new MoveSystem(this.world);
+        this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState);
 
-        ellipsisRenderer = new  EllipsisRenderSystem(world);
+        this.ellipsisRenderer = new EllipsisRenderSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -52,11 +48,10 @@ public class Game : GameWindow
         GL.ClearColor(0.08f, 0.08f, 0.1f, 1f);
         GL.Disable(EnableCap.DepthTest);
 
-        player = PrefabFactory.CreatePlayer(
-            world,
-            startPos: new Vector2(0, 0),
-            startVel: new Vector2(0f, 0f),
-            size: new Vector2(0.05f, 0.05f)
+        this.player = PrefabFactory.CreatePlayer(this.world,
+            new Vector2(0, 0),
+            new Vector2(0f, 0f),
+            new Vector2(0.05f, 0.05f)
         );
     }
 
@@ -65,10 +60,13 @@ public class Game : GameWindow
         base.OnUpdateFrame(args);
         float dt = (float)args.Time;
 
-        if (KeyboardState.IsKeyDown(Keys.Escape)) Close();
+        if (this.KeyboardState.IsKeyDown(Keys.Escape))
+        {
+            this.Close();
+        }
 
-        playerInput.Run(dt);
-        move.Run(dt);
+        this.playerInput.Run(dt);
+        this.move.Run(dt);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
@@ -77,15 +75,14 @@ public class Game : GameWindow
 
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        ellipsisRenderer.Run(0f);
+        this.ellipsisRenderer.Run(0f);
 
-        SwapBuffers();
+        this.SwapBuffers();
     }
 
     protected override void OnResize(ResizeEventArgs e)
     {
         base.OnResize(e);
-        GL.Viewport(0, 0, Size.X, Size.Y);
+        GL.Viewport(0, 0, this.Size.X, this.Size.Y);
     }
 }
-

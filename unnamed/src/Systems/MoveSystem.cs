@@ -15,8 +15,8 @@ public sealed class MoveSystem(World world) : EntitySetSystem<float>(world, worl
 {
     protected override void Update(float dt, in Entity e)
     {
-        ref var position = ref e.Get<Position>();
-        ref var velocity = ref e.Get<Velocity>();
+        ref Position position = ref e.Get<Position>();
+        ref Velocity velocity = ref e.Get<Velocity>();
         position.Value += velocity.Value * dt;
     }
 }
