@@ -25,14 +25,13 @@ public class Game : GameWindow
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
 
     private readonly CameraSystem cameraSystem;
+    private readonly EllipsisRenderSystem ellipsisRenderer;
     private readonly FollowingSystem followSystem;
-
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
     private readonly World world = new();
 
     private Entity camera;
-    private EllipsisRenderSystem ellipsisRenderer;
     private Entity player;
     private int shaderProgram;
 
@@ -42,6 +41,7 @@ public class Game : GameWindow
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState);
         this.followSystem = new FollowingSystem(this.world);
         this.cameraSystem = new CameraSystem(this.world);
+        this.ellipsisRenderer = new EllipsisRenderSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -50,7 +50,6 @@ public class Game : GameWindow
         GL.ClearColor(Color4.Black);
 
         this.shaderProgram = SetupShader();
-        this.ellipsisRenderer = new EllipsisRenderSystem(this.world, this.shaderProgram);
 
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Vector2(0, 0),
@@ -103,7 +102,7 @@ public class Game : GameWindow
 
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
-        this.ellipsisRenderer.Run(cameraPosition);
+        this.ellipsisRenderer.Run((this.shaderProgram, cameraPosition));
 
         this.SwapBuffers();
     }

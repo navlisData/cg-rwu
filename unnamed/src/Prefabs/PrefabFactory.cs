@@ -28,7 +28,7 @@ public static class PrefabFactory
     {
         Entity entity = world.CreateEntity();
         entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, AspectRatio = width / (float)height });
-        entity.Add(new Follows { Target = target, LerpSpeed = 25f });
+        entity.Add(new Follows { Target = target, LerpSpeed = 10f });
         entity.Add(new Position { Value = (0f, 0f) });
         entity.Add(new Hidden());
         return entity;
