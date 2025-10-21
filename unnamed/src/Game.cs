@@ -116,25 +116,8 @@ public class Game : GameWindow
 
     private static int SetupShader()
     {
-        const string vertexShaderSource = """
-                                          #version 330 core
-                                          layout (location = 0) in vec2 aPos;
-                                          uniform mat4 uMVP;
-                                          void main()
-                                          {
-                                              gl_Position = uMVP * vec4(aPos, 0.0, 1.0);
-                                          }
-                                          """;
-
-        const string fragmentShaderSource = """
-                                            #version 330 core
-                                            uniform vec4 uColor;
-                                            out vec4 FragColor;
-                                            void main()
-                                            {
-                                                FragColor = uColor;
-                                            }
-                                            """;
+        string vertexShaderSource = File.ReadAllText("shader.vert");
+        string fragmentShaderSource = File.ReadAllText("shader.frag");
 
         int vertex = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vertex, vertexShaderSource);
