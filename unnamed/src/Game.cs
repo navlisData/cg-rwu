@@ -61,9 +61,9 @@ public class Game : GameWindow
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize.X, InitialGameSize.Y);
 
         Random random = new();
-        for (int _ = 0; _ < 100; _++)
+        for (int i = 0; i < 100; i++)
         {
-            PrefabFactory.CreateEllipsis(this.world,
+            Entity unused = PrefabFactory.CreateEllipsis(this.world,
                 new Vector2(random.Next(-100, 100), random.Next(-100, 100)),
                 new Vector2(random.Next(1, 5), random.Next(1, 5)),
                 new Vector4((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble(), 1f));
