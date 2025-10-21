@@ -18,7 +18,6 @@ public ref struct EntityEnumerator
     private readonly World world;
     private readonly Type[] with;
     private readonly Type[] without;
-    private readonly IComponentPool anchorPool;
     private readonly ReadOnlySpan<int> anchorDense;
 
     private int i;
@@ -53,11 +52,13 @@ public ref struct EntityEnumerator
         {
             IComponentPool pool = this.world.GetPool(t);
             int cnt = pool.Count;
-            if (cnt < bestCount)
+            if (cnt >= bestCount)
             {
-                best = pool;
-                bestCount = cnt;
+                continue;
             }
+
+            best = pool;
+            bestCount = cnt;
         }
 
         IComponentPool anchorPool = best!;
@@ -87,11 +88,13 @@ public ref struct EntityEnumerator
             bool ok = true;
             foreach (Type t in this.with)
             {
-                if (!this.world.GetPool(t).Has(id))
+                if (this.world.GetPool(t).Has(id))
                 {
-                    ok = false;
-                    break;
+                    continue;
                 }
+
+                ok = false;
+                break;
             }
 
             if (!ok)
@@ -101,11 +104,13 @@ public ref struct EntityEnumerator
 
             foreach (Type t in this.without)
             {
-                if (this.world.GetPool(t).Has(id))
+                if (!this.world.GetPool(t).Has(id))
                 {
-                    ok = false;
-                    break;
+                    continue;
                 }
+
+                ok = false;
+                break;
             }
 
             if (!ok)
@@ -114,11 +119,13 @@ public ref struct EntityEnumerator
             }
 
             // Ensure the entity handle is valid at enumeration time.
-            if (this.world.TryGetEntityVersion(id, out int version))
+            if (!this.world.TryGetEntityVersion(id, out int version))
             {
-                this.Current = new Entity(this.world, id, version);
-                return true;
+                continue;
             }
+
+            this.Current = new Entity(this.world, id, version);
+            return true;
         }
 
         return false;
