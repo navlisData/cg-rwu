@@ -16,6 +16,7 @@ public static class PrefabFactory
         entity.Add(new Position { Value = startPos });
         entity.Add(new Velocity { Value = startVel });
         entity.Add(new Transform { Size = size, Scale = 1 });
+        entity.Add(new ReceivesPlayerInput());
         entity.Add(new Player());
 
         entity.Add(new Circle());
@@ -30,6 +31,7 @@ public static class PrefabFactory
         entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, AspectRatio = width / (float)height });
         entity.Add(new Follows { Target = target, LerpSpeed = 10f });
         entity.Add(new Position { Value = (0f, 0f) });
+        entity.Add(new ReceivesPlayerInput());
         entity.Add(new Hidden());
         return entity;
     }

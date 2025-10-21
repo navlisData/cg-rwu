@@ -38,7 +38,7 @@ public class Game : GameWindow
     public Game() : base(NativeSettings, Settings)
     {
         this.move = new MoveSystem(this.world);
-        this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState);
+        this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.followSystem = new FollowingSystem(this.world);
         this.cameraSystem = new CameraSystem(this.world);
         this.ellipsisRenderer = new EllipsisRenderSystem(this.world);
@@ -68,14 +68,6 @@ public class Game : GameWindow
                 new Vector2(random.Next(1, 5), random.Next(1, 5)),
                 new Vector4((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble(), 1f));
         }
-    }
-
-    protected override void OnMouseWheel(MouseWheelEventArgs e)
-    {
-        base.OnMouseWheel(e);
-        ref Camera2D cameraPos = ref this.camera.Get<Camera2D>();
-        cameraPos.Zoom *= (float)Math.Pow(1.1f, e.OffsetY);
-        cameraPos.Zoom = Math.Clamp(cameraPos.Zoom, 0.1f, 5.0f);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
