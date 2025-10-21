@@ -29,17 +29,12 @@ public class Game : GameWindow
 
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
-    private readonly uint[] quadIndices = [0, 1, 2, 2, 3, 0];
-    private readonly float[] quadVertices = [-0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f];
     private readonly World world = new();
 
     private Entity camera;
-    private int elementBuffer;
     private EllipsisRenderSystem ellipsisRenderer;
     private Entity player;
     private int shaderProgram;
-    private int vertexArray;
-    private int vertexBuffer;
 
     public Game() : base(NativeSettings, Settings)
     {
@@ -53,33 +48,27 @@ public class Game : GameWindow
     {
         base.OnLoad();
         GL.ClearColor(Color4.Black);
-        this.vertexArray = GL.GenVertexArray();
-        this.vertexBuffer = GL.GenBuffer();
-        this.elementBuffer = GL.GenBuffer();
-
-        GL.BindVertexArray(this.vertexArray);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
-        GL.BufferData(BufferTarget.ArrayBuffer, this.quadVertices.Length * sizeof(float), this.quadVertices,
-            BufferUsageHint.StaticDraw);
-
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
-            BufferUsageHint.StaticDraw);
 
         this.shaderProgram = SetupShader();
-        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-
         this.ellipsisRenderer = new EllipsisRenderSystem(this.world, this.shaderProgram);
 
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Vector2(0, 0),
             new Vector2(0f, 0f),
-            new Vector2(0.05f, 0.05f)
+            new Vector2(1f, 1f)
         );
 
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize.X, InitialGameSize.Y);
+
+        Random random = new();
+        for (int _ = 0; _ < 100; _++)
+        {
+            PrefabFactory.CreateEllipsis(this.world,
+                new Vector2(random.Next(-100, 100), random.Next(-100, 100)),
+                new Vector2(random.Next(1, 5), random.Next(1, 5)),
+                new Vector4((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble(), 1f));
+        }
     }
 
     protected override void OnMouseWheel(MouseWheelEventArgs e)
@@ -114,17 +103,6 @@ public class Game : GameWindow
 
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
-        int mvpUniformLocation = GL.GetUniformLocation(this.shaderProgram, "uMVP");
-        int colorUniformLocation = GL.GetUniformLocation(this.shaderProgram, "uColor");
-
-        Matrix4 modelSquare = Matrix4.Identity;
-        Matrix4 mvpSquare = modelSquare * cameraPosition.ViewProjection;
-        GL.UniformMatrix4(mvpUniformLocation, false, ref mvpSquare);
-        GL.Uniform4(colorUniformLocation, new Vector4(1f, 0f, 0f, 1f));
-
-        GL.BindVertexArray(this.vertexArray);
-        GL.DrawElements(PrimitiveType.Triangles, this.quadIndices.Length, DrawElementsType.UnsignedInt, 0);
-
         this.ellipsisRenderer.Run(cameraPosition);
 
         this.SwapBuffers();
@@ -142,10 +120,6 @@ public class Game : GameWindow
         base.OnUnload();
 
         this.ellipsisRenderer.onUnload();
-
-        GL.DeleteVertexArray(this.vertexArray);
-        GL.DeleteBuffer(this.vertexBuffer);
-        GL.DeleteBuffer(this.elementBuffer);
         GL.DeleteProgram(this.shaderProgram);
     }
 
