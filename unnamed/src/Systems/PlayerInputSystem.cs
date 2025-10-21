@@ -85,6 +85,16 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
 
             camera.Zoom *= (float)Math.Pow(1.1f, mouseState.ScrollDelta.Y);
             camera.Zoom = Math.Clamp(camera.Zoom, 0.1f, 5.0f);
+
+            if (keyboardState.IsKeyDown(Keys.Q))
+            {
+                camera.Rotation += .1f;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.E))
+            {
+                camera.Rotation -= .1f;
+            }
         }
     }
 }
