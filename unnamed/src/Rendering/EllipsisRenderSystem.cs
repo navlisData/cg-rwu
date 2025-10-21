@@ -10,44 +10,61 @@ using unnamed.Components.Tags;
 
 namespace unnamed.Rendering;
 
-public sealed class EllipsisRenderSystem(World world) : EntitySetSystem<float>(world, world.Query()
-    .With<Position>()
-    .With<Circle>()
-    .With<Transform>()
-    .Without<Hidden>()
-    .Build()
-)
+public sealed class EllipsisRenderSystem : EntitySetSystem<(int shader, Camera2D camera)>
 {
-    protected override void Update(float _, in Entity e)
+    private readonly int vertexArray = GL.GenVertexArray();
+    private readonly int vertexBuffer = GL.GenBuffer();
+    private int ellipseVertexCount;
+
+    public EllipsisRenderSystem(World world) : base(world, world.Query()
+        .With<Position>()
+        .With<Circle>()
+        .With<Transform>()
+        .Without<Hidden>()
+        .Build())
+    {
+        GL.BindVertexArray(this.vertexArray);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+    }
+
+    protected override void Update((int shader, Camera2D camera) param, in Entity e)
     {
         ref Position position = ref e.Get<Position>();
         ref Transform transform = ref e.Get<Transform>();
 
-        if (e.Has<ObjectColor>())
+        const int segments = 64;
+        float[] ellipseVertices = new float[(segments + 2) * 2];
+        ellipseVertices[0] = 0f;
+        ellipseVertices[1] = 0f;
+        for (int i = 0; i <= segments; i++)
         {
-            ref ObjectColor color = ref e.Get<ObjectColor>();
-            GL.Color4(color.Rgba.X, color.Rgba.Y, color.Rgba.Z, color.Rgba.W);
-        }
-        else
-        {
-            GL.Color4(1f, 1f, 1f, 1f);
-        }
-
-        Vector2 radius = new(
-            Math.Max(0.0001f, transform.Size.X),
-            MathF.Max(0.0001f, transform.Size.Y)
-        );
-
-        GL.PushMatrix();
-        GL.Translate(position.Value.X, position.Value.Y, 0.0);
-        GL.Begin(PrimitiveType.TriangleFan);
-        for (int i = 0; i < 360; i++)
-        {
-            double radians = Math.PI * i / 180.0;
-            GL.Vertex2(Math.Cos(radians) * radius.Y, Math.Sin(radians) * radius.X);
+            float angle = i / (float)segments * MathHelper.TwoPi;
+            ellipseVertices[((i + 1) * 2) + 0] = MathF.Cos(angle) * transform.Size.X * transform.Scale;
+            ellipseVertices[((i + 1) * 2) + 1] = MathF.Sin(angle) * transform.Size.Y * transform.Scale;
         }
 
-        GL.End();
-        GL.PopMatrix();
+        this.ellipseVertexCount = segments + 2;
+
+        GL.BufferData(BufferTarget.ArrayBuffer, ellipseVertices.Length * sizeof(float), ellipseVertices,
+            BufferUsageHint.StaticDraw);
+
+        int vertexUniform = GL.GetUniformLocation(param.shader, "uMVP");
+        int fragmentUniform = GL.GetUniformLocation(param.shader, "uColor");
+
+        Matrix4 ellipseModel =
+            Matrix4.CreateTranslation(position.Value.X, position.Value.Y, 0f);
+        Matrix4 ellipseViewProjection = ellipseModel * param.camera.ViewProjection;
+        GL.UniformMatrix4(vertexUniform, false, ref ellipseViewProjection);
+        Vector4 color = e.Has<ObjectColor>() ? e.Get<ObjectColor>().Rgba : new Vector4(1f, 1f, 1f, 1f);
+        GL.Uniform4(fragmentUniform, color);
+        GL.DrawArrays(PrimitiveType.TriangleFan, 0, this.ellipseVertexCount);
+    }
+
+    public void onUnload()
+    {
+        GL.DeleteVertexArray(this.vertexArray);
+        GL.DeleteBuffer(this.vertexBuffer);
     }
 }

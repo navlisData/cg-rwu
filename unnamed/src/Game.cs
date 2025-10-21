@@ -6,6 +6,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+using unnamed.Components.Rendering;
 using unnamed.Prefabs;
 using unnamed.Rendering;
 using unnamed.systems;
@@ -14,45 +15,59 @@ namespace unnamed;
 
 public class Game : GameWindow
 {
+    private static readonly Vector2i InitialGameSize = (500, 500);
+
     private static readonly NativeWindowSettings Settings = new()
     {
-        Profile = ContextProfile.Compatability,
-        Flags = ContextFlags.Default,
-        Title = "Unnamed",
-        Vsync = VSyncMode.On,
-        ClientSize = new Vector2i(500, 500)
+        Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = InitialGameSize
     };
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
 
+    private readonly CameraSystem cameraSystem;
     private readonly EllipsisRenderSystem ellipsisRenderer;
-
+    private readonly FollowingSystem followSystem;
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
     private readonly World world = new();
 
+    private Entity camera;
     private Entity player;
+    private int shaderProgram;
 
     public Game() : base(NativeSettings, Settings)
     {
         this.move = new MoveSystem(this.world);
-        this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState);
-
+        this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
+        this.followSystem = new FollowingSystem(this.world);
+        this.cameraSystem = new CameraSystem(this.world);
         this.ellipsisRenderer = new EllipsisRenderSystem(this.world);
     }
 
     protected override void OnLoad()
     {
         base.OnLoad();
+        GL.ClearColor(Color4.Black);
 
-        GL.ClearColor(0.08f, 0.08f, 0.1f, 1f);
-        GL.Disable(EnableCap.DepthTest);
+        this.shaderProgram = SetupShader();
 
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Vector2(0, 0),
             new Vector2(0f, 0f),
-            new Vector2(0.05f, 0.05f)
+            new Vector2(1f, 1f)
         );
+
+        this.camera =
+            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize.X, InitialGameSize.Y);
+
+        Random random = new();
+        for (int i = 0; i < 100; i++)
+        {
+            Entity unused = PrefabFactory.CreateEllipsis(this.world,
+                new Vector2(random.Next(-100, 100), random.Next(-100, 100)),
+                new Vector2(random.Next(1, 5), random.Next(1, 5)),
+                new Vector4((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble(), 1f));
+        }
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -66,16 +81,20 @@ public class Game : GameWindow
         }
 
         this.playerInput.Run(dt);
+        this.followSystem.Run(dt);
+        this.cameraSystem.Run(dt);
         this.move.Run(dt);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
         base.OnRenderFrame(args);
-
         GL.Clear(ClearBufferMask.ColorBufferBit);
+        GL.UseProgram(this.shaderProgram);
 
-        this.ellipsisRenderer.Run(0f);
+        ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
+
+        this.ellipsisRenderer.Run((this.shaderProgram, cameraPosition));
 
         this.SwapBuffers();
     }
@@ -84,5 +103,52 @@ public class Game : GameWindow
     {
         base.OnResize(e);
         GL.Viewport(0, 0, this.Size.X, this.Size.Y);
+        this.camera.Get<Camera2D>().AspectRatio = (float)this.Size.X / this.Size.Y;
+    }
+
+    protected override void OnUnload()
+    {
+        base.OnUnload();
+
+        this.ellipsisRenderer.onUnload();
+        GL.DeleteProgram(this.shaderProgram);
+    }
+
+    private static int SetupShader()
+    {
+        string vertexShaderSource = File.ReadAllText("shader.vert");
+        string fragmentShaderSource = File.ReadAllText("shader.frag");
+
+        int vertex = GL.CreateShader(ShaderType.VertexShader);
+        GL.ShaderSource(vertex, vertexShaderSource);
+        GL.CompileShader(vertex);
+        CheckShader(vertex);
+
+        int fragment = GL.CreateShader(ShaderType.FragmentShader);
+        GL.ShaderSource(fragment, fragmentShaderSource);
+        GL.CompileShader(fragment);
+        CheckShader(fragment);
+
+        int shader = GL.CreateProgram();
+        GL.AttachShader(shader, vertex);
+        GL.AttachShader(shader, fragment);
+        GL.LinkProgram(shader);
+
+        GL.DeleteShader(vertex);
+        GL.DeleteShader(fragment);
+
+        return shader;
+    }
+
+    private static void CheckShader(int shader)
+    {
+        GL.GetShader(shader, ShaderParameter.CompileStatus, out int status);
+        if (status != 0)
+        {
+            return;
+        }
+
+        Console.WriteLine(GL.GetShaderInfoLog(shader));
+        throw new Exception("Shader compilation failed!");
     }
 }

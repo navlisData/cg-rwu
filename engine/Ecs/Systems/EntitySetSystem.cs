@@ -7,9 +7,9 @@ namespace Engine.Ecs.Systems;
 ///     Iterates allocation-free using the query's <see cref="EntityEnumerator" /> and calls <see cref="Update" />
 ///     for each matching entity.
 /// </summary>
-/// <typeparam name="TDelta">
-///     Time delta (or any tick/context payload) passed to <see cref="Run(TDelta)" /> and
-///     <see cref="Update(TDelta, in Entity)" />.
+/// <typeparam name="T">
+///     Any context payload passed to <see cref="Run(T)" /> and
+///     <see cref="Update(T, in Entity)" />.
 /// </typeparam>
 /// <remarks>
 ///     - Not thread-safe.
@@ -17,7 +17,7 @@ namespace Engine.Ecs.Systems;
 ///     (e.g., removing a component that is part of the query's required set on the current entity),
 ///     as this can perturb enumeration order. Non-anchor mutations are typically safe.
 /// </remarks>
-public abstract class EntitySetSystem<TDelta>
+public abstract class EntitySetSystem<T>
 {
     private readonly Query query;
 
@@ -40,20 +40,20 @@ public abstract class EntitySetSystem<TDelta>
     /// <summary>
     ///     Executes the system once for all entities matching the query.
     /// </summary>
-    /// <param name="dt">Delta or context payload forwarded to <see cref="Update(TDelta, in Entity)" />.</param>
-    public void Run(TDelta dt)
+    /// <param name="context">Context payload forwarded to <see cref="Update(T, in Entity)" />.</param>
+    public void Run(T context)
     {
         EntityEnumerator it = this.query.AsEnumerator(this.world);
         foreach (Entity e in it)
         {
-            this.Update(dt, in e);
+            this.Update(context, in e);
         }
     }
 
     /// <summary>
     ///     Per-entity update hook. Implement system behavior here.
     /// </summary>
-    /// <param name="dt">Delta or context payload.</param>
+    /// <param name="context">Context payload.</param>
     /// <param name="e">Current entity (validated handle).</param>
-    protected abstract void Update(TDelta dt, in Entity e);
+    protected abstract void Update(T context, in Entity e);
 }
