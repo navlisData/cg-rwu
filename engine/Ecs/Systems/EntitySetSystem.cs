@@ -24,7 +24,7 @@ public abstract class EntitySetSystem<T>
     /// <summary>
     ///     The ECS world this system operates on.
     /// </summary>
-    private readonly World world;
+    protected readonly World world;
 
     /// <summary>
     ///     Creates a new system bound to a world and a precompiled query.

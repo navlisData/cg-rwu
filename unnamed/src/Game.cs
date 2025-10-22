@@ -6,6 +6,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Prefabs;
 using unnamed.Rendering;
@@ -58,7 +59,7 @@ public class Game : GameWindow
         );
 
         this.camera =
-            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize.X, InitialGameSize.Y);
+            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
         Random random = new();
         for (int i = 0; i < 100; i++)
@@ -80,7 +81,7 @@ public class Game : GameWindow
             this.Close();
         }
 
-        this.playerInput.Run(dt);
+        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>()));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.move.Run(dt);
@@ -103,7 +104,7 @@ public class Game : GameWindow
     {
         base.OnResize(e);
         GL.Viewport(0, 0, this.Size.X, this.Size.Y);
-        this.camera.Get<Camera2D>().AspectRatio = (float)this.Size.X / this.Size.Y;
+        this.camera.Get<Camera2D>().Viewport = this.Size;
     }
 
     protected override void OnUnload()

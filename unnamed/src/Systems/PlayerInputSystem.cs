@@ -7,11 +7,13 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Prefabs;
+using unnamed.Utils;
 
 namespace unnamed.systems;
 
 public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
-    : EntitySetSystem<float>(world,
+    : EntitySetSystem<(float dt, Camera2D camera, Position player)>(world,
         world.Query()
             .With<ReceivesPlayerInput>()
             .Build()
@@ -23,10 +25,13 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
     private readonly Func<MouseState> mouseStateProvider =
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
-    protected override void Update(float dt, in Entity e)
+    protected override void Update((float dt, Camera2D camera, Position player) args, in Entity e)
     {
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
+        float dt = args.dt;
+        ref Camera2D camera2D = ref args.camera;
+        ref Position player = ref args.player;
 
         if (e.Has<Velocity>())
         {
@@ -95,6 +100,18 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             {
                 camera.Rotation -= .1f;
             }
+        }
+
+        if (mouseState.IsButtonReleased(MouseButton.Left))
+        {
+            Vector2 mousePositionWorld =
+                Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport, camera2D.ViewProjection);
+
+            Vector2 direction =
+                -Vector2.Normalize(player.Value - new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
+
+            Entity unused = PrefabFactory.CreateBullet(this.world, player.Value,
+                direction * 10f);
         }
     }
 }

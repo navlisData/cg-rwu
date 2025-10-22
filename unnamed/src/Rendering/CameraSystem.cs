@@ -20,7 +20,8 @@ public sealed class CameraSystem(World world) : EntitySetSystem<float>(world, wo
         ref Vector2 position = ref e.Get<Position>().Value;
 
         float halfHeight = camera.OrthographicSize * 0.5f / camera.Zoom;
-        float halfWidth = halfHeight * camera.AspectRatio;
+        float aspectRatio = camera.Viewport.X / (float)camera.Viewport.Y;
+        float halfWidth = halfHeight * aspectRatio;
 
         camera.View =
             Matrix4.CreateTranslation(-position.X, -position.Y, 0f) *

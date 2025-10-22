@@ -25,10 +25,10 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateFollowingCamera(World world, in Entity target, int width, int height)
+    public static Entity CreateFollowingCamera(World world, in Entity target, Vector2i viewport)
     {
         Entity entity = world.CreateEntity();
-        entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, AspectRatio = width / (float)height });
+        entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport });
         entity.Add(new Follows { Target = target, LerpSpeed = 10f });
         entity.Add(new Position { Value = (0f, 0f) });
         entity.Add(new ReceivesPlayerInput());
@@ -42,6 +42,17 @@ public static class PrefabFactory
         entity.Add(new Position { Value = startPos });
         entity.Add(new Transform { Size = size, Scale = 1 });
         entity.Add(new ObjectColor { Rgba = color });
+        entity.Add(new Circle());
+        return entity;
+    }
+
+    public static Entity CreateBullet(World world, Vector2 startPos, Vector2 velocity)
+    {
+        Entity entity = world.CreateEntity();
+        entity.Add(new Position { Value = startPos });
+        entity.Add(new Transform { Size = new Vector2(0.1f, 0.1f), Scale = 1 });
+        entity.Add(new ObjectColor { Rgba = (1, 0, 0, 1) });
+        entity.Add(new Velocity { Value = velocity });
         entity.Add(new Circle());
         return entity;
     }

@@ -10,8 +10,8 @@ public struct Camera2D
     /// Visible world units vertically at Zoom = 1
     public float OrthographicSize;
 
-    // Viewport Width / Height
-    public float AspectRatio;
+    // Viewport
+    public Vector2i Viewport;
 
     /// Translation
     public Matrix4 View;
