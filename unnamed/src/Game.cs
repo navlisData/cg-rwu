@@ -116,8 +116,8 @@ public class Game : GameWindow
 
     private static int SetupShader()
     {
-        string vertexShaderSource = File.ReadAllText("shader.vert");
-        string fragmentShaderSource = File.ReadAllText("shader.frag");
+        string vertexShaderSource = File.ReadAllText("shaders/shader.vert");
+        string fragmentShaderSource = File.ReadAllText("shaders/shader.frag");
 
         int vertex = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vertex, vertexShaderSource);
