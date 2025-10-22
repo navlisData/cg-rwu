@@ -108,7 +108,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport, camera2D.ViewProjection);
 
             Vector2 direction =
-                Vector2.Normalize(player.Value + new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
+                -Vector2.Normalize(player.Value - new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
 
             Entity unused = PrefabFactory.CreateBullet(this.world, player.Value,
                 direction * 10f);
