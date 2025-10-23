@@ -36,22 +36,22 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         if (e.Has<Velocity>())
         {
             Vector2 direction = Vector2.Zero;
-            if (keyboardState.IsKeyDown(Keys.Left))
+            if (keyboardState.IsKeyDown(Keys.A))
             {
                 direction.X -= 1;
             }
 
-            if (keyboardState.IsKeyDown(Keys.Right))
+            if (keyboardState.IsKeyDown(Keys.D))
             {
                 direction.X += 1;
             }
 
-            if (keyboardState.IsKeyDown(Keys.Up))
+            if (keyboardState.IsKeyDown(Keys.W))
             {
                 direction.Y += 1;
             }
 
-            if (keyboardState.IsKeyDown(Keys.Down))
+            if (keyboardState.IsKeyDown(Keys.S))
             {
                 direction.Y -= 1;
             }
