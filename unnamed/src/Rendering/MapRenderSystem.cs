@@ -6,18 +6,18 @@ using OpenTK.Mathematics;
 
 using unnamed.Components.Map;
 using unnamed.Components.Rendering;
+using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
 public class MapRenderSystem : EntitySetSystem<(int shader, Camera2D camera)>
 {
-    private const float TileSizeX = 4;
-    private const float TileSizeY = 4;
-    private const int GridSizeX = 16;
-    private const int GridSizeY = 16;
     private readonly int elementBuffer;
     private readonly uint[] quadIndices = [0, 1, 2, 2, 1, 3];
-    private readonly float[] quadVertices = [0f, 0f, TileSizeX, 0f, 0f, TileSizeY, TileSizeX, TileSizeY];
+
+    private readonly float[] quadVertices =
+        [0f, 0f, Constants.TileSizeX, 0f, 0f, Constants.TileSizeY, Constants.TileSizeX, Constants.TileSizeY];
+
     private readonly int vertexArray;
     private readonly int vertexBuffer;
 
@@ -61,8 +61,9 @@ public class MapRenderSystem : EntitySetSystem<(int shader, Camera2D camera)>
         int colorUniformLocation = GL.GetUniformLocation(param.shader, "uColor");
 
 
-        Matrix4 modelSquare = Matrix4.CreateTranslation(((chunkPosition.X * GridSizeX) + inChunkPosition.X) * TileSizeX,
-            ((chunkPosition.Y * GridSizeY) + inChunkPosition.Y) * TileSizeY, 0f);
+        Matrix4 modelSquare = Matrix4.CreateTranslation(
+            ((chunkPosition.X * Constants.GridSizeX) + inChunkPosition.X) * Constants.TileSizeX,
+            ((chunkPosition.Y * Constants.GridSizeY) + inChunkPosition.Y) * Constants.TileSizeY, 0f);
         Matrix4 mvpSquare = modelSquare * param.camera.ViewProjection;
         GL.UniformMatrix4(mvpUniformLocation, false, ref mvpSquare);
         GL.Uniform4(colorUniformLocation, color);
