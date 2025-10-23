@@ -65,9 +65,9 @@ public class Game : GameWindow
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
-        foreach (int gridX in Enumerable.Range(-1, 2))
+        foreach (int gridX in Enumerable.Range(-5, 10))
         {
-            foreach (int gridY in Enumerable.Range(-1, 2))
+            foreach (int gridY in Enumerable.Range(-5, 10))
             {
                 Entity chunk = PrefabFactory.CreateMapChunk(this.world, new Vector2i(gridX, gridY));
                 foreach (int x in Enumerable.Range(0, 16))
@@ -126,7 +126,7 @@ public class Game : GameWindow
         base.OnUnload();
 
         this.ellipsisRenderer.onUnload();
-        this.mapRenderSystem.onUnload();
+        this.mapRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);
     }
 }

@@ -6,7 +6,7 @@ using unnamed.Utils;
 
 namespace unnamed.Components.Physics;
 
-public struct Position
+public struct Position : IEquatable<Position>
 {
     /// <summary>
     ///     The map chunk the entity is in
@@ -19,91 +19,119 @@ public struct Position
     public Vector2i Tile;
 
     /// <summary>
-    ///     The cell relative position
+    ///     The tile relative position
     /// </summary>
-    public Vector2 CellPosition;
+    public Vector2 Pos;
 
     /// <summary>
     ///     Converts the map-relative <c>Position</c> to the respective world position
     /// </summary>
     /// <returns>World position as <c>Vector2</c></returns>
+    [Pure]
     public Vector2 ToWorldPosition()
     {
         return new Vector2(
-            (((this.Chunk.X * Constants.GridSizeX) + this.Tile.X) * Constants.TileSizeX) + this.CellPosition.X,
-            (((this.Chunk.Y * Constants.GridSizeY) + this.Tile.Y) * Constants.TileSizeY) + this.CellPosition.Y);
+            (((this.Chunk.X * Constants.GridSizeX) + this.Tile.X) * Constants.TileSizeX) + this.Pos.X,
+            (((this.Chunk.Y * Constants.GridSizeY) + this.Tile.Y) * Constants.TileSizeY) + this.Pos.Y);
     }
 
-    internal void Add(Vector2 cellPosition, Vector2i cell, Vector2i chunk)
+    [Pure]
+    public static Position FromWorldPosition(in Vector2 world)
     {
-        this.CellPosition += cellPosition;
+        Position pos = new();
 
-        while (this.CellPosition.X > Constants.TileSizeX)
+        const float chunkWorldSizeX = Constants.GridSizeX * Constants.TileSizeX;
+        const float chunkWorldSizeY = Constants.GridSizeY * Constants.TileSizeY;
+
+        pos.Chunk = new Vector2i(
+            (int)Math.Floor(world.X / chunkWorldSizeX),
+            (int)Math.Floor(world.Y / chunkWorldSizeY)
+        );
+
+        float localX = world.X - (pos.Chunk.X * chunkWorldSizeX);
+        float localY = world.Y - (pos.Chunk.Y * chunkWorldSizeY);
+
+        pos.Tile = new Vector2i(
+            (int)Math.Floor(localX / Constants.TileSizeX),
+            (int)Math.Floor(localY / Constants.TileSizeY)
+        );
+
+        pos.Pos = new Vector2(
+            world.X - (((pos.Chunk.X * Constants.GridSizeX) + pos.Tile.X) * Constants.TileSizeX),
+            world.Y - (((pos.Chunk.Y * Constants.GridSizeY) + pos.Tile.Y) * Constants.TileSizeY)
+        );
+
+        return pos;
+    }
+
+
+    private void ReAlign()
+    {
+        while (this.Pos.X > Constants.TileSizeX)
         {
-            this.CellPosition.X -= Constants.TileSizeX;
-            cell.X += 1;
+            this.Pos.X -= Constants.TileSizeX;
+            this.Tile.X += 1;
         }
 
-        while (this.CellPosition.X < 0f)
+        while (this.Pos.X < 0f)
         {
-            this.CellPosition.X += Constants.TileSizeX;
-            cell.X -= 1;
+            this.Pos.X += Constants.TileSizeX;
+            this.Tile.X -= 1;
         }
 
-        while (this.CellPosition.Y > Constants.TileSizeX)
+        while (this.Pos.Y > Constants.TileSizeX)
         {
-            this.CellPosition.Y -= Constants.TileSizeX;
-            cell.Y += 1;
+            this.Pos.Y -= Constants.TileSizeX;
+            this.Tile.Y += 1;
         }
 
-        while (this.CellPosition.Y < 0f)
+        while (this.Pos.Y < 0f)
         {
-            this.CellPosition.Y += Constants.TileSizeX;
-            cell.Y -= 1;
+            this.Pos.Y += Constants.TileSizeX;
+            this.Tile.Y -= 1;
         }
-
-        this.Tile += cell;
 
         while (this.Tile.X > Constants.GridSizeX)
         {
             this.Tile.X -= Constants.GridSizeX;
-            chunk.X += 1;
+            this.Chunk.X += 1;
         }
 
         while (this.Tile.X < 0f)
         {
             this.Tile.X += Constants.GridSizeX;
-            chunk.X -= 1;
+            this.Chunk.X -= 1;
         }
 
         while (this.Tile.Y > Constants.GridSizeX)
         {
             this.Tile.Y -= Constants.GridSizeX;
-            chunk.Y += 1;
+            this.Chunk.Y += 1;
         }
 
         while (this.Tile.Y < 0f)
         {
             this.Tile.Y += Constants.GridSizeX;
-            chunk.Y -= 1;
+            this.Chunk.Y -= 1;
         }
-
-        this.Chunk += chunk;
     }
 
-    internal void Add(Vector2 cellPosition, Vector2i cell)
+    public void Add(in Vector2 cellPosition, in Vector2i tile, in Vector2i chunk)
     {
-        this.Add(cellPosition, cell, Vector2i.Zero);
+        this.Chunk += chunk;
+        this.Tile += tile;
+        this.Pos += cellPosition;
+        this.ReAlign();
     }
 
-    internal void Add(Vector2 cellPosition)
+    public void Add(in Vector2 pos, in Vector2i tile)
+    {
+        this.Add(pos, tile, Vector2i.Zero);
+    }
+
+    public void Add(in Vector2 cellPosition)
     {
         this.Add(cellPosition, Vector2i.Zero, Vector2i.Zero);
-    }
-
-    internal void Add(Position position)
-    {
-        this.Add(position.CellPosition, position.Tile, position.Chunk);
     }
 
     /// <summary>
@@ -114,14 +142,64 @@ public struct Position
     /// <param name="blend">The blend factor.</param>
     /// <returns>a when blend=0, b when blend=1, and a linear combination otherwise.</returns>
     [Pure]
-    public static Position Lerp(Position a, Position b, float blend)
+    public static Position Lerp(in Position a, in Position b, in float blend)
     {
-        a.CellPosition.X = (blend * (a.CellPosition.X - a.CellPosition.X)) + a.CellPosition.X;
-        a.CellPosition.Y = (blend * (a.CellPosition.Y - a.CellPosition.Y)) + a.CellPosition.Y;
-        a.Tile.X = (int)(blend * (a.Tile.X - a.Tile.X)) + a.Tile.X;
-        a.Tile.Y = (int)(blend * (a.Tile.Y - a.Tile.Y)) + a.Tile.Y;
-        a.Chunk.X = (int)(blend * (a.Chunk.X - a.Chunk.X)) + a.Chunk.X;
-        a.Chunk.Y = (int)(blend * (a.Chunk.Y - a.Chunk.Y)) + a.Chunk.Y;
-        return a;
+        Vector2.Lerp(a.ToWorldPosition(), b.ToWorldPosition(), blend, out Vector2 world);
+        return FromWorldPosition(world);
+    }
+
+    [Pure]
+    public static Position operator +(Position left, in Position right)
+    {
+        left.Chunk += right.Chunk;
+        left.Tile += right.Tile;
+        left.Pos += right.Pos;
+        left.ReAlign();
+        return left;
+    }
+
+    public static Position operator -(Position left, in Position right)
+    {
+        left.Chunk = -right.Chunk;
+        left.Tile = -right.Chunk;
+        left.Pos = -right.Pos;
+        left.ReAlign();
+        return left;
+    }
+
+    [Pure]
+    public static Position operator -(Position left)
+    {
+        left.Chunk = -left.Chunk;
+        left.Tile = -left.Chunk;
+        left.Pos = -left.Pos;
+        left.ReAlign();
+        return left;
+    }
+
+    public static bool operator ==(Position left, Position right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Position left, Position right)
+    {
+        return !(left == right);
+    }
+
+    public bool Equals(Position other)
+    {
+        return this.Chunk.Equals(other.Chunk) && this.Tile.Equals(other.Tile) &&
+               this.Pos.Equals(other.Pos);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Position other && this.Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(this.Chunk, this.Tile, this.Pos);
     }
 }

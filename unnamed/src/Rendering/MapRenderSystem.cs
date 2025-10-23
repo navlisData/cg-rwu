@@ -10,25 +10,18 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class MapRenderSystem : EntitySetSystem<(int shader, Camera2D camera)>
+public class MapRenderSystem(World world) : EntitySetSystem<(int shader, Camera2D camera)>(world, world.Query()
+    .With<TileType>()
+    .Build())
 {
-    private readonly int elementBuffer;
+    private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = [0, 1, 2, 2, 1, 3];
 
     private readonly float[] quadVertices =
         [0f, 0f, Constants.TileSizeX, 0f, 0f, Constants.TileSizeY, Constants.TileSizeX, Constants.TileSizeY];
 
-    private readonly int vertexArray;
-    private readonly int vertexBuffer;
-
-    public MapRenderSystem(World world) : base(world, world.Query()
-        .With<TileType>()
-        .Build())
-    {
-        this.vertexArray = GL.GenVertexArray();
-        this.vertexBuffer = GL.GenBuffer();
-        this.elementBuffer = GL.GenBuffer();
-    }
+    private readonly int vertexArray = GL.GenVertexArray();
+    private readonly int vertexBuffer = GL.GenBuffer();
 
     protected override void Update((int shader, Camera2D camera) param, in Entity e)
     {
@@ -72,7 +65,7 @@ public class MapRenderSystem : EntitySetSystem<(int shader, Camera2D camera)>
         GL.DrawElements(PrimitiveType.Triangles, this.quadIndices.Length, DrawElementsType.UnsignedInt, 0);
     }
 
-    public void onUnload()
+    public void OnUnload()
     {
         GL.DeleteVertexArray(this.vertexArray);
         GL.DeleteBuffer(this.vertexBuffer);
