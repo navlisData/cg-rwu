@@ -2,6 +2,7 @@ using Engine.Ecs;
 
 using OpenTK.Mathematics;
 
+using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
@@ -54,6 +55,24 @@ public static class PrefabFactory
         entity.Add(new ObjectColor { Rgba = (1, 0, 0, 1) });
         entity.Add(new Velocity { Value = velocity });
         entity.Add(new Circle());
+        return entity;
+    }
+
+    public static Entity CreateMapChunk(World world, Vector2i gridPos)
+    {
+        Entity entity = world.CreateEntity();
+        entity.Add(new GridPosition(gridPos));
+        entity.Add(new Loaded());
+        // entity.Add(new TileRef());
+        return entity;
+    }
+
+    public static Entity CreateMapTile(World world, TileType type, Entity chunk, Vector2i position)
+    {
+        Entity entity = world.CreateEntity();
+        entity.Add(new ChunkRef(chunk));
+        entity.Add(new GridPosition(position));
+        entity.Add(type);
         return entity;
     }
 }
