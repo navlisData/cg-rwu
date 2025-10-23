@@ -57,7 +57,7 @@ public class Game : GameWindow
         this.shaderProgram = Shader.Setup();
 
         this.player = PrefabFactory.CreatePlayer(this.world,
-            new Vector2(0, 0),
+            new Position(),
             new Vector2(0f, 0f),
             new Vector2(1f, 1f)
         );
