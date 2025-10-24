@@ -116,24 +116,6 @@ public struct Position : IEquatable<Position>
         }
     }
 
-    public void Add(in Vector2 cellPosition, in Vector2i tile, in Vector2i chunk)
-    {
-        this.Chunk += chunk;
-        this.Tile += tile;
-        this.Pos += cellPosition;
-        this.ReAlign();
-    }
-
-    public void Add(in Vector2 pos, in Vector2i tile)
-    {
-        this.Add(pos, tile, Vector2i.Zero);
-    }
-
-    public void Add(in Vector2 cellPosition)
-    {
-        this.Add(cellPosition, Vector2i.Zero, Vector2i.Zero);
-    }
-
     /// <summary>
     ///     Returns a new position that is the linear blend of the 2 given positions.
     /// </summary>
@@ -158,6 +140,15 @@ public struct Position : IEquatable<Position>
         return left;
     }
 
+    [Pure]
+    public static Position operator +(Position left, in Vector2 right)
+    {
+        left.Pos += right;
+        left.ReAlign();
+        return left;
+    }
+
+    [Pure]
     public static Position operator -(Position left, in Position right)
     {
         left.Chunk = -right.Chunk;
@@ -177,11 +168,13 @@ public struct Position : IEquatable<Position>
         return left;
     }
 
+    [Pure]
     public static bool operator ==(Position left, Position right)
     {
         return left.Equals(right);
     }
 
+    [Pure]
     public static bool operator !=(Position left, Position right)
     {
         return !(left == right);
