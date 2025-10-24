@@ -35,36 +35,6 @@ public struct Position : IEquatable<Position>
             (((this.Chunk.Y * Constants.GridSizeY) + this.Tile.Y) * Constants.TileSizeY) + this.Pos.Y);
     }
 
-    [Pure]
-    public static Position FromWorldPosition(in Vector2 world)
-    {
-        Position pos = new();
-
-        const float chunkWorldSizeX = Constants.GridSizeX * Constants.TileSizeX;
-        const float chunkWorldSizeY = Constants.GridSizeY * Constants.TileSizeY;
-
-        pos.Chunk = new Vector2i(
-            (int)Math.Floor(world.X / chunkWorldSizeX),
-            (int)Math.Floor(world.Y / chunkWorldSizeY)
-        );
-
-        float localX = world.X - (pos.Chunk.X * chunkWorldSizeX);
-        float localY = world.Y - (pos.Chunk.Y * chunkWorldSizeY);
-
-        pos.Tile = new Vector2i(
-            (int)Math.Floor(localX / Constants.TileSizeX),
-            (int)Math.Floor(localY / Constants.TileSizeY)
-        );
-
-        pos.Pos = new Vector2(
-            world.X - (((pos.Chunk.X * Constants.GridSizeX) + pos.Tile.X) * Constants.TileSizeX),
-            world.Y - (((pos.Chunk.Y * Constants.GridSizeY) + pos.Tile.Y) * Constants.TileSizeY)
-        );
-
-        return pos;
-    }
-
-
     private void ReAlign()
     {
         while (this.Pos.X > Constants.TileSizeX)
@@ -127,7 +97,7 @@ public struct Position : IEquatable<Position>
     public static Position Lerp(in Position a, in Position b, in float blend)
     {
         Vector2.Lerp(a.ToWorldPosition(), b.ToWorldPosition(), blend, out Vector2 world);
-        return FromWorldPosition(world);
+        return new Position() + world;
     }
 
     [Pure]
