@@ -63,7 +63,6 @@ public static class PrefabFactory
         Entity entity = world.CreateEntity();
         entity.Add(new GridPosition(gridPos));
         entity.Add(new Loaded());
-        // entity.Add(new TileRef());
         return entity;
     }
 
