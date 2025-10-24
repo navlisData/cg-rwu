@@ -128,7 +128,6 @@ public class Game : GameWindow
         base.OnUnload();
 
         this.assets.Dispose();
-        // this.ellipsisRenderer.onUnload();
         this.mapRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);
     }
