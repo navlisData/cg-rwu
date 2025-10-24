@@ -2,6 +2,8 @@ namespace unnamed.Components.Map;
 
 public enum TileType
 {
-    Floor,
+    Pathway,
+    Grass,
+    Flowers,
     Wall
 }

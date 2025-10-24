@@ -80,7 +80,7 @@ public class Game : GameWindow
                 {
                     foreach (int y in Enumerable.Range(0, 16))
                     {
-                        PrefabFactory.CreateMapTile(this.world, TileType.Floor, frameId, chunk, new Vector2i(x, y));
+                        PrefabFactory.CreateMapTile(this.world, TileType.Pathway, frameId, chunk, new Vector2i(x, y));
                     }
                 }
             }
