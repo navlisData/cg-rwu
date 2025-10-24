@@ -6,11 +6,13 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Prefabs;
 using unnamed.Rendering;
 using unnamed.systems;
+using unnamed.Utils;
 
 namespace unnamed;
 
@@ -28,6 +30,7 @@ public class Game : GameWindow
     private readonly CameraSystem cameraSystem;
     private readonly EllipsisRenderSystem ellipsisRenderer;
     private readonly FollowingSystem followSystem;
+    private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
     private readonly World world = new();
@@ -43,6 +46,7 @@ public class Game : GameWindow
         this.followSystem = new FollowingSystem(this.world);
         this.cameraSystem = new CameraSystem(this.world);
         this.ellipsisRenderer = new EllipsisRenderSystem(this.world);
+        this.mapRenderSystem = new MapRenderSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -50,10 +54,10 @@ public class Game : GameWindow
         base.OnLoad();
         GL.ClearColor(Color4.Black);
 
-        this.shaderProgram = SetupShader();
+        this.shaderProgram = Shader.Setup();
 
         this.player = PrefabFactory.CreatePlayer(this.world,
-            new Vector2(0, 0),
+            new Position(),
             new Vector2(0f, 0f),
             new Vector2(1f, 1f)
         );
@@ -61,13 +65,22 @@ public class Game : GameWindow
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
-        Random random = new();
-        for (int i = 0; i < 100; i++)
+        foreach (int gridX in Enumerable.Range(-5, 10))
         {
-            Entity unused = PrefabFactory.CreateEllipsis(this.world,
-                new Vector2(random.Next(-100, 100), random.Next(-100, 100)),
-                new Vector2(random.Next(1, 5), random.Next(1, 5)),
-                new Vector4((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble(), 1f));
+            foreach (int gridY in Enumerable.Range(-5, 10))
+            {
+                Entity chunk = PrefabFactory.CreateMapChunk(this.world, new Vector2i(gridX, gridY));
+                foreach (int x in Enumerable.Range(0, 16))
+                {
+                    foreach (int y in Enumerable.Range(0, 16))
+                    {
+                        Entity unused =
+                            PrefabFactory.CreateMapTile(this.world,
+                                (x + y) % 2 == 0 ? TileType.Floor1 : TileType.Floor2, chunk,
+                                new Vector2i(x, y));
+                    }
+                }
+            }
         }
     }
 
@@ -95,6 +108,7 @@ public class Game : GameWindow
 
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
+        this.mapRenderSystem.Run((this.shaderProgram, cameraPosition));
         this.ellipsisRenderer.Run((this.shaderProgram, cameraPosition));
 
         this.SwapBuffers();
@@ -112,44 +126,7 @@ public class Game : GameWindow
         base.OnUnload();
 
         this.ellipsisRenderer.onUnload();
+        this.mapRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);
-    }
-
-    private static int SetupShader()
-    {
-        string vertexShaderSource = File.ReadAllText("shaders/shader.vert");
-        string fragmentShaderSource = File.ReadAllText("shaders/shader.frag");
-
-        int vertex = GL.CreateShader(ShaderType.VertexShader);
-        GL.ShaderSource(vertex, vertexShaderSource);
-        GL.CompileShader(vertex);
-        CheckShader(vertex);
-
-        int fragment = GL.CreateShader(ShaderType.FragmentShader);
-        GL.ShaderSource(fragment, fragmentShaderSource);
-        GL.CompileShader(fragment);
-        CheckShader(fragment);
-
-        int shader = GL.CreateProgram();
-        GL.AttachShader(shader, vertex);
-        GL.AttachShader(shader, fragment);
-        GL.LinkProgram(shader);
-
-        GL.DeleteShader(vertex);
-        GL.DeleteShader(fragment);
-
-        return shader;
-    }
-
-    private static void CheckShader(int shader)
-    {
-        GL.GetShader(shader, ShaderParameter.CompileStatus, out int status);
-        if (status != 0)
-        {
-            return;
-        }
-
-        Console.WriteLine(GL.GetShaderInfoLog(shader));
-        throw new Exception("Shader compilation failed!");
     }
 }

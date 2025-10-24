@@ -17,6 +17,6 @@ public sealed class MoveSystem(World world) : EntitySetSystem<float>(world, worl
     {
         ref Position position = ref e.Get<Position>();
         ref Velocity velocity = ref e.Get<Velocity>();
-        position.Value += velocity.Value * dt;
+        position += (velocity.Value * dt);
     }
 }

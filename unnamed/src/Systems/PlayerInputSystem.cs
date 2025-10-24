@@ -31,27 +31,27 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         MouseState mouseState = this.mouseStateProvider();
         float dt = args.dt;
         ref Camera2D camera2D = ref args.camera;
-        ref Position player = ref args.player;
+        ref Position playerPosition = ref args.player;
 
         if (e.Has<Velocity>())
         {
             Vector2 direction = Vector2.Zero;
-            if (keyboardState.IsKeyDown(Keys.Left))
+            if (keyboardState.IsKeyDown(Keys.A))
             {
                 direction.X -= 1;
             }
 
-            if (keyboardState.IsKeyDown(Keys.Right))
+            if (keyboardState.IsKeyDown(Keys.D))
             {
                 direction.X += 1;
             }
 
-            if (keyboardState.IsKeyDown(Keys.Up))
+            if (keyboardState.IsKeyDown(Keys.W))
             {
                 direction.Y += 1;
             }
 
-            if (keyboardState.IsKeyDown(Keys.Down))
+            if (keyboardState.IsKeyDown(Keys.S))
             {
                 direction.Y -= 1;
             }
@@ -108,9 +108,10 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport, camera2D.ViewProjection);
 
             Vector2 direction =
-                -Vector2.Normalize(player.Value - new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
+                -Vector2.Normalize(playerPosition.ToWorldPosition() -
+                                   new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
 
-            Entity unused = PrefabFactory.CreateBullet(this.world, player.Value,
+            Entity unused = PrefabFactory.CreateBullet(this.world, playerPosition,
                 direction * 10f);
         }
     }
