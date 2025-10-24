@@ -1,10 +1,16 @@
 #version 330 core
 
-layout (location = 0) in vec2 aPos;
+layout(location = 0) in vec3 aPosition;
 
-uniform mat4 uMVP;
+layout(location = 1) in vec2 aTexCoord;
 
-void main()
+out vec2 texCoord;
+
+uniform mat4 uMVP; 
+
+void main(void)
 {
-    gl_Position = uMVP * vec4(aPos, 0.0, 1.0);
+    texCoord = aTexCoord;
+
+    gl_Position = uMVP * vec4(aPosition, 1.0);
 }

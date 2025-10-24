@@ -1,5 +1,7 @@
 using Engine.Ecs;
 
+using engine.TextureProcessing;
+
 using OpenTK.Mathematics;
 
 using unnamed.Components.Map;
@@ -11,6 +13,14 @@ namespace unnamed.Prefabs;
 
 public static class PrefabFactory
 {
+    // public static Entity CreateSpriteTest(World world, SpriteFrameId spriteFrame, Position startPos)
+    // {
+    //     Entity entity = world.CreateEntity();
+    //     entity.Add(new Sprite { Frame = spriteFrame, Tint = new (1,1,1,1), Layer = 0 });
+    //     entity.Add(startPos);
+    //     return entity;
+    // }
+    
     public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size)
     {
         Entity entity = world.CreateEntity();
@@ -66,12 +76,13 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateMapTile(World world, TileType type, Entity chunk, Vector2i position)
+    public static Entity CreateMapTile(World world, TileType type, SpriteFrameId frameId, Entity chunk, Vector2i position)
     {
         Entity entity = world.CreateEntity();
         entity.Add(new ChunkRef(chunk));
         entity.Add(new GridPosition(position));
         entity.Add(type);
+        entity.Add(new Sprite { Frame = frameId, Tint = new (1,1,1,1), Layer = 0 });
         return entity;
     }
 }
