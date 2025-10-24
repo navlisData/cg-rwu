@@ -45,10 +45,10 @@ public class MapRenderSystem(World world, AssetStore assets) : EntitySetSystem<(
         float v1 = rect.Bottom / texture.Height;
         
         float[] quadVertices = [
-                0f, 0f, u0, v0,
-                Constants.TileSizeX, 0f, u1, v0,
-                0f, Constants.TileSizeY, u0, v1,
-                Constants.TileSizeX, Constants.TileSizeY, u1, v1
+            0f, 0f, u0, v0,
+            Constants.TileSizeX, 0f, u1, v0,
+            0f, Constants.TileSizeY, u0, v1,
+            Constants.TileSizeX, Constants.TileSizeY, u1, v1
         ];
 
         GL.BindVertexArray(this.vertexArray);
@@ -68,13 +68,6 @@ public class MapRenderSystem(World world, AssetStore assets) : EntitySetSystem<(
         GL.EnableVertexAttribArray(texCoordLocation);
         GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 2 * sizeof(float));
         
-        
-        // GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 2 * sizeof(float));
-        // GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 2 * sizeof(float));
-        // GL.EnableVertexAttribArray(0);
-
-        int mvpUniformLocation = GL.GetUniformLocation(param.shader, "uMVP");
-        // int colorUniformLocation = GL.GetUniformLocation(param.shader, "outputColor");
 
         GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
         GL.ActiveTexture(TextureUnit.Texture0);
@@ -83,8 +76,9 @@ public class MapRenderSystem(World world, AssetStore assets) : EntitySetSystem<(
             ((chunkPosition.X * Constants.GridSizeX) + inChunkPosition.X) * Constants.TileSizeX,
             ((chunkPosition.Y * Constants.GridSizeY) + inChunkPosition.Y) * Constants.TileSizeY, 0f);
         Matrix4 mvpSquare = modelSquare * param.camera.ViewProjection;
+        
+        int mvpUniformLocation = GL.GetUniformLocation(param.shader, "uMVP");
         GL.UniformMatrix4(mvpUniformLocation, false, ref mvpSquare);
-        // GL.Uniform4(colorUniformLocation, color);
 
         GL.BindVertexArray(this.vertexArray);
         GL.DrawElements(PrimitiveType.Triangles, this.quadIndices.Length, DrawElementsType.UnsignedInt, 0);

@@ -13,14 +13,6 @@ namespace unnamed.Prefabs;
 
 public static class PrefabFactory
 {
-    // public static Entity CreateSpriteTest(World world, SpriteFrameId spriteFrame, Position startPos)
-    // {
-    //     Entity entity = world.CreateEntity();
-    //     entity.Add(new Sprite { Frame = spriteFrame, Tint = new (1,1,1,1), Layer = 0 });
-    //     entity.Add(startPos);
-    //     return entity;
-    // }
-    
     public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size)
     {
         Entity entity = world.CreateEntity();
