@@ -23,9 +23,8 @@ public sealed class Texture2D : IDisposable
             (int)(generateMipmaps ? TextureMinFilter.LinearMipmapNearest : TextureMinFilter.Nearest));
         
         StbImage.stbi_set_flip_vertically_on_load(1);
-        ImageResult image;
         using var stream = File.OpenRead(imagePath);
-        image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+        ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
         
         this.Width = image.Width;
         this.Height = image.Height;

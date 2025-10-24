@@ -30,7 +30,6 @@ public class Game : GameWindow
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
 
     private readonly CameraSystem cameraSystem;
-    // private readonly EllipsisRenderSystem ellipsisRenderer;
     private readonly FollowingSystem followSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
@@ -41,7 +40,6 @@ public class Game : GameWindow
 
     private Entity camera;
     private Entity player;
-    private Entity spriteTest;
     private int shaderProgram;
 
     public Game() : base(NativeSettings, Settings)
@@ -50,7 +48,6 @@ public class Game : GameWindow
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.followSystem = new FollowingSystem(this.world);
         this.cameraSystem = new CameraSystem(this.world);
-        // this.ellipsisRenderer = new EllipsisRenderSystem(this.world);
         this.mapRenderSystem = new MapRenderSystem(this.world, this.assets);
     }
 
@@ -63,6 +60,7 @@ public class Game : GameWindow
 
         String spritePath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
         SpriteSheetId sheetId = this.assets.LoadSpriteSheet(spritePath, GameSprites.Get());
+        SpriteFrameId frameId = this.assets.GetFrame(sheetId, "floor_1");
 
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Position(),
@@ -70,8 +68,6 @@ public class Game : GameWindow
             new Vector2(1f, 1f)
         );
         
-        SpriteFrameId frameId = this.assets.GetFrame(sheetId, "floor_1");
-
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
@@ -116,7 +112,6 @@ public class Game : GameWindow
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
         this.mapRenderSystem.Run((this.shaderProgram, cameraPosition));
-        // this.ellipsisRenderer.Run((this.shaderProgram, cameraPosition));
 
         this.SwapBuffers();
     }
