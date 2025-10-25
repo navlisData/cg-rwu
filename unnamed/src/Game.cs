@@ -31,15 +31,20 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
 
-    private readonly AssetStore assets = new();
-
+    // Rendering systems
     private readonly CameraSystem cameraSystem;
+    private readonly CharacterRenderSystem characterRenderSystem;
     private readonly FollowingSystem followSystem;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
+
+    // General systems
+    private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
+
     private readonly World world = new();
+    private readonly AssetStore assets = new();
 
     private Entity camera;
     private Entity player;
@@ -47,11 +52,16 @@ public class Game : GameWindow
 
     public Game() : base(NativeSettings, Settings)
     {
+        // Rendering systems
+        this.cameraSystem = new CameraSystem(this.world);
+        this.characterRenderSystem = new CharacterRenderSystem(this.world, this.assets);
+        this.followSystem = new FollowingSystem(this.world);
+        this.mapRenderSystem = new MapRenderSystem(this.world, this.assets);
+
+        // General systems
+        this.characterAlignSystem = new CharacterAlignmentSystem(this.world);
         this.move = new MoveSystem(this.world);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
-        this.followSystem = new FollowingSystem(this.world);
-        this.cameraSystem = new CameraSystem(this.world);
-        this.mapRenderSystem = new MapRenderSystem(this.world, this.assets);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
     }
 
@@ -60,18 +70,26 @@ public class Game : GameWindow
         base.OnLoad();
         GL.ClearColor(Color4.Black);
 
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
         this.shaderProgram = Shader.Setup();
 
-        string spritePath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
+        string floorSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
         Dictionary<string, RectangleF> floorSprites = GameSprites.Map.GetFlowerSprites();
-        SpriteSheetId sheetId = this.assets.LoadSpriteSheet(spritePath, floorSprites);
+        SpriteSheetId floorSheetId = this.assets.LoadSpriteSheet(floorSpriteSheetPath, floorSprites);
 
+        String playerSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png");
+        Dictionary<string, RectangleF> playerSprites = GameSprites.Player.GetPlayerSprites();
+        SpriteSheetId playerSheetId = this.assets.LoadSpriteSheet(playerSpriteSheetPath, playerSprites);
+        
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Position(),
             new Vector2(0f, 0f),
-            new Vector2(1f, 1f)
+            new Vector2(3,5),
+            GameSprites.Player.ToAlignedCharacter(playerSheetId, this.assets)
         );
-
+        
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
@@ -88,7 +106,7 @@ public class Game : GameWindow
                     foreach (int x in Enumerable.Range(0, Constants.GridSizeX))
                     {
                         string spriteName = floorSprites.Keys.ElementAt(rnd.Next(keys.Length));
-                        SpriteFrameId frameId = this.assets.GetFrame(sheetId, spriteName);
+                        SpriteFrameId frameId = this.assets.GetFrame(floorSheetId, spriteName);
                         Entity mapTile = PrefabFactory.CreateMapTile(this.world, TileType.Pathway, frameId, chunk,
                             new Vector2i(x, y));
                         tiles[(y * Constants.GridSizeY) + x] = mapTile;
@@ -111,6 +129,7 @@ public class Game : GameWindow
         this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>()));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
+        this.characterAlignSystem.Run(dt);
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
     }
@@ -124,6 +143,7 @@ public class Game : GameWindow
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
         this.mapRenderSystem.Run((this.shaderProgram, cameraPosition));
+        this.characterRenderSystem.Run((this.shaderProgram, cameraPosition));
 
         this.SwapBuffers();
     }

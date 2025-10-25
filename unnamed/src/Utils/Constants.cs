@@ -1,3 +1,5 @@
+using OpenTK.Windowing.GraphicsLibraryFramework;
+
 namespace unnamed.Utils;
 
 public static class Constants
@@ -21,4 +23,17 @@ public static class Constants
     ///     Amount of horizontal cells in a map chunk
     /// </summary>
     public const int GridSizeY = 16;
+}
+
+public static class Controls
+{
+    public const Keys MoveUp = Keys.W;
+    public const Keys MoveRight = Keys.D;
+    public const Keys MoveDown = Keys.S;
+    public const Keys MoveLeft = Keys.A;
+    
+    public const Keys RotateCamCW = Keys.Q;
+    public const Keys RotateCamCCW = Keys.E;
+    
+    public const MouseButton PlayerShoot = MouseButton.Left;
 }

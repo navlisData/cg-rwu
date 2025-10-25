@@ -14,17 +14,17 @@ namespace unnamed.Prefabs;
 
 public static class PrefabFactory
 {
-    public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size)
+    public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size, AlignedCharacter alignedCharacter)
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
         entity.Add(new Velocity { Value = startVel });
         entity.Add(new Transform { Size = size, Scale = 1 });
         entity.Add(new ReceivesPlayerInput());
-        entity.Add(new Player());
+        entity.Add(alignedCharacter);
+        entity.Add(new Sprite { Frame = alignedCharacter.GetFrameIdByDirection(), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0});
 
-        entity.Add(new Circle());
-        entity.Add(new ObjectColor { Rgba = new Vector4(0.3f, 0.5f, 0.8f, 1f) });
+        entity.Add(new Character());
 
         return entity;
     }

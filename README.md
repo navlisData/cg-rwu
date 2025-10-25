@@ -31,3 +31,8 @@ The goal is simple: survive long enough to find the exit in each level while ene
 
 - OpenTK 4.9.4
 - .NET SDK 9.0+
+
+## Assets in this project
+
+- [Topdown map tileset by Cainos](https://cainos.itch.io/pixel-art-top-down-basic)
+- [Moon-mage asset by RusKom](https://ruskom.itch.io/moon-mage-asset)

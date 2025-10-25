@@ -33,25 +33,31 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         ref Camera2D camera2D = ref args.camera;
         ref Position playerPosition = ref args.player;
 
+        if (e.Has<AlignedCharacter>())
+        {
+            ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
+            alignedCharacter.CharacterDirection = keyboardState.GetDirection();
+        }
+
         if (e.Has<Velocity>())
         {
             Vector2 direction = Vector2.Zero;
-            if (keyboardState.IsKeyDown(Keys.A))
+            if (keyboardState.IsKeyDown(Controls.MoveLeft))
             {
                 direction.X -= 1;
             }
-
-            if (keyboardState.IsKeyDown(Keys.D))
+            
+            if (keyboardState.IsKeyDown(Controls.MoveRight))
             {
                 direction.X += 1;
             }
-
-            if (keyboardState.IsKeyDown(Keys.W))
+            
+            if (keyboardState.IsKeyDown(Controls.MoveUp))
             {
                 direction.Y += 1;
             }
-
-            if (keyboardState.IsKeyDown(Keys.S))
+            
+            if (keyboardState.IsKeyDown(Controls.MoveDown))
             {
                 direction.Y -= 1;
             }
@@ -91,18 +97,18 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             camera.Zoom *= (float)Math.Pow(1.1f, mouseState.ScrollDelta.Y);
             camera.Zoom = Math.Clamp(camera.Zoom, 0.1f, 5.0f);
 
-            if (keyboardState.IsKeyDown(Keys.Q))
+            if (keyboardState.IsKeyDown(Controls.RotateCamCW))
             {
                 camera.Rotation += .1f;
             }
 
-            if (keyboardState.IsKeyDown(Keys.E))
+            if (keyboardState.IsKeyDown(Controls.RotateCamCCW))
             {
                 camera.Rotation -= .1f;
             }
         }
 
-        if (mouseState.IsButtonReleased(MouseButton.Left))
+        if (mouseState.IsButtonReleased(Controls.PlayerShoot))
         {
             Vector2 mousePositionWorld =
                 Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport, camera2D.ViewProjection);
