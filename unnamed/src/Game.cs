@@ -1,3 +1,5 @@
+using System.Drawing;
+
 using Engine.Ecs;
 
 using engine.TextureProcessing;
@@ -59,8 +61,8 @@ public class Game : GameWindow
         this.shaderProgram = Shader.Setup();
 
         String spritePath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
-        SpriteSheetId sheetId = this.assets.LoadSpriteSheet(spritePath, GameSprites.Get());
-        SpriteFrameId frameId = this.assets.GetFrame(sheetId, "floor_1");
+        Dictionary<string, RectangleF> floorSprites = GameSprites.GetAllFloorSprites();
+        SpriteSheetId sheetId = this.assets.LoadSpriteSheet(spritePath, floorSprites);
 
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Position(),
@@ -71,6 +73,8 @@ public class Game : GameWindow
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
+        var rnd  = Random.Shared;
+        var keys = floorSprites.Keys.ToArray();
         foreach (int gridX in Enumerable.Range(-1, 2))
         {
             foreach (int gridY in Enumerable.Range(-1, 2))
@@ -80,6 +84,8 @@ public class Game : GameWindow
                 {
                     foreach (int y in Enumerable.Range(0, 16))
                     {
+                        String spriteName = floorSprites.Keys.ElementAt(rnd.Next(keys.Length));
+                        SpriteFrameId frameId = this.assets.GetFrame(sheetId, spriteName);
                         PrefabFactory.CreateMapTile(this.world, TileType.Pathway, frameId, chunk, new Vector2i(x, y));
                     }
                 }
