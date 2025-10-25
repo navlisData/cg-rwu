@@ -70,7 +70,7 @@ public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSy
         GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
         GL.ActiveTexture(TextureUnit.Texture0);
         
-        Matrix4 modelSquare = Matrix4.CreateTranslation(position.X, position.Y, 0f);
+        Matrix4 modelSquare = Matrix4.CreateTranslation(position.X - (transform.Size.X / 2), position.Y - (transform.Size.Y / 2), 0f);
         Matrix4 mvpSquare = modelSquare * param.camera.ViewProjection;
         
         int mvpUniformLocation = GL.GetUniformLocation(param.shader, "uMVP");
