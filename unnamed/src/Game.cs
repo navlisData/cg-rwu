@@ -83,9 +83,9 @@ public class Game : GameWindow
             {
                 Entity chunk = PrefabFactory.CreateMapChunk(this.world, new Vector2i(gridX, gridY));
                 ref Entity[] tiles = ref chunk.Get<TileRef>().Tiles;
-                foreach (int y in Enumerable.Range(0, Constants.GridSizeX))
+                foreach (int y in Enumerable.Range(0, Constants.GridSizeY))
                 {
-                    foreach (int x in Enumerable.Range(0, Constants.GridSizeY))
+                    foreach (int x in Enumerable.Range(0, Constants.GridSizeX))
                     {
                         string spriteName = floorSprites.Keys.ElementAt(rnd.Next(keys.Length));
                         SpriteFrameId frameId = this.assets.GetFrame(sheetId, spriteName);
