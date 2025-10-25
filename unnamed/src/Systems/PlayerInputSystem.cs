@@ -36,7 +36,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         if (e.Has<AlignedCharacter>())
         {
             ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
-            alignedCharacter.CharacterDirection = keyboardState.GetDirection();
+            alignedCharacter.CharacterDirection = keyboardState.GetDirection(alignedCharacter.CharacterDirection);
         }
 
         if (e.Has<Velocity>())

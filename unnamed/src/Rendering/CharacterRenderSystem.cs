@@ -18,6 +18,7 @@ namespace unnamed.Rendering;
 public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSystem<(int shader, Camera2D camera)>(world, world.Query()
     .With<Character>()
     .With<Sprite>()
+    .With<Position>()
     .With<Transform>()
     .Without<Sleeping>()
     .Build())
@@ -31,12 +32,8 @@ public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSy
 
     protected override void Update((int shader, Camera2D camera) param, in Entity e)
     {
-        // ref Entity chunk = ref e.Get<ChunkRef>().Chunk;
-        // Vector2i chunkPosition = chunk.Get<GridPosition>().ToVector2I();
-        // Vector2i inChunkPosition = e.Get<GridPosition>().ToVector2I();
-        // ref TileType type = ref e.Get<TileType>();
-        
         ref Sprite sprite = ref e.Get<Sprite>();
+        Vector2 position = e.Get<Position>().ToWorldPosition();
         ref Transform transform = ref e.Get<Transform>();
 
         SpriteSheet spriteSheet = assets.GetSpriteSheet(sprite.Frame.Sheet);
@@ -72,12 +69,9 @@ public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSy
 
         GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
         GL.ActiveTexture(TextureUnit.Texture0);
-
-        // Matrix4 modelSquare = Matrix4.CreateTranslation(
-            // ((chunkPosition.X * Constants.GridSizeX) + inChunkPosition.X) * Constants.TileSizeX,
-            // ((chunkPosition.Y * Constants.GridSizeY) + inChunkPosition.Y) * Constants.TileSizeY, 0f);
-        // Matrix4 mvpSquare = modelSquare * param.camera.ViewProjection;
-        Matrix4 mvpSquare = param.camera.ViewProjection;
+        
+        Matrix4 modelSquare = Matrix4.CreateTranslation(position.X, position.Y, 0f);
+        Matrix4 mvpSquare = modelSquare * param.camera.ViewProjection;
         
         int mvpUniformLocation = GL.GetUniformLocation(param.shader, "uMVP");
         GL.UniformMatrix4(mvpUniformLocation, false, ref mvpSquare);

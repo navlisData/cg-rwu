@@ -18,8 +18,6 @@ public sealed class CharacterAlignmentSystem(World world) : EntitySetSystem<floa
         ref Sprite sprite = ref e.Get<Sprite>();
         ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
         
-        Console.WriteLine(alignedCharacter.CharacterDirection);
-       
         sprite.Frame = alignedCharacter.GetFrameIdByDirection();
     }
 }

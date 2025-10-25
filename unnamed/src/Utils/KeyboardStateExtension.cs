@@ -14,8 +14,12 @@ public static class KeyboardStateExtensions
     /// <param name="keyboardState">
     /// The keyboard snapshot to evaluate for directional input.
     /// </param>
+    /// <param name="currentDirection">
+    /// The current direction of the character.
+    /// </param>
     /// <returns>
-    /// The resolved 8-way character direction (cardinal or diagonal).
+    /// The resolved 8-way character direction (cardinal or diagonal). If no keys are pressed,
+    /// currentDirection is returned.
     /// </returns>
     /// <remarks>
     /// Axis semantics: positive X = right, positive Y = down.
@@ -30,7 +34,7 @@ public static class KeyboardStateExtensions
     /// }
     /// </code>
     /// </example>
-    public static CharacterDirection GetDirection(this KeyboardState keyboardState)
+    public static CharacterDirection GetDirection(this KeyboardState keyboardState, CharacterDirection currentDirection)
     {
         bool isUpPressed = keyboardState.IsKeyDown(Controls.MoveUp);
         bool isRightPressed = keyboardState.IsKeyDown(Controls.MoveRight);
@@ -43,7 +47,7 @@ public static class KeyboardStateExtensions
 
         // Neutral: no directional input
         if (horizontalAxis == 0 && verticalAxis == 0)
-            return CharacterDirection.Down;
+            return currentDirection;
 
         // Diagonals
         if (verticalAxis < 0 && horizontalAxis > 0) return CharacterDirection.UpRight;
