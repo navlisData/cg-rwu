@@ -112,7 +112,7 @@ public class Game : GameWindow
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.move.Run(dt);
-        this.mapLoadingSystem.Run(this.player.Get<Position>());
+        this.mapLoadingSystem.Run(this.camera.Get<Position>());
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
