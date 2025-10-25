@@ -31,14 +31,15 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
 
+    private readonly AssetStore assets = new();
+
     private readonly CameraSystem cameraSystem;
     private readonly FollowingSystem followSystem;
+    private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
     private readonly World world = new();
-
-    private readonly AssetStore assets = new();
 
     private Entity camera;
     private Entity player;
@@ -51,6 +52,7 @@ public class Game : GameWindow
         this.followSystem = new FollowingSystem(this.world);
         this.cameraSystem = new CameraSystem(this.world);
         this.mapRenderSystem = new MapRenderSystem(this.world, this.assets);
+        this.mapLoadingSystem = new MapLoadingSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -60,7 +62,7 @@ public class Game : GameWindow
 
         this.shaderProgram = Shader.Setup();
 
-        String spritePath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
+        string spritePath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
         Dictionary<string, RectangleF> floorSprites = GameSprites.GetAllFloorSprites();
         SpriteSheetId sheetId = this.assets.LoadSpriteSheet(spritePath, floorSprites);
 
@@ -69,24 +71,27 @@ public class Game : GameWindow
             new Vector2(0f, 0f),
             new Vector2(1f, 1f)
         );
-        
+
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
-        var rnd  = Random.Shared;
-        var keys = floorSprites.Keys.ToArray();
-        foreach (int gridX in Enumerable.Range(-1, 2))
+        Random rnd = Random.Shared;
+        string[] keys = floorSprites.Keys.ToArray();
+        foreach (int gridY in Enumerable.Range(-10, 20))
         {
-            foreach (int gridY in Enumerable.Range(-1, 2))
+            foreach (int gridX in Enumerable.Range(-10, 20))
             {
                 Entity chunk = PrefabFactory.CreateMapChunk(this.world, new Vector2i(gridX, gridY));
-                foreach (int x in Enumerable.Range(0, 16))
+                ref Entity[] tiles = ref chunk.Get<TileRef>().Tiles;
+                foreach (int y in Enumerable.Range(0, Constants.GridSizeY))
                 {
-                    foreach (int y in Enumerable.Range(0, 16))
+                    foreach (int x in Enumerable.Range(0, Constants.GridSizeX))
                     {
-                        String spriteName = floorSprites.Keys.ElementAt(rnd.Next(keys.Length));
+                        string spriteName = floorSprites.Keys.ElementAt(rnd.Next(keys.Length));
                         SpriteFrameId frameId = this.assets.GetFrame(sheetId, spriteName);
-                        PrefabFactory.CreateMapTile(this.world, TileType.Pathway, frameId, chunk, new Vector2i(x, y));
+                        Entity mapTile = PrefabFactory.CreateMapTile(this.world, TileType.Pathway, frameId, chunk,
+                            new Vector2i(x, y));
+                        tiles[(y * Constants.GridSizeY) + x] = mapTile;
                     }
                 }
             }
@@ -107,6 +112,7 @@ public class Game : GameWindow
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.move.Run(dt);
+        this.mapLoadingSystem.Run(this.camera.Get<Position>());
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)

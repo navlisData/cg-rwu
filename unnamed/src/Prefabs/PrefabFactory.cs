@@ -8,6 +8,7 @@ using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Utils;
 
 namespace unnamed.Prefabs;
 
@@ -64,17 +65,19 @@ public static class PrefabFactory
     {
         Entity entity = world.CreateEntity();
         entity.Add(new GridPosition(gridPos));
+        entity.Add(new TileRef { Tiles = new Entity[Constants.GridSizeX * Constants.GridSizeY] });
         entity.Add(new Loaded());
         return entity;
     }
 
-    public static Entity CreateMapTile(World world, TileType type, SpriteFrameId frameId, Entity chunk, Vector2i position)
+    public static Entity CreateMapTile(World world, TileType type, SpriteFrameId frameId, Entity chunk,
+        Vector2i position)
     {
         Entity entity = world.CreateEntity();
         entity.Add(new ChunkRef(chunk));
         entity.Add(new GridPosition(position));
         entity.Add(type);
-        entity.Add(new Sprite { Frame = frameId, Tint = new (1,1,1,1), Layer = 0 });
+        entity.Add(new Sprite { Frame = frameId, Tint = new Vector4(1, 1, 1, 1), Layer = 0 });
         return entity;
     }
 }
