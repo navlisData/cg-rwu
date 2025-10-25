@@ -1,4 +1,8 @@
+using System.Drawing;
+
 using Engine.Ecs;
+
+using engine.TextureProcessing;
 
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -28,12 +32,13 @@ public class Game : GameWindow
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
 
     private readonly CameraSystem cameraSystem;
-    private readonly EllipsisRenderSystem ellipsisRenderer;
     private readonly FollowingSystem followSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
     private readonly World world = new();
+
+    private readonly AssetStore assets = new();
 
     private Entity camera;
     private Entity player;
@@ -45,8 +50,7 @@ public class Game : GameWindow
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.followSystem = new FollowingSystem(this.world);
         this.cameraSystem = new CameraSystem(this.world);
-        this.ellipsisRenderer = new EllipsisRenderSystem(this.world);
-        this.mapRenderSystem = new MapRenderSystem(this.world);
+        this.mapRenderSystem = new MapRenderSystem(this.world, this.assets);
     }
 
     protected override void OnLoad()
@@ -56,28 +60,33 @@ public class Game : GameWindow
 
         this.shaderProgram = Shader.Setup();
 
+        String spritePath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
+        Dictionary<string, RectangleF> floorSprites = GameSprites.GetAllFloorSprites();
+        SpriteSheetId sheetId = this.assets.LoadSpriteSheet(spritePath, floorSprites);
+
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Position(),
             new Vector2(0f, 0f),
             new Vector2(1f, 1f)
         );
-
+        
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
-        foreach (int gridX in Enumerable.Range(-5, 10))
+        var rnd  = Random.Shared;
+        var keys = floorSprites.Keys.ToArray();
+        foreach (int gridX in Enumerable.Range(-1, 2))
         {
-            foreach (int gridY in Enumerable.Range(-5, 10))
+            foreach (int gridY in Enumerable.Range(-1, 2))
             {
                 Entity chunk = PrefabFactory.CreateMapChunk(this.world, new Vector2i(gridX, gridY));
                 foreach (int x in Enumerable.Range(0, 16))
                 {
                     foreach (int y in Enumerable.Range(0, 16))
                     {
-                        Entity unused =
-                            PrefabFactory.CreateMapTile(this.world,
-                                (x + y) % 2 == 0 ? TileType.Floor1 : TileType.Floor2, chunk,
-                                new Vector2i(x, y));
+                        String spriteName = floorSprites.Keys.ElementAt(rnd.Next(keys.Length));
+                        SpriteFrameId frameId = this.assets.GetFrame(sheetId, spriteName);
+                        PrefabFactory.CreateMapTile(this.world, TileType.Pathway, frameId, chunk, new Vector2i(x, y));
                     }
                 }
             }
@@ -109,7 +118,6 @@ public class Game : GameWindow
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
         this.mapRenderSystem.Run((this.shaderProgram, cameraPosition));
-        this.ellipsisRenderer.Run((this.shaderProgram, cameraPosition));
 
         this.SwapBuffers();
     }
@@ -125,7 +133,7 @@ public class Game : GameWindow
     {
         base.OnUnload();
 
-        this.ellipsisRenderer.onUnload();
+        this.assets.Dispose();
         this.mapRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);
     }
