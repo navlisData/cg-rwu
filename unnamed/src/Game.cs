@@ -63,7 +63,7 @@ public class Game : GameWindow
         this.shaderProgram = Shader.Setup();
 
         string spritePath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
-        Dictionary<string, RectangleF> floorSprites = GameSprites.GetAllFloorSprites();
+        Dictionary<string, RectangleF> floorSprites = GameSprites.Map.GetFlowerSprites();
         SpriteSheetId sheetId = this.assets.LoadSpriteSheet(spritePath, floorSprites);
 
         this.player = PrefabFactory.CreatePlayer(this.world,
