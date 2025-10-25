@@ -22,10 +22,13 @@ public class MapRenderSystem(World world, AssetStore assets) : EntitySetSystem<(
         .Build())
 {
     private readonly int elementBuffer = GL.GenBuffer();
-    private readonly uint[] quadIndices = [0, 1, 2, 2, 1, 3];
+    private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
+    private readonly float[] vertexScratch = new float[16];
 
     private readonly int vertexArray = GL.GenVertexArray();
     private readonly int vertexBuffer = GL.GenBuffer();
+
+    private readonly IAssetStore assets = assets;
 
     protected override void Update((int shader, Camera2D camera) param, in Entity e)
     {
@@ -44,23 +47,16 @@ public class MapRenderSystem(World world, AssetStore assets) : EntitySetSystem<(
             }
 
             RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
-
-            float u0 = rect.Left / texture.Width;
-            float u1 = rect.Right / texture.Width;
-            float v0 = rect.Top / texture.Height;
-            float v1 = rect.Bottom / texture.Height;
-
-            float[] quadVertices =
-            [
-                0f, 0f, u0, v0,
-                Constants.TileSizeX, 0f, u1, v0,
-                0f, Constants.TileSizeY, u0, v1,
-                Constants.TileSizeX, Constants.TileSizeY, u1, v1
-            ];
+   
+            GraphicsUtils.FillSpriteQuadGeometry(
+                Constants.TileSizeX, Constants.TileSizeY,
+                rect, texture,
+                vertexScratch
+            );
 
             GL.BindVertexArray(this.vertexArray);
             GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, quadVertices.Length * sizeof(float), quadVertices,
+            GL.BufferData(BufferTarget.ArrayBuffer, vertexScratch.Length * sizeof(float), vertexScratch,
                 BufferUsageHint.StaticDraw);
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
