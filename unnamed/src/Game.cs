@@ -30,25 +30,27 @@ public class Game : GameWindow
     };
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
+    private readonly AssetStore assets = new();
 
     // Rendering systems
     private readonly CameraSystem cameraSystem;
+
+    // General systems
+    private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
     private readonly FollowingSystem followSystem;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
-
-    // General systems
-    private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
+    private readonly ShadowRenderSystem shadowRenderSystem;
 
     private readonly World world = new();
-    private readonly AssetStore assets = new();
 
     private Entity camera;
     private Entity player;
     private int shaderProgram;
+    private int shadowProgram;
 
     public Game() : base(NativeSettings, Settings)
     {
@@ -57,6 +59,7 @@ public class Game : GameWindow
         this.characterRenderSystem = new CharacterRenderSystem(this.world, this.assets);
         this.followSystem = new FollowingSystem(this.world);
         this.mapRenderSystem = new MapRenderSystem(this.world, this.assets);
+        this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assets);
 
         // General systems
         this.characterAlignSystem = new CharacterAlignmentSystem(this.world);
@@ -73,23 +76,24 @@ public class Game : GameWindow
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        this.shaderProgram = Shader.Setup();
+        this.shaderProgram = Shader.Setup("shaders/shader.vert", "shaders/shader.frag");
+        this.shadowProgram = Shader.Setup("shaders/shader.vert", "shaders/shadow.frag");
 
         string floorSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
         Dictionary<string, RectangleF> floorSprites = GameSprites.Map.GetFlowerSprites();
         SpriteSheetId floorSheetId = this.assets.LoadSpriteSheet(floorSpriteSheetPath, floorSprites);
 
-        String playerSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png");
+        string playerSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png");
         Dictionary<string, RectangleF> playerSprites = GameSprites.Player.GetPlayerSprites();
         SpriteSheetId playerSheetId = this.assets.LoadSpriteSheet(playerSpriteSheetPath, playerSprites);
-        
+
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Position(),
             new Vector2(0f, 0f),
-            new Vector2(3,5),
+            new Vector2(3, 5),
             GameSprites.Player.ToAlignedCharacter(playerSheetId, this.assets)
         );
-        
+
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
@@ -138,11 +142,14 @@ public class Game : GameWindow
     {
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit);
-        GL.UseProgram(this.shaderProgram);
 
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
+        GL.UseProgram(this.shaderProgram);
         this.mapRenderSystem.Run((this.shaderProgram, cameraPosition));
+        GL.UseProgram(this.shadowProgram);
+        this.shadowRenderSystem.Run((this.shadowProgram, cameraPosition));
+        GL.UseProgram(this.shaderProgram);
         this.characterRenderSystem.Run((this.shaderProgram, cameraPosition));
 
         this.SwapBuffers();

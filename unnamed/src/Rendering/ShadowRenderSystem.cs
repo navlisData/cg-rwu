@@ -1,0 +1,103 @@
+using System.Drawing;
+
+using Engine.Ecs;
+using Engine.Ecs.Systems;
+
+using engine.TextureProcessing;
+
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
+
+using unnamed.Components.Physics;
+using unnamed.Components.Rendering;
+using unnamed.Components.Tags;
+using unnamed.Utils;
+
+namespace unnamed.Rendering;
+
+public class ShadowRenderSystem(World world, AssetStore assets) : EntitySetSystem<(int shader, Camera2D camera)>(world,
+    world.Query()
+        .With<Character>()
+        .With<Sprite>()
+        .With<Position>()
+        .With<Transform>()
+        .Without<Sleeping>()
+        .Build())
+{
+    private readonly int elementBuffer = GL.GenBuffer();
+    private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
+
+    private readonly int vertexArray = GL.GenVertexArray();
+    private readonly int vertexBuffer = GL.GenBuffer();
+    private readonly float[] vertexScratch = new float[16];
+
+    protected override void Update((int shader, Camera2D camera) param, in Entity e)
+    {
+        ref Sprite sprite = ref e.Get<Sprite>();
+        Vector2 position = e.Get<Position>().ToWorldPosition();
+        ref Transform transform = ref e.Get<Transform>();
+
+        SpriteSheet spriteSheet = assets.GetSpriteSheet(sprite.Frame.Sheet);
+        if (!assets.TryGetTexture(spriteSheet.Texture, out Texture2D? texture))
+        {
+            return;
+        }
+
+        RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
+
+        Matrix4 shear = Matrix4.Identity;
+        shear.M21 = 1.6f;
+
+        Matrix4 shadowModel =
+            Matrix4.CreateScale(transform.Size.X * 0.33f, transform.Size.Y * 0.1f, 1f) *
+            shear *
+            Matrix4.CreateTranslation(position.X - (transform.Size.X / 2), position.Y - (transform.Size.Y / 2), 0f);
+        
+        Vector4 color = new(0f, 0f, 0f, 0.35f);
+        GL.Uniform4(GL.GetUniformLocation(param.shader, "shadowColor"), color);
+
+        float characterWidth = transform.Size.X;
+        float characterHeight = transform.Size.Y;
+        GraphicsUtils.FillSpriteQuadGeometry(
+            characterWidth, characterHeight,
+            rect, texture, this.vertexScratch
+        );
+
+        GL.BindVertexArray(this.vertexArray);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
+        GL.BufferData(BufferTarget.ArrayBuffer, this.vertexScratch.Length * sizeof(float), this.vertexScratch,
+            BufferUsageHint.StaticDraw);
+
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
+            BufferUsageHint.StaticDraw);
+
+        int vertexLocation = GL.GetAttribLocation(param.shader, "aPosition");
+        GL.EnableVertexAttribArray(vertexLocation);
+        GL.VertexAttribPointer(vertexLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
+
+        int texCoordLocation = GL.GetAttribLocation(param.shader, "aTexCoord");
+        GL.EnableVertexAttribArray(texCoordLocation);
+        GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float),
+            2 * sizeof(float));
+
+
+        GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
+        GL.ActiveTexture(TextureUnit.Texture0);
+
+        Matrix4 mvpSquare = shadowModel * param.camera.ViewProjection;
+
+        int mvpUniformLocation = GL.GetUniformLocation(param.shader, "uMVP");
+        GL.UniformMatrix4(mvpUniformLocation, false, ref mvpSquare);
+
+        GL.BindVertexArray(this.vertexArray);
+        GL.DrawElements(PrimitiveType.Triangles, this.quadIndices.Length, DrawElementsType.UnsignedInt, 0);
+    }
+
+    public void OnUnload()
+    {
+        GL.DeleteVertexArray(this.vertexArray);
+        GL.DeleteBuffer(this.vertexBuffer);
+        GL.DeleteBuffer(this.elementBuffer);
+    }
+}
