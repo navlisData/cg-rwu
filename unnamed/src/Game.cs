@@ -125,8 +125,8 @@ public class Game : GameWindow
         {
             this.Close();
         }
-
-        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>()));
+        
+        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.characterAlignSystem.Run(dt);

@@ -29,12 +29,12 @@ public static class KeyboardStateExtensions
     /// <code>
     /// protected override void OnUpdateFrame(FrameEventArgs args)
     /// {
-    ///     var direction = KeyboardState.GetDirection();
+    ///     var direction = KeyboardState.GetDirection(CharacterDirection.Down);
     ///     // Apply movement or animation based on 'direction'
     /// }
     /// </code>
     /// </example>
-    public static CharacterDirection GetDirection(this KeyboardState keyboardState, CharacterDirection currentDirection)
+    public static CharacterDirection Get8WayDirectionFromControls(this KeyboardState keyboardState, CharacterDirection currentDirection)
     {
         bool isUpPressed = keyboardState.IsKeyDown(Controls.MoveUp);
         bool isRightPressed = keyboardState.IsKeyDown(Controls.MoveRight);

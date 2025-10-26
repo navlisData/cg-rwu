@@ -13,7 +13,7 @@ using unnamed.Utils;
 namespace unnamed.systems;
 
 public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
-    : EntitySetSystem<(float dt, Camera2D camera, Position player)>(world,
+    : EntitySetSystem<(float dt, Camera2D camera, Position player, Vector2i windowSize)>(world,
         world.Query()
             .With<ReceivesPlayerInput>()
             .Build()
@@ -25,7 +25,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
     private readonly Func<MouseState> mouseStateProvider =
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
-    protected override void Update((float dt, Camera2D camera, Position player) args, in Entity e)
+    protected override void Update((float dt, Camera2D camera, Position player, Vector2i windowSize) args, in Entity e)
     {
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
@@ -36,7 +36,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         if (e.Has<AlignedCharacter>())
         {
             ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
-            alignedCharacter.CharacterDirection = keyboardState.GetDirection(alignedCharacter.CharacterDirection);
+            alignedCharacter.CharacterDirection = mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
         }
 
         if (e.Has<Velocity>())
