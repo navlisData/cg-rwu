@@ -14,7 +14,8 @@ namespace unnamed.Prefabs;
 
 public static class PrefabFactory
 {
-    public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size, AlignedCharacter alignedCharacter)
+    public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size,
+        AlignedCharacter alignedCharacter)
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
@@ -22,7 +23,10 @@ public static class PrefabFactory
         entity.Add(new Transform { Size = size, Scale = 1 });
         entity.Add(new ReceivesPlayerInput());
         entity.Add(alignedCharacter);
-        entity.Add(new Sprite { Frame = alignedCharacter.GetFrameIdByDirection(), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0});
+        entity.Add(new Sprite
+        {
+            Frame = alignedCharacter.GetFrameIdByDirection(), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
+        });
 
         entity.Add(new Character());
 
@@ -50,14 +54,17 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateBullet(World world, Position startPos, Vector2 velocity)
+    public static Entity CreateBullet(World world, Position startPos, Vector2 velocity, float rotation, float height)
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
-        entity.Add(new Transform { Size = new Vector2(0.1f, 0.1f), Scale = 1 });
-        entity.Add(new ObjectColor { Rgba = (1, 0, 0, 1) });
+        entity.Add(new Transform { Size = new Vector2(2f, 2f), Scale = 3, Rotation = rotation, Height = height });
+        entity.Add(new Sprite
+        {
+            Frame = new SpriteFrameId(new SpriteSheetId(2), 0), Tint = new Vector4(1, 1, 1, 1), Layer = 0
+        });
         entity.Add(new Velocity { Value = velocity });
-        entity.Add(new Circle());
+        entity.Add(new Projectile { Damage = 10, Lifetime = Lifetime.DestroyOnSleep });
         return entity;
     }
 

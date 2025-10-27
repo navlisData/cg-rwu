@@ -43,6 +43,7 @@ public class Game : GameWindow
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
+    private readonly ProjectileRenderingSystem projectileRenderSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
 
     private readonly World world = new();
@@ -60,6 +61,7 @@ public class Game : GameWindow
         this.followSystem = new FollowingSystem(this.world);
         this.mapRenderSystem = new MapRenderSystem(this.world, this.assets);
         this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assets);
+        this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assets);
 
         // General systems
         this.characterAlignSystem = new CharacterAlignmentSystem(this.world);
@@ -86,6 +88,11 @@ public class Game : GameWindow
         string playerSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png");
         Dictionary<string, RectangleF> playerSprites = GameSprites.Player.GetPlayerSprites();
         SpriteSheetId playerSheetId = this.assets.LoadSpriteSheet(playerSpriteSheetPath, playerSprites);
+
+        string projectileSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "fireball.png");
+        Dictionary<string, RectangleF> projectileSprites = GameSprites.Projectile.GetSprite();
+        this.assets.LoadSpriteSheet(projectileSpriteSheetPath, projectileSprites);
+
 
         this.player = PrefabFactory.CreatePlayer(this.world,
             new Position(),
@@ -129,7 +136,7 @@ public class Game : GameWindow
         {
             this.Close();
         }
-        
+
         this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
@@ -150,6 +157,7 @@ public class Game : GameWindow
         GL.UseProgram(this.shadowProgram);
         this.shadowRenderSystem.Run((this.shadowProgram, cameraPosition));
         GL.UseProgram(this.shaderProgram);
+        this.projectileRenderSystem.Run((this.shaderProgram, cameraPosition));
         this.characterRenderSystem.Run((this.shaderProgram, cameraPosition));
 
         this.SwapBuffers();
