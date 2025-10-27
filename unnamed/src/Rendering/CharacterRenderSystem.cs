@@ -15,20 +15,21 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSystem<(int shader, Camera2D camera)>(world, world.Query()
-    .With<Character>()
-    .With<Sprite>()
-    .With<Position>()
-    .With<Transform>()
-    .Without<Sleeping>()
-    .Build())
+public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSystem<(int shader, Camera2D camera)>(
+    world, world.Query()
+        .With<Character>()
+        .With<Sprite>()
+        .With<Position>()
+        .With<Transform>()
+        .Without<Sleeping>()
+        .Build())
 {
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
-    private readonly float[] vertexScratch = new float[16];
 
     private readonly int vertexArray = GL.GenVertexArray();
     private readonly int vertexBuffer = GL.GenBuffer();
+    private readonly float[] vertexScratch = new float[16];
 
     protected override void Update((int shader, Camera2D camera) param, in Entity e)
     {
@@ -37,42 +38,42 @@ public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSy
         ref Transform transform = ref e.Get<Transform>();
 
         SpriteSheet spriteSheet = assets.GetSpriteSheet(sprite.Frame.Sheet);
-        if (!assets.TryGetTexture(spriteSheet.Texture, out var texture)) return;
-        
+        if (!assets.TryGetTexture(spriteSheet.Texture, out Texture2D? texture))
+        {
+            return;
+        }
+
         RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
 
-        float characterWidth = transform.Size.X;
-        float characterHeight = transform.Size.Y;
-        GraphicsUtils.FillSpriteQuadGeometry(
-            characterWidth, characterHeight,
-            rect, texture,
-            vertexScratch
-        );
+        GraphicsUtils.FillSpriteQuadGeometry(in transform.Size, in rect, in texture, in this.vertexScratch, true,
+            false);
 
         GL.BindVertexArray(this.vertexArray);
         GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
-        GL.BufferData(BufferTarget.ArrayBuffer, vertexScratch.Length * sizeof(float), vertexScratch,
+        GL.BufferData(BufferTarget.ArrayBuffer, this.vertexScratch.Length * sizeof(float), this.vertexScratch,
             BufferUsageHint.StaticDraw);
 
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
         GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
             BufferUsageHint.StaticDraw);
 
-        var vertexLocation = GL.GetAttribLocation(param.shader, "aPosition");
+        int vertexLocation = GL.GetAttribLocation(param.shader, "aPosition");
         GL.EnableVertexAttribArray(vertexLocation);
         GL.VertexAttribPointer(vertexLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
-        
-        var texCoordLocation = GL.GetAttribLocation(param.shader, "aTexCoord");
+
+        int texCoordLocation = GL.GetAttribLocation(param.shader, "aTexCoord");
         GL.EnableVertexAttribArray(texCoordLocation);
-        GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 2 * sizeof(float));
-        
+        GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float),
+            2 * sizeof(float));
+
 
         GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
         GL.ActiveTexture(TextureUnit.Texture0);
-        
-        Matrix4 modelSquare = Matrix4.CreateTranslation(position.X - (transform.Size.X / 2), position.Y - (transform.Size.Y / 2), 0f);
+
+        Matrix4 modelSquare = Matrix4.CreateTranslation(position.X, position.Y, 0f);
+
         Matrix4 mvpSquare = modelSquare * param.camera.ViewProjection;
-        
+
         int mvpUniformLocation = GL.GetUniformLocation(param.shader, "uMVP");
         GL.UniformMatrix4(mvpUniformLocation, false, ref mvpSquare);
 

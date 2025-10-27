@@ -11,10 +11,10 @@ public static class GameSprites
     public static class Map
     {
         private const int Tile = 32;
-        
+
         public static Dictionary<string, RectangleF> GetPathwaySprites()
         {
-            var dict = new Dictionary<string, RectangleF>();
+            Dictionary<string, RectangleF> dict = new();
             for (int row = 4; row < 8; row++)
             {
                 for (int column = 0; column < 8; column++)
@@ -23,12 +23,13 @@ public static class GameSprites
                         new RectangleF(column * Tile, row * Tile, Tile, Tile));
                 }
             }
+
             return dict;
         }
-    
+
         public static Dictionary<string, RectangleF> GetGrassSprites()
         {
-            var dict = new Dictionary<string, RectangleF>();
+            Dictionary<string, RectangleF> dict = new();
             for (int row = 0; row < 4; row++)
             {
                 for (int column = 0; column < 4; column++)
@@ -37,12 +38,13 @@ public static class GameSprites
                         new RectangleF(column * Tile, row * Tile, Tile, Tile));
                 }
             }
+
             return dict;
         }
-    
+
         public static Dictionary<string, RectangleF> GetFlowerSprites()
         {
-            var dict = new Dictionary<string, RectangleF>();
+            Dictionary<string, RectangleF> dict = new();
             for (int row = 0; row < 4; row++)
             {
                 for (int column = 4; column < 8; column++)
@@ -51,9 +53,10 @@ public static class GameSprites
                         new RectangleF(column * Tile, row * Tile, Tile, Tile));
                 }
             }
+
             return dict;
         }
-    
+
         public static Dictionary<string, RectangleF> GetAllFloorSprites()
         {
             return new[] { GetPathwaySprites(), GetGrassSprites(), GetFlowerSprites() }
@@ -61,22 +64,22 @@ public static class GameSprites
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
         }
     }
-    
+
 
     public static class Player
     {
         private static readonly string PLAYER_UP = "player_up";
         private static readonly string PLAYER_UP_RIGHT = "player_up_right";
-        private static readonly string PLAYER_RIGHT  = "player_right";
+        private static readonly string PLAYER_RIGHT = "player_right";
         private static readonly string PLAYER_RIGHT_DOWN = "player_right_down";
         private static readonly string PLAYER_DOWN = "player_down";
         private static readonly string PLAYER_DOWN_LEFT = "player_down_left";
         private static readonly string PLAYER_LEFT = "player_left";
         private static readonly string PLAYER_LEFT_UP = "player_left_up";
-            
+
         public static Dictionary<string, RectangleF> GetPlayerSprites()
         {
-            return new Dictionary<string, RectangleF>()
+            return new Dictionary<string, RectangleF>
             {
                 { PLAYER_UP, new RectangleF(8, 588, 16, 34) },
                 { PLAYER_UP_RIGHT, new RectangleF(8, 1020, 16, 34) },
@@ -85,13 +88,14 @@ public static class GameSprites
                 { PLAYER_DOWN, new RectangleF(7, 12, 16, 34) },
                 { PLAYER_DOWN_LEFT, new RectangleF(8, 155, 16, 35) },
                 { PLAYER_LEFT, new RectangleF(7, 300, 15, 34) },
-                { PLAYER_LEFT_UP, new RectangleF(8, 444, 16, 34) },
+                { PLAYER_LEFT_UP, new RectangleF(8, 444, 16, 34) }
             };
         }
 
         public static AlignedCharacter ToAlignedCharacter(SpriteSheetId spriteSheet, AssetStore assets)
         {
-            return new AlignedCharacter {
+            return new AlignedCharacter
+            {
                 CharacterDirection = CharacterDirection.Down,
                 FrameUp = assets.GetFrame(spriteSheet, PLAYER_UP),
                 FrameUpRight = assets.GetFrame(spriteSheet, PLAYER_UP_RIGHT),
@@ -102,6 +106,14 @@ public static class GameSprites
                 FrameLeft = assets.GetFrame(spriteSheet, PLAYER_LEFT),
                 FrameUpLeft = assets.GetFrame(spriteSheet, PLAYER_LEFT_UP)
             };
+        }
+    }
+
+    public static class Projectile
+    {
+        public static Dictionary<string, RectangleF> GetSprite()
+        {
+            return new Dictionary<string, RectangleF> { { "1", new RectangleF(0, 0, 64, 64) } };
         }
     }
 }

@@ -17,7 +17,6 @@ namespace unnamed.Rendering;
 
 public class ShadowRenderSystem(World world, AssetStore assets) : EntitySetSystem<(int shader, Camera2D camera)>(world,
     world.Query()
-        .With<Character>()
         .With<Sprite>()
         .With<Position>()
         .With<Transform>()
@@ -49,19 +48,18 @@ public class ShadowRenderSystem(World world, AssetStore assets) : EntitySetSyste
         shear.M21 = 1.6f;
 
         Matrix4 shadowModel =
-            Matrix4.CreateScale(transform.Size.X * 0.33f, transform.Size.Y * 0.1f, 1f) *
+            Matrix4.CreateRotationZ(transform.Rotation) *
+            Matrix4.CreateScale(transform.Scale * 0.5f) *
+            Matrix4.CreateTranslation(0f, transform.Height, 0f) *
             shear *
-            Matrix4.CreateTranslation(position.X - (transform.Size.X / 2), position.Y - (transform.Size.Y / 2), 0f);
-        
+            Matrix4.CreateTranslation(position.X, position.Y, 0f);
+
         Vector4 color = new(0f, 0f, 0f, 0.35f);
         GL.Uniform4(GL.GetUniformLocation(param.shader, "shadowColor"), color);
 
-        float characterWidth = transform.Size.X;
-        float characterHeight = transform.Size.Y;
         GraphicsUtils.FillSpriteQuadGeometry(
-            characterWidth, characterHeight,
-            rect, texture, this.vertexScratch
-        );
+            in transform.Size,
+            in rect, in texture, in this.vertexScratch, true, e.Has<Projectile>());
 
         GL.BindVertexArray(this.vertexArray);
         GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
