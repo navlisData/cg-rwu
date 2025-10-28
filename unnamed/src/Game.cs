@@ -152,10 +152,8 @@ public class Game : GameWindow
 
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
-        GL.UseProgram(this.shaderProgram);
         this.mapRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
-        GL.UseProgram(this.shaderProgram);
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
 
