@@ -36,7 +36,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         if (e.Has<AlignedCharacter>())
         {
             ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
-            alignedCharacter.CharacterDirection = mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
+            alignedCharacter.CharacterDirection =
+                mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
         }
 
         if (e.Has<Velocity>())
@@ -46,17 +47,17 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             {
                 direction.X -= 1;
             }
-            
+
             if (keyboardState.IsKeyDown(Controls.MoveRight))
             {
                 direction.X += 1;
             }
-            
+
             if (keyboardState.IsKeyDown(Controls.MoveUp))
             {
                 direction.Y += 1;
             }
-            
+
             if (keyboardState.IsKeyDown(Controls.MoveDown))
             {
                 direction.Y -= 1;
@@ -88,6 +89,23 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             {
                 velocity.Value = velocity.Value.Normalized() * maxSpeed;
             }
+
+            if (mouseState.IsButtonReleased(Controls.PlayerShoot))
+            {
+                Vector2 mousePositionWorld =
+                    Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport,
+                        camera2D.ViewProjection);
+
+                Vector2 bulletDirection =
+                    -Vector2.NormalizeFast(playerPosition.ToWorldPosition() -
+                                           new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
+
+                Entity unused = PrefabFactory.CreateBullet(this.world, playerPosition,
+                    bulletDirection * 5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2);
+#if DEBUG
+                Console.WriteLine($"{mousePositionWorld}");
+#endif
+            }
         }
 
         if (e.Has<Camera2D>())
@@ -106,19 +124,6 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             {
                 camera.Rotation -= .1f;
             }
-        }
-
-        if (mouseState.IsButtonReleased(Controls.PlayerShoot))
-        {
-            Vector2 mousePositionWorld =
-                Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport, camera2D.ViewProjection);
-
-            Vector2 direction =
-                -Vector2.Normalize(playerPosition.ToWorldPosition() -
-                                   new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
-
-            Entity unused = PrefabFactory.CreateBullet(this.world, playerPosition,
-                direction * 10f);
         }
     }
 }

@@ -15,12 +15,14 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSystem<(int shader, Camera2D camera)>(
-    world, world.Query()
-        .With<Character>()
+public class ProjectileRenderingSystem(World world, AssetStore assets) : EntitySetSystem<(int shader, Camera2D camera)>(
+    world,
+    world.Query()
+        .With<Projectile>()
         .With<Sprite>()
         .With<Position>()
         .With<Transform>()
+        .With<Velocity>()
         .Without<Sleeping>()
         .Build())
 {
@@ -46,7 +48,7 @@ public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSy
         RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
 
         GraphicsUtils.FillSpriteQuadGeometry(in transform.Size, in rect, in texture, in this.vertexScratch, true,
-            false);
+            true);
 
         GL.BindVertexArray(this.vertexArray);
         GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
@@ -70,7 +72,9 @@ public class CharacterRenderSystem(World world, AssetStore assets) : EntitySetSy
         GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
         GL.ActiveTexture(TextureUnit.Texture0);
 
-        Matrix4 modelSquare = Matrix4.CreateTranslation(position.X, position.Y, 0f);
+        Matrix4 modelSquare = Matrix4.CreateRotationZ(transform.Rotation) *
+                              Matrix4.CreateScale(transform.Scale) *
+                              Matrix4.CreateTranslation(position.X, position.Y + transform.Height, 0f);
 
         Matrix4 mvpSquare = modelSquare * param.camera.ViewProjection;
 

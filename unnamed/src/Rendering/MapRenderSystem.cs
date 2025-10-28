@@ -21,14 +21,13 @@ public class MapRenderSystem(World world, AssetStore assets) : EntitySetSystem<(
         .With<Loaded>()
         .Build())
 {
+    private readonly IAssetStore assets = assets;
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
-    private readonly float[] vertexScratch = new float[16];
 
     private readonly int vertexArray = GL.GenVertexArray();
     private readonly int vertexBuffer = GL.GenBuffer();
-
-    private readonly IAssetStore assets = assets;
+    private readonly float[] vertexScratch = new float[16];
 
     protected override void Update((int shader, Camera2D camera) param, in Entity e)
     {
@@ -40,23 +39,22 @@ public class MapRenderSystem(World world, AssetStore assets) : EntitySetSystem<(
             Vector2i inChunkPosition = tile.Get<GridPosition>().ToVector2I();
             ref Sprite sprite = ref tile.Get<Sprite>();
 
-            SpriteSheet spriteSheet = assets.GetSpriteSheet(sprite.Frame.Sheet);
-            if (!assets.TryGetTexture(spriteSheet.Texture, out Texture2D? texture))
+            SpriteSheet spriteSheet = this.assets.GetSpriteSheet(sprite.Frame.Sheet);
+            if (!this.assets.TryGetTexture(spriteSheet.Texture, out Texture2D? texture))
             {
                 continue;
             }
 
             RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
-   
+
             GraphicsUtils.FillSpriteQuadGeometry(
-                Constants.TileSizeX, Constants.TileSizeY,
-                rect, texture,
-                vertexScratch
-            );
+                new Vector2(Constants.TileSizeX, Constants.TileSizeY),
+                in rect, in texture,
+                in this.vertexScratch, false, false);
 
             GL.BindVertexArray(this.vertexArray);
             GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertexScratch.Length * sizeof(float), vertexScratch,
+            GL.BufferData(BufferTarget.ArrayBuffer, this.vertexScratch.Length * sizeof(float), this.vertexScratch,
                 BufferUsageHint.StaticDraw);
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
