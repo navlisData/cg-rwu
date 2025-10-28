@@ -2,6 +2,7 @@ using System.Drawing;
 
 using engine.TextureProcessing;
 
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace unnamed.Utils;
@@ -45,10 +46,10 @@ public static class GraphicsUtils
         float vTop = 1f - (spriteRect.Top * invH);
         float vBottom = 1f - (spriteRect.Bottom * invH);
 
-        float x0 = horizontallyCentered ? -objectSize.X / 2 : 0;
-        float x1 = horizontallyCentered ? objectSize.X / 2 : objectSize.X;
-        float y0 = verticallyCentered ? -objectSize.Y / 2 : 0;
-        float y1 = verticallyCentered ? objectSize.Y / 2 : objectSize.Y;
+        float x0 = horizontallyCentered ? -objectSize.X * 0.5f : 0;
+        float x1 = horizontallyCentered ? objectSize.X * 0.5f : objectSize.X;
+        float y0 = verticallyCentered ? -objectSize.Y * 0.5f : 0;
+        float y1 = verticallyCentered ? objectSize.Y * 0.5f : objectSize.Y;
 
         // Interleaved vertex buffer: position(x,y), texcoord(u,v)
         // Bottom-Left
@@ -74,5 +75,20 @@ public static class GraphicsUtils
         vertices[13] = y1;
         vertices[14] = u1;
         vertices[15] = vTop;
+    }
+
+    public static void RenderSpriteQuad(int textureHandle, int mvpLocation, in float[] vertexScratch, ref Matrix4 mvp)
+    {
+        GL.BindTexture(TextureTarget.Texture2D, textureHandle);
+        GL.ActiveTexture(TextureUnit.Texture0);
+
+        GL.BufferData(BufferTarget.ArrayBuffer, vertexScratch.Length * sizeof(float), vertexScratch,
+            BufferUsageHint.StaticDraw);
+
+        GL.BufferData(BufferTarget.ElementArrayBuffer, QuadIndices.Length * sizeof(uint), QuadIndices,
+            BufferUsageHint.StaticDraw);
+
+        GL.UniformMatrix4(mvpLocation, false, ref mvp);
+        GL.DrawElements(PrimitiveType.Triangles, QuadIndices.Length, DrawElementsType.UnsignedInt, 0);
     }
 }

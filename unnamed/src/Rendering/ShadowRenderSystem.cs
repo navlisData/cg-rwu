@@ -15,7 +15,7 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class ShadowRenderSystem(World world, AssetStore assets) : EntitySetSystem<(int shader, Camera2D camera)>(world,
+public class ShadowRenderSystem(World world, AssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
     world.Query()
         .With<Sprite>()
         .With<Position>()
@@ -25,12 +25,43 @@ public class ShadowRenderSystem(World world, AssetStore assets) : EntitySetSyste
 {
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
+    private readonly Color4 shadowColor = new(0f, 0f, 0f, 0.35f);
+    private readonly Matrix4 shearMatrix = new(Vector4.UnitX, new Vector4(1.6f, 1, 0, 0), Vector4.UnitZ, Vector4.UnitW);
 
     private readonly int vertexArray = GL.GenVertexArray();
     private readonly int vertexBuffer = GL.GenBuffer();
     private readonly float[] vertexScratch = new float[16];
+    private int mvpUniformLocation;
+    private int texCoordLocation;
+    private int vertexLocation;
 
-    protected override void Update((int shader, Camera2D camera) param, in Entity e)
+    protected override bool BeforeUpdate(int shader)
+    {
+        GL.UseProgram(shader);
+        GL.Uniform4(GL.GetUniformLocation(shader, "shadowColor"), this.shadowColor);
+
+        GL.BindVertexArray(this.vertexArray);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
+
+        this.vertexLocation = GL.GetAttribLocation(shader, "aPosition");
+        this.texCoordLocation = GL.GetAttribLocation(shader, "aTexCoord");
+        this.mvpUniformLocation = GL.GetUniformLocation(shader, "uMVP");
+
+        GL.EnableVertexAttribArray(this.vertexLocation);
+        GL.EnableVertexAttribArray(this.texCoordLocation);
+
+        GL.VertexAttribPointer(this.vertexLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
+        GL.VertexAttribPointer(this.texCoordLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float),
+            2 * sizeof(float));
+
+        GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
+            BufferUsageHint.StaticDraw);
+
+        return false;
+    }
+
+    protected override void Update(Camera2D camera, in Entity e)
     {
         ref Sprite sprite = ref e.Get<Sprite>();
         Vector2 position = e.Get<Position>().ToWorldPosition();
@@ -44,52 +75,20 @@ public class ShadowRenderSystem(World world, AssetStore assets) : EntitySetSyste
 
         RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
 
-        Matrix4 shear = Matrix4.Identity;
-        shear.M21 = 1.6f;
-
         Matrix4 shadowModel =
             Matrix4.CreateRotationZ(transform.Rotation) *
             Matrix4.CreateScale(transform.Scale * 0.5f) *
             Matrix4.CreateTranslation(0f, transform.Height, 0f) *
-            shear *
+            this.shearMatrix *
             Matrix4.CreateTranslation(position.X, position.Y, 0f);
-
-        Vector4 color = new(0f, 0f, 0f, 0.35f);
-        GL.Uniform4(GL.GetUniformLocation(param.shader, "shadowColor"), color);
+        Matrix4 mvpSquare = shadowModel * camera.ViewProjection;
 
         GraphicsUtils.FillSpriteQuadGeometry(
             in transform.Size,
             in rect, in texture, in this.vertexScratch, true, e.Has<Projectile>());
 
-        GL.BindVertexArray(this.vertexArray);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
-        GL.BufferData(BufferTarget.ArrayBuffer, this.vertexScratch.Length * sizeof(float), this.vertexScratch,
-            BufferUsageHint.StaticDraw);
-
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
-            BufferUsageHint.StaticDraw);
-
-        int vertexLocation = GL.GetAttribLocation(param.shader, "aPosition");
-        GL.EnableVertexAttribArray(vertexLocation);
-        GL.VertexAttribPointer(vertexLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
-
-        int texCoordLocation = GL.GetAttribLocation(param.shader, "aTexCoord");
-        GL.EnableVertexAttribArray(texCoordLocation);
-        GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float),
-            2 * sizeof(float));
-
-
-        GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
-        GL.ActiveTexture(TextureUnit.Texture0);
-
-        Matrix4 mvpSquare = shadowModel * param.camera.ViewProjection;
-
-        int mvpUniformLocation = GL.GetUniformLocation(param.shader, "uMVP");
-        GL.UniformMatrix4(mvpUniformLocation, false, ref mvpSquare);
-
-        GL.BindVertexArray(this.vertexArray);
-        GL.DrawElements(PrimitiveType.Triangles, this.quadIndices.Length, DrawElementsType.UnsignedInt, 0);
+        GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
+            ref mvpSquare);
     }
 
     public void OnUnload()
