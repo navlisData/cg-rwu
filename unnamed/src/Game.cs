@@ -152,13 +152,10 @@ public class Game : GameWindow
 
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
-        GL.UseProgram(this.shaderProgram);
-        this.mapRenderSystem.Run((this.shaderProgram, cameraPosition));
-        GL.UseProgram(this.shadowProgram);
-        this.shadowRenderSystem.Run((this.shadowProgram, cameraPosition));
-        GL.UseProgram(this.shaderProgram);
-        this.projectileRenderSystem.Run((this.shaderProgram, cameraPosition));
-        this.characterRenderSystem.Run((this.shaderProgram, cameraPosition));
+        this.mapRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
+        this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
 
         this.SwapBuffers();
     }
@@ -176,6 +173,9 @@ public class Game : GameWindow
 
         this.assets.Dispose();
         this.mapRenderSystem.OnUnload();
+        this.shadowRenderSystem.OnUnload();
+        this.projectileRenderSystem.OnUnload();
+        this.characterRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);
     }
 }
