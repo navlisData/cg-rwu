@@ -1,4 +1,5 @@
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 
 using StbImageSharp;
 
@@ -9,6 +10,8 @@ public sealed class Texture2D : IDisposable
     public int Handle { get; }
     public int Width { get; }
     public int Height { get; }
+    
+    public Vector2i Size => new(Width, Height);
 
     public Texture2D(String imagePath, bool generateMipmaps = true)
     {

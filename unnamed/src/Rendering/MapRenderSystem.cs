@@ -11,6 +11,7 @@ using OpenTK.Mathematics;
 using unnamed.Components.Map;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Texture;
 using unnamed.Utils;
 
 namespace unnamed.Rendering;
@@ -21,7 +22,7 @@ public class MapRenderSystem(World world, AssetStore assets) : ExtendedEntitySet
         .With<Loaded>()
         .Build())
 {
-    private readonly IAssetStore assets = assets;
+    private readonly AssetStore assets = assets;
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
 
@@ -67,13 +68,9 @@ public class MapRenderSystem(World world, AssetStore assets) : ExtendedEntitySet
             Vector2i inChunkPosition = tile.Get<GridPosition>().ToVector2I();
             ref Sprite sprite = ref tile.Get<Sprite>();
 
-            SpriteSheet spriteSheet = this.assets.GetSpriteSheet(sprite.Frame.Sheet);
-            if (!this.assets.TryGetTexture(spriteSheet.Texture, out Texture2D? texture))
-            {
-                continue;
-            }
-
-            RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
+            StaticSprite frame = sprite.Frame;
+            Texture2D texture = assets.GetTextureById(frame.SpriteSheetId);
+            RectangleF rect = frame.RectPx;
 
             Matrix4 modelSquare = Matrix4.CreateTranslation(
                 ((chunkPosition.X * Constants.GridSizeX) + inChunkPosition.X) * Constants.TileSizeX,

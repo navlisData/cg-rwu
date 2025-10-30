@@ -6,8 +6,7 @@ namespace unnamed.Components.Rendering;
 
 public struct Sprite
 {
-    // Points to (Sheet, FrameIndex)
-    public SpriteFrameId Frame;
+    public StaticSprite Frame;
     public Vector4 Tint;
     public float Layer;
 }

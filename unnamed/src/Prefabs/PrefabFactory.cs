@@ -8,6 +8,7 @@ using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Texture;
 using unnamed.Utils;
 
 namespace unnamed.Prefabs;
@@ -15,21 +16,19 @@ namespace unnamed.Prefabs;
 public static class PrefabFactory
 {
     public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size,
-        AlignedCharacter alignedCharacter)
+        AssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
         entity.Add(new Velocity { Value = startVel });
         entity.Add(new Transform { Size = size, Scale = 1 });
         entity.Add(new ReceivesPlayerInput());
-        entity.Add(alignedCharacter);
         entity.Add(new Sprite
         {
-            Frame = alignedCharacter.GetFrameIdByDirection(), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Idle), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
         });
 
         entity.Add(new Character());
-
         return entity;
     }
 
@@ -54,14 +53,15 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateBullet(World world, Position startPos, Vector2 velocity, float rotation, float height)
+    public static Entity CreateBullet(World world, Position startPos, Vector2 velocity, float rotation, float height, 
+        AssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
         entity.Add(new Transform { Size = new Vector2(2f, 2f), Scale = 3, Rotation = rotation, Height = height });
         entity.Add(new Sprite
         {
-            Frame = new SpriteFrameId(new SpriteSheetId(2), 0), Tint = new Vector4(1, 1, 1, 1), Layer = 0
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Projectile.Fireball), Tint = new Vector4(1, 1, 1, 1), Layer = 0
         });
         entity.Add(new Velocity { Value = velocity });
         entity.Add(new Projectile { Damage = 10, Lifetime = Lifetime.DestroyOnSleep });
@@ -77,14 +77,14 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateMapTile(World world, TileType type, SpriteFrameId frameId, Entity chunk,
-        Vector2i position)
+    public static Entity CreateMapTile(World world, TileType type, Entity chunk,
+        Vector2i position, StaticSprite sprite)
     {
         Entity entity = world.CreateEntity();
         entity.Add(new ChunkRef(chunk));
         entity.Add(new GridPosition(position));
         entity.Add(type);
-        entity.Add(new Sprite { Frame = frameId, Tint = new Vector4(1, 1, 1, 1), Layer = 0 });
+        entity.Add(new Sprite { Frame = sprite, Tint = new Vector4(1, 1, 1, 1), Layer = 0 });
         return entity;
     }
 }
