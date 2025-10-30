@@ -58,7 +58,7 @@ public static class PrefabFactory
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
-        entity.Add(new Transform { Size = new Vector2(2f, 2f), Scale = 3, Rotation = rotation, Height = height });
+        entity.Add(new Transform { Size = new Vector2(2f, 2f), Scale = 1.2f, Rotation = rotation, Height = height });
         entity.Add(new Sprite
         {
             Frame = assetStore.FirstAnimationFrame(GameAssets.Projectile.Fireball), Tint = new Vector4(1, 1, 1, 1), Layer = 0
