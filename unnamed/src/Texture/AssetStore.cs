@@ -2,7 +2,7 @@ using engine.TextureProcessing;
 
 namespace unnamed.Texture;
 
-public class AssetStore : IDisposable
+public class AssetStore : IAssetStore
 {
     /// <summary>
     ///     Maps a sprite sheet image path to its stable <see cref="SpriteSheetId"/>.

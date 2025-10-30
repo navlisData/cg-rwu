@@ -16,7 +16,7 @@ namespace unnamed.Prefabs;
 public static class PrefabFactory
 {
     public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size,
-        AssetStore assetStore)
+        IAssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
@@ -54,7 +54,7 @@ public static class PrefabFactory
     }
 
     public static Entity CreateBullet(World world, Position startPos, Vector2 velocity, float rotation, float height, 
-        AssetStore assetStore)
+        IAssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);

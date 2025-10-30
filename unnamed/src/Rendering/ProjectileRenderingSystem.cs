@@ -11,12 +11,11 @@ using OpenTK.Mathematics;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
-using unnamed.Texture;
 using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class ProjectileRenderingSystem(World world, AssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
+public class ProjectileRenderingSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
     world,
     world.Query()
         .With<Projectile>()

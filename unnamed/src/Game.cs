@@ -29,7 +29,7 @@ public class Game : GameWindow
     };
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
-    private readonly AssetStore assetStore = new AssetStore();
+    private readonly IAssetStore assetStore = new AssetStore();
 
     // Rendering systems
     private readonly CameraSystem cameraSystem;

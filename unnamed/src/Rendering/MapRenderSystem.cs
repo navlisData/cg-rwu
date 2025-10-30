@@ -11,18 +11,17 @@ using OpenTK.Mathematics;
 using unnamed.Components.Map;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
-using unnamed.Texture;
 using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class MapRenderSystem(World world, AssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
+public class MapRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
     world.Query()
         .With<TileRef>()
         .With<Loaded>()
         .Build())
 {
-    private readonly AssetStore assets = assets;
+    private readonly IAssetStore assets = assets;
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
 

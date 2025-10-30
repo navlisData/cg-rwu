@@ -4,14 +4,14 @@ namespace unnamed.Texture;
 
 public static class GameSprites
 {
-    public static void Init(AssetStore assetStore)
+    public static void Init(IAssetStore assetStore)
     {
         InitPlayerSprites(assetStore);
         InitProjectileSprites(assetStore);
         InitMapTiles(assetStore);
     }
 
-    private static void InitPlayerSprites(AssetStore assetStore)
+    private static void InitPlayerSprites(IAssetStore assetStore)
     {
         SpriteSheet playerSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png"));
@@ -21,7 +21,7 @@ public static class GameSprites
         assetStore.Register(GameAssets.Player.Idle, idleAnimation);
     }
 
-    private static void InitProjectileSprites(AssetStore assetStore)
+    private static void InitProjectileSprites(IAssetStore assetStore)
     {
         SpriteSheet projectileSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "fireball.png"));
@@ -31,7 +31,7 @@ public static class GameSprites
         assetStore.Register(GameAssets.Projectile.Fireball, idleAnimation);
     }
     
-    private static void InitMapTiles(AssetStore assetStore)
+    private static void InitMapTiles(IAssetStore assetStore)
     {
         SpriteSheet mapTileSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png"));
