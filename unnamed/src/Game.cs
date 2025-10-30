@@ -78,8 +78,8 @@ public class Game : GameWindow
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        this.shaderProgram = Shader.Setup("shaders/shader.vert", "shaders/shader.frag");
-        this.shadowProgram = Shader.Setup("shaders/shader.vert", "shaders/shadow.frag");
+        this.shaderProgram = Shader.Setup("sprite.vert", "sprite.frag");
+        this.shadowProgram = Shader.Setup("sprite.vert", "shadow.frag");
 
         string floorSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
         Dictionary<string, RectangleF> floorSprites = GameSprites.Map.GetFlowerSprites();
