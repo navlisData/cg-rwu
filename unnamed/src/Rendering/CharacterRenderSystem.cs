@@ -76,37 +76,6 @@ public class CharacterRenderSystem(World world, IAssetStore assets) : ExtendedEn
         
         GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
             ref mvpSquare);
-        
-        // const float PPU = 32f; // 32 px = 1 world unit
-        //
-        // ref Sprite sprite = ref e.Get<Sprite>();
-        // var pos = e.Get<Position>().ToWorldPosition();
-        // ref Transform transform = ref e.Get<Transform>();
-        //
-        // StaticSprite frame = sprite.Frame;
-        // Texture2D tex = assets.GetTextureById(frame.SpriteSheetId);
-        // var r = frame.RectPx;
-        //
-        // Vector2 worldSize = new Vector2(r.Width / PPU, r.Height / PPU) * transform.Scale; 
-        //
-        // Vector2 pivotWorld = frame.PivotPx / PPU;
-        //
-        // Matrix4 model =
-        //     Matrix4.CreateScale(worldSize.X, worldSize.Y, 1f) *
-        //     Matrix4.CreateTranslation(pos.X - pivotWorld.X, pos.Y - pivotWorld.Y, 0f);
-        //
-        // Matrix4 mvp = model * camera.ViewProjection;
-        //
-        // Vector2 v = new Vector2(1, 1);
-        // GraphicsUtils.FillSpriteQuadGeometry(
-        //     in v, // Unit-Quad
-        //     in r,                 // RectPx für UVs
-        //     in tex,
-        //     in this.vertexScratch,
-        //     true, false);
-        //
-        // GraphicsUtils.RenderSpriteQuad(tex.Handle, this.mvpUniformLocation, in this.vertexScratch, ref mvp);
-
     }
 
     public void OnUnload()
