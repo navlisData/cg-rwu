@@ -46,41 +46,41 @@ public static class GameSprites
         TextureGrid idleWestTextureGrid = new(32, 35, 0, 299);
         TextureGrid idleNorthWestTextureGrid = new(32, 35, 0, 443);
         
-        var playerClips = new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid)>
+        var playerClips = new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid, bool loop)>
         {
             // Run
-            (GameAssets.Player.Run.North, runNorthTextureGrid),
-            (GameAssets.Player.Run.NorthEast, runNorthEastTextureGrid),
-            (GameAssets.Player.Run.East, runEastTextureGrid),
-            (GameAssets.Player.Run.SouthEast, runSouthEastTextureGrid),
-            (GameAssets.Player.Run.South, runSouthTextureGrid),
-            (GameAssets.Player.Run.SouthWest, runSouthWestTextureGrid),
-            (GameAssets.Player.Run.West, runWestTextureGrid),
-            (GameAssets.Player.Run.NorthWest, runNorthWestTextureGrid),
+            (GameAssets.Player.Run.North, runNorthTextureGrid, true),
+            (GameAssets.Player.Run.NorthEast, runNorthEastTextureGrid, true),
+            (GameAssets.Player.Run.East, runEastTextureGrid, true),
+            (GameAssets.Player.Run.SouthEast, runSouthEastTextureGrid, true),
+            (GameAssets.Player.Run.South, runSouthTextureGrid, true),
+            (GameAssets.Player.Run.SouthWest, runSouthWestTextureGrid, true),
+            (GameAssets.Player.Run.West, runWestTextureGrid, true),
+            (GameAssets.Player.Run.NorthWest, runNorthWestTextureGrid, true),
             // Attack
-            (GameAssets.Player.Attack.North, attackNorthTextureGrid),
-            (GameAssets.Player.Attack.NorthEast, attackNorthEastTextureGrid),
-            (GameAssets.Player.Attack.East, attackEastTextureGrid),
-            (GameAssets.Player.Attack.SouthEast, attackSouthEastTextureGrid),
-            (GameAssets.Player.Attack.South, attackSouthTextureGrid),
-            (GameAssets.Player.Attack.SouthWest, attackSouthWestTextureGrid),
-            (GameAssets.Player.Attack.West, attackWestTextureGrid),
-            (GameAssets.Player.Attack.NorthWest, attackNorthWestTextureGrid),
+            (GameAssets.Player.Attack.North, attackNorthTextureGrid, false),
+            (GameAssets.Player.Attack.NorthEast, attackNorthEastTextureGrid, false),
+            (GameAssets.Player.Attack.East, attackEastTextureGrid, false),
+            (GameAssets.Player.Attack.SouthEast, attackSouthEastTextureGrid, false),
+            (GameAssets.Player.Attack.South, attackSouthTextureGrid, false),
+            (GameAssets.Player.Attack.SouthWest, attackSouthWestTextureGrid, false),
+            (GameAssets.Player.Attack.West, attackWestTextureGrid, false),
+            (GameAssets.Player.Attack.NorthWest, attackNorthWestTextureGrid, false),
             // Idle
-            (GameAssets.Player.Idle.North, idleNorthTextureGrid),
-            (GameAssets.Player.Idle.NorthEast, idleNorthEastTextureGrid),
-            (GameAssets.Player.Idle.East, idleEastTextureGrid),
-            (GameAssets.Player.Idle.SouthEast, idleSouthEastTextureGrid),
-            (GameAssets.Player.Idle.South, idleSouthTextureGrid),
-            (GameAssets.Player.Idle.SouthWest, idleSouthWestTextureGrid),
-            (GameAssets.Player.Idle.West, idleWestTextureGrid),
-            (GameAssets.Player.Idle.NorthWest, idleNorthWestTextureGrid),
+            (GameAssets.Player.Idle.North, idleNorthTextureGrid, true),
+            (GameAssets.Player.Idle.NorthEast, idleNorthEastTextureGrid, true),
+            (GameAssets.Player.Idle.East, idleEastTextureGrid, true),
+            (GameAssets.Player.Idle.SouthEast, idleSouthEastTextureGrid, true),
+            (GameAssets.Player.Idle.South, idleSouthTextureGrid, true),
+            (GameAssets.Player.Idle.SouthWest, idleSouthWestTextureGrid, true),
+            (GameAssets.Player.Idle.West, idleWestTextureGrid, true),
+            (GameAssets.Player.Idle.NorthWest, idleNorthWestTextureGrid, true),
         };
 
-        foreach (var (clip, grid) in playerClips)
+        foreach (var (clip, grid, loop) in playerClips)
         {
-            var runAnimation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, frameCount:6, fps:7f);
-            assetStore.Register(clip, runAnimation);
+            var animation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, frameCount:6, fps:7f, loop:loop);
+            assetStore.Register(clip, animation);
         }
     }
 

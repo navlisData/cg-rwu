@@ -106,11 +106,12 @@ public static class SpriteSlicer
     /// <param name="textureGrid">Grid definition used to slice frames.</param>
     /// <param name="frameCount">Number of frames to include starting at <paramref name="startIndex"/>.</param>
     /// <param name="fps">Playback frames per second.</param>
+    /// <param name="loop">Should the animation be looped.</param>
     /// <param name="startIndex">Starting zero-based cell index (row-major order).</param>
     /// <returns>An <see cref="AnimationClip"/> with the selected frames.</returns>
-    public static AnimationClip ClipFromGrid(SpriteSheet spriteSheet, TextureGrid textureGrid, int frameCount, float fps, int startIndex = 0)
+    public static AnimationClip ClipFromGrid(SpriteSheet spriteSheet, TextureGrid textureGrid, int frameCount, float fps, bool loop = true, int startIndex = 0)
     {
         var set = FromGrid(spriteSheet, textureGrid, Enumerable.Range(startIndex, frameCount));
-        return new AnimationClip { Frames = set, Fps = fps, Loop = true };
+        return new AnimationClip { Frames = set, Fps = fps, Loop = loop };
     }
 }
