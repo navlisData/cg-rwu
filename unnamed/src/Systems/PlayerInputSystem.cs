@@ -1,6 +1,8 @@
 using Engine.Ecs;
 using Engine.Ecs.Systems;
 
+using engine.TextureProcessing;
+
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
@@ -13,7 +15,7 @@ using unnamed.Utils;
 namespace unnamed.systems;
 
 public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
-    : EntitySetSystem<(float dt, Camera2D camera, Position player, Vector2i windowSize)>(world,
+    : EntitySetSystem<(float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets)>(world,
         world.Query()
             .With<ReceivesPlayerInput>()
             .Build()
@@ -25,7 +27,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
     private readonly Func<MouseState> mouseStateProvider =
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
-    protected override void Update((float dt, Camera2D camera, Position player, Vector2i windowSize) args, in Entity e)
+    protected override void Update((float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets) args, in Entity e)
     {
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
@@ -101,7 +103,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                                            new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
 
                 Entity unused = PrefabFactory.CreateBullet(this.world, playerPosition,
-                    bulletDirection * 5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2);
+                    bulletDirection * 5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2, args.assets);
 #if DEBUG
                 Console.WriteLine($"{mousePositionWorld}");
 #endif

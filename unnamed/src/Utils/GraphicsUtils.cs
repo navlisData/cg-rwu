@@ -28,9 +28,7 @@ public static class GraphicsUtils
         in float[] vertices, bool horizontallyCentered, bool verticallyCentered)
     {
         if (vertices.Length < 16)
-        {
             throw new ArgumentException("vertices length must be >= 16");
-        }
 
         // Normalize helpers
         float invW = 1f / texture.Width;
@@ -45,11 +43,20 @@ public static class GraphicsUtils
         // Conversion required: pixel Y to UV by v = 1 - (y / height).
         float vTop = 1f - (spriteRect.Top * invH);
         float vBottom = 1f - (spriteRect.Bottom * invH);
+        
+        float width = objectSize.X;
+        float height = objectSize.Y;
+        
+        if (spriteRect.Height > 0f)
+        {
+            float spriteAspect = spriteRect.Width / spriteRect.Height;
+            width = height * spriteAspect;
+        }
 
-        float x0 = horizontallyCentered ? -objectSize.X * 0.5f : 0;
-        float x1 = horizontallyCentered ? objectSize.X * 0.5f : objectSize.X;
-        float y0 = verticallyCentered ? -objectSize.Y * 0.5f : 0;
-        float y1 = verticallyCentered ? objectSize.Y * 0.5f : objectSize.Y;
+        float x0 = horizontallyCentered ? -0.5f * width : 0f;
+        float x1 = horizontallyCentered ? 0.5f * width : width;
+        float y0 = verticallyCentered ? -0.5f * height : 0f;
+        float y1 = verticallyCentered ?  0.5f * height : height;
 
         // Interleaved vertex buffer: position(x,y), texcoord(u,v)
         // Bottom-Left

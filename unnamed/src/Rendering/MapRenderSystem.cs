@@ -15,7 +15,7 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class MapRenderSystem(World world, AssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
+public class MapRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
     world.Query()
         .With<TileRef>()
         .With<Loaded>()
@@ -67,13 +67,9 @@ public class MapRenderSystem(World world, AssetStore assets) : ExtendedEntitySet
             Vector2i inChunkPosition = tile.Get<GridPosition>().ToVector2I();
             ref Sprite sprite = ref tile.Get<Sprite>();
 
-            SpriteSheet spriteSheet = this.assets.GetSpriteSheet(sprite.Frame.Sheet);
-            if (!this.assets.TryGetTexture(spriteSheet.Texture, out Texture2D? texture))
-            {
-                continue;
-            }
-
-            RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
+            StaticSprite frame = sprite.Frame;
+            Texture2D texture = assets.GetTextureById(frame.SpriteSheetId);
+            RectangleF rect = frame.RectPx;
 
             Matrix4 modelSquare = Matrix4.CreateTranslation(
                 ((chunkPosition.X * Constants.GridSizeX) + inChunkPosition.X) * Constants.TileSizeX,

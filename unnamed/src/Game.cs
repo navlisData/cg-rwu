@@ -1,5 +1,3 @@
-using System.Drawing;
-
 using Engine.Ecs;
 
 using engine.TextureProcessing;
@@ -16,6 +14,7 @@ using unnamed.Components.Rendering;
 using unnamed.Prefabs;
 using unnamed.Rendering;
 using unnamed.systems;
+using unnamed.Texture;
 using unnamed.Utils;
 
 namespace unnamed;
@@ -30,10 +29,11 @@ public class Game : GameWindow
     };
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
-    private readonly AssetStore assets = new();
+    private readonly IAssetStore assetStore = new AssetStore();
 
     // Rendering systems
     private readonly CameraSystem cameraSystem;
+    private readonly SpriteAnimationSystem spriteAnimationSystem;
 
     // General systems
     private readonly CharacterAlignmentSystem characterAlignSystem;
@@ -57,14 +57,15 @@ public class Game : GameWindow
     {
         // Rendering systems
         this.cameraSystem = new CameraSystem(this.world);
-        this.characterRenderSystem = new CharacterRenderSystem(this.world, this.assets);
+        this.characterRenderSystem = new CharacterRenderSystem(this.world, this.assetStore);
         this.followSystem = new FollowingSystem(this.world);
-        this.mapRenderSystem = new MapRenderSystem(this.world, this.assets);
-        this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assets);
-        this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assets);
+        this.mapRenderSystem = new MapRenderSystem(this.world, this.assetStore);
+        this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assetStore);
+        this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assetStore);
+        this.spriteAnimationSystem = new SpriteAnimationSystem(this.world, this.assetStore);
 
         // General systems
-        this.characterAlignSystem = new CharacterAlignmentSystem(this.world);
+        this.characterAlignSystem = new CharacterAlignmentSystem(this.world, this.assetStore);
         this.move = new MoveSystem(this.world);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
@@ -80,32 +81,29 @@ public class Game : GameWindow
 
         this.shaderProgram = Shader.Setup("shaders/shader.vert", "shaders/shader.frag");
         this.shadowProgram = Shader.Setup("shaders/shader.vert", "shaders/shadow.frag");
+        
+        GameSprites.Init(assetStore);
 
-        string floorSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png");
-        Dictionary<string, RectangleF> floorSprites = GameSprites.Map.GetFlowerSprites();
-        SpriteSheetId floorSheetId = this.assets.LoadSpriteSheet(floorSpriteSheetPath, floorSprites);
-
-        string playerSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png");
-        Dictionary<string, RectangleF> playerSprites = GameSprites.Player.GetPlayerSprites();
-        SpriteSheetId playerSheetId = this.assets.LoadSpriteSheet(playerSpriteSheetPath, playerSprites);
-
-        string projectileSpriteSheetPath = Path.Combine(AppContext.BaseDirectory, "Assets", "fireball.png");
-        Dictionary<string, RectangleF> projectileSprites = GameSprites.Projectile.GetSprite();
-        this.assets.LoadSpriteSheet(projectileSpriteSheetPath, projectileSprites);
-
-
-        this.player = PrefabFactory.CreatePlayer(this.world,
-            new Position(),
-            new Vector2(0f, 0f),
-            new Vector2(3, 5),
-            GameSprites.Player.ToAlignedCharacter(playerSheetId, this.assets)
-        );
+        this.player = PrefabFactory.CreatePlayer(
+                this.world,
+                new Position(),
+                new Vector2(0f, 0f),
+                new Vector2(2, 5),
+                this.assetStore);
 
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
         Random rnd = Random.Shared;
-        string[] keys = floorSprites.Keys.ToArray();
+        List<StaticSprite> flowers = assetStore.Get(GameAssets.MapTiles.Flowers);
+        List<StaticSprite> path = assetStore.Get(GameAssets.MapTiles.Pathway);
+        List<StaticSprite> grass = assetStore.Get(GameAssets.MapTiles.Grass);
+        
+        var allMapTiles = new List<StaticSprite>(flowers.Count + path.Count + grass.Count);
+        allMapTiles.AddRange(flowers);
+        allMapTiles.AddRange(path);
+        allMapTiles.AddRange(grass);
+        
         foreach (int gridY in Enumerable.Range(-10, 20))
         {
             foreach (int gridX in Enumerable.Range(-10, 20))
@@ -116,10 +114,9 @@ public class Game : GameWindow
                 {
                     foreach (int x in Enumerable.Range(0, Constants.GridSizeX))
                     {
-                        string spriteName = floorSprites.Keys.ElementAt(rnd.Next(keys.Length));
-                        SpriteFrameId frameId = this.assets.GetFrame(floorSheetId, spriteName);
-                        Entity mapTile = PrefabFactory.CreateMapTile(this.world, TileType.Pathway, frameId, chunk,
-                            new Vector2i(x, y));
+                        StaticSprite sprite = allMapTiles.ElementAt(rnd.Next(allMapTiles.Count-1));
+                        Entity mapTile = PrefabFactory.CreateMapTile(this.world, TileType.Pathway, chunk,
+                            new Vector2i(x, y), sprite);
                         tiles[(y * Constants.GridSizeY) + x] = mapTile;
                     }
                 }
@@ -137,10 +134,11 @@ public class Game : GameWindow
             this.Close();
         }
 
-        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize));
+        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize, this.assetStore));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.characterAlignSystem.Run(dt);
+        this.spriteAnimationSystem.Run(dt);
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
     }
@@ -171,7 +169,7 @@ public class Game : GameWindow
     {
         base.OnUnload();
 
-        this.assets.Dispose();
+        this.assetStore.Dispose();
         this.mapRenderSystem.OnUnload();
         this.shadowRenderSystem.OnUnload();
         this.projectileRenderSystem.OnUnload();

@@ -15,7 +15,7 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class ProjectileRenderingSystem(World world, AssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
+public class ProjectileRenderingSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
     world,
     world.Query()
         .With<Projectile>()
@@ -68,13 +68,9 @@ public class ProjectileRenderingSystem(World world, AssetStore assets) : Extende
         Vector2 position = e.Get<Position>().ToWorldPosition();
         ref Transform transform = ref e.Get<Transform>();
 
-        SpriteSheet spriteSheet = assets.GetSpriteSheet(sprite.Frame.Sheet);
-        if (!assets.TryGetTexture(spriteSheet.Texture, out Texture2D? texture))
-        {
-            return;
-        }
-
-        RectangleF rect = spriteSheet.Frames[sprite.Frame.Index];
+        StaticSprite frame = sprite.Frame;
+        Texture2D texture = assets.GetTextureById(frame.SpriteSheetId);
+        RectangleF rect = frame.RectPx;
 
         Matrix4 modelSquare = Matrix4.CreateRotationZ(transform.Rotation) *
                               Matrix4.CreateScale(transform.Scale) *

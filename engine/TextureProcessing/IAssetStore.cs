@@ -1,47 +1,76 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-
-namespace engine.TextureProcessing;
-
-public interface IAssetStore
+namespace engine.TextureProcessing
 {
     /// <summary>
-    /// Loads a texture from <paramref name="path"/> if not already loaded and returns its stable ID.
+    ///     Public interface for managing sprite sheets, sprites, sprite sets and animation clips.
     /// </summary>
-    /// <param name="path">File path to the image (absolute or relative to the app base directory).</param>
-    /// <param name="generateMipmaps">True to generate mipmaps after upload; false otherwise.</param>
-    /// <returns>A <see cref="TextureId"/> referencing the loaded texture.</returns>
-    TextureId LoadTexture(string path, bool generateMipmaps = true);
+    public interface IAssetStore : IDisposable
+    {
+        /// <summary>
+        ///     Loads a sprite sheet from the specified texture path or returns it from cache if already loaded.
+        /// </summary>
+        /// <param name="texturePath">Absolute or relative file path to the image.</param>
+        /// <param name="generateMipmaps">Whether mipmaps should be generated for the GL texture.</param>
+        /// <returns>A <see cref="SpriteSheet"/> containing the assigned identifier and pixel size.</returns>
+        SpriteSheet LoadSpriteSheet(string texturePath, bool generateMipmaps = false);
 
-    /// <summary>
-    /// Tries to retrieve a previously loaded texture by ID.
-    /// </summary>
-    /// <param name="id">The texture identifier.</param>
-    /// <param name="texture">Receives the texture when found; otherwise null.</param>
-    /// <returns>True if the texture exists; otherwise false.</returns>
-    bool TryGetTexture(TextureId id, [MaybeNullWhen(false)] out Texture2D texture);
+        /// <summary>
+        ///     Disposes the GL texture associated with the given sprite sheet identifier
+        ///     and detaches registered keys referencing that sheet.
+        /// </summary>
+        /// <param name="id">The sprite sheet identifier.</param>
+        void UnloadSpriteSheet(SpriteSheetId id);
 
-    /// <summary>
-    /// Loads a sprite sheet for the texture at <paramref name="texturePath"/> using the provided named frame rectangles.
-    /// </summary>
-    /// <param name="texturePath">Path to the sprite sheet image.</param>
-    /// <param name="frames">Mapping of frame names to pixel rectangles within the sheet.</param>
-    /// <returns>A <see cref="SpriteSheetId"/> referencing the loaded sprite sheet.</returns>
-    SpriteSheetId LoadSpriteSheet(string texturePath, IReadOnlyDictionary<string, RectangleF> frames);
-    
-    /// <summary>
-    /// Retrieves a previously loaded sprite sheet by ID.
-    /// </summary>
-    /// <param name="id">The sprite sheet identifier.</param>
-    /// <returns>The corresponding <see cref="SpriteSheet"/> instance.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the sheet is not loaded or already disposed.</exception>
-    SpriteSheet GetSpriteSheet(SpriteSheetId id);
-    
-    /// <summary>
-    /// Resolves a frame within a sprite sheet to a frame identifier.
-    /// </summary>
-    /// <param name="sheet">The sprite sheet identifier.</param>
-    /// <param name="name">The frame name.</param>
-    /// <returns>A <see cref="SpriteFrameId"/> pointing to the frame within the sheet.</returns>
-    SpriteFrameId GetFrame(SpriteSheetId sheet, string name);
+        /// <summary>
+        ///     Returns the GL texture corresponding to a sprite sheet identifier.
+        /// </summary>
+        /// <param name="id">The sprite sheet identifier.</param>
+        /// <returns>The associated <see cref="Texture2D"/> instance.</returns>
+        Texture2D GetTextureById(SpriteSheetId id);
+
+        /// <summary>
+        ///     Registers a single static sprite under the specified key.
+        /// </summary>
+        /// <param name="key">Stable asset reference.</param>
+        /// <param name="value">Sprite to store.</param>
+        void Register(AssetRef<StaticSprite> key, StaticSprite value);
+
+        /// <summary>
+        ///     Registers a sprite set under the specified key. The set must contain at least one sprite.
+        /// </summary>
+        /// <param name="key">Stable asset reference.</param>
+        /// <param name="value">Sprite set to store.</param>
+        void Register(AssetRef<SpriteSet> key, SpriteSet value);
+
+        /// <summary>
+        ///     Registers an animation clip under the specified key. The clip must contain at least one frame.
+        /// </summary>
+        /// <param name="key">Stable asset reference.</param>
+        /// <param name="value">Animation clip to store.</param>
+        void Register(AssetRef<AnimationClip> key, AnimationClip value);
+
+        /// <summary>
+        ///     Returns the first frame of an animation clip for initial rendering.
+        /// </summary>
+        /// <param name="animation">Asset reference to an animation clip.</param>
+        /// <returns>The first <see cref="StaticSprite"/> frame.</returns>
+        StaticSprite FirstAnimationFrame(AssetRef<AnimationClip> animation);
+
+        /// <summary>
+        ///     Retrieves an asset by a typed key.
+        ///     Supported types are <see cref="StaticSprite"/>, <see cref="SpriteSet"/>, and <see cref="AnimationClip"/>.
+        /// </summary>
+        /// <typeparam name="T">The requested asset type.</typeparam>
+        /// <param name="key">Stable asset reference.</param>
+        /// <returns>The stored asset instance.</returns>
+        T Get<T>(AssetRef<T> key);
+
+        /// <summary>
+        ///     Attempts to retrieve an asset by a typed key.
+        /// </summary>
+        /// <typeparam name="T">The requested asset type.</typeparam>
+        /// <param name="key">Stable asset reference.</param>
+        /// <param name="value">Outputs the retrieved value when found; otherwise the default value.</param>
+        /// <returns><c>true</c> if the asset is found; otherwise <c>false</c>.</returns>
+        bool TryGet<T>(AssetRef<T> key, out T value);
+    }
 }
