@@ -18,14 +18,14 @@ public static class GameSprites
         
         /* Run Sprites */
         
-        TextureGrid runNorthTextureGrid = new(32, 34, 0, 636);
-        TextureGrid runNorthEastTextureGrid = new(32, 34, 0, 1068);
-        TextureGrid runEastTextureGrid = new(32, 34, 0, 923);
-        TextureGrid runSouthEastTextureGrid = new(32, 34, 0, 779);
+        TextureGrid runNorthTextureGrid = new(32, 36, 0, 636);
+        TextureGrid runNorthEastTextureGrid = new(32, 35, 0, 1068);
+        TextureGrid runEastTextureGrid = new(32, 35, 0, 923);
+        TextureGrid runSouthEastTextureGrid = new(32, 35, 0, 779);
         TextureGrid runSouthTextureGrid = new(32, 34, 0, 60);
-        TextureGrid runSouthWestTextureGrid = new(32, 34, 0, 203);
-        TextureGrid runWestTextureGrid = new(32, 34, 0, 347);
-        TextureGrid runNorthWestTextureGrid = new(32, 34, 0, 492);
+        TextureGrid runSouthWestTextureGrid = new(32, 35, 0, 203);
+        TextureGrid runWestTextureGrid = new(32, 35, 0, 347);
+        TextureGrid runNorthWestTextureGrid = new(32, 35, 0, 492);
         
         var playerClips = new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid)>
         {
