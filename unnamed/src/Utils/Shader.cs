@@ -4,10 +4,11 @@ namespace unnamed.Utils;
 
 public static class Shader
 {
-    public static int Setup(string vertexPath, string fragmentPath)
+    public static int Setup(string vertexShader, string fragmentShader)
     {
-        string vertexShaderSource = File.ReadAllText(vertexPath);
-        string fragmentShaderSource = File.ReadAllText(fragmentPath);
+        string vertexShaderSource = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Shaders", vertexShader));
+        string fragmentShaderSource =
+            File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Shaders", fragmentShader));
 
         int vertex = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vertex, vertexShaderSource);
