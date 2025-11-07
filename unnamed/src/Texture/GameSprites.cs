@@ -17,7 +17,6 @@ public static class GameSprites
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png"));
         
         /* Run Sprites */
-        
         TextureGrid runNorthTextureGrid = new(32, 36, 0, 636);
         TextureGrid runNorthEastTextureGrid = new(32, 35, 0, 1068);
         TextureGrid runEastTextureGrid = new(32, 35, 0, 923);
@@ -27,8 +26,29 @@ public static class GameSprites
         TextureGrid runWestTextureGrid = new(32, 35, 0, 347);
         TextureGrid runNorthWestTextureGrid = new(32, 35, 0, 492);
         
+        /* Attack Sprites */
+        TextureGrid attackNorthTextureGrid = new(32, 35, 0, 683);
+        TextureGrid attackNorthEastTextureGrid = new(32, 35, 0, 1115);
+        TextureGrid attackEastTextureGrid = new(32, 35, 0, 971);
+        TextureGrid attackSouthEastTextureGrid = new(32, 36, 0, 826);
+        TextureGrid attackSouthTextureGrid = new(32, 35, 0, 107);
+        TextureGrid attackSouthWestTextureGrid = new(32, 36, 0, 250);
+        TextureGrid attackWestTextureGrid = new(32, 35, 0, 395);
+        TextureGrid attackNorthWestTextureGrid = new(32, 35, 0, 539);
+        
+        /* Idle Sprites */
+        TextureGrid idleNorthTextureGrid = new(32, 35, 0, 587);
+        TextureGrid idleNorthEastTextureGrid = new(32, 35, 0, 1019);
+        TextureGrid idleEastTextureGrid = new(32, 35, 0, 875);
+        TextureGrid idleSouthEastTextureGrid = new(32, 36, 0, 730);
+        TextureGrid idleSouthTextureGrid = new(32, 35, 0, 11);
+        TextureGrid idleSouthWestTextureGrid = new(32, 36, 0, 154);
+        TextureGrid idleWestTextureGrid = new(32, 35, 0, 299);
+        TextureGrid idleNorthWestTextureGrid = new(32, 35, 0, 443);
+        
         var playerClips = new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid)>
         {
+            // Run
             (GameAssets.Player.Run.North, runNorthTextureGrid),
             (GameAssets.Player.Run.NorthEast, runNorthEastTextureGrid),
             (GameAssets.Player.Run.East, runEastTextureGrid),
@@ -37,6 +57,24 @@ public static class GameSprites
             (GameAssets.Player.Run.SouthWest, runSouthWestTextureGrid),
             (GameAssets.Player.Run.West, runWestTextureGrid),
             (GameAssets.Player.Run.NorthWest, runNorthWestTextureGrid),
+            // Attack
+            (GameAssets.Player.Attack.North, attackNorthTextureGrid),
+            (GameAssets.Player.Attack.NorthEast, attackNorthEastTextureGrid),
+            (GameAssets.Player.Attack.East, attackEastTextureGrid),
+            (GameAssets.Player.Attack.SouthEast, attackSouthEastTextureGrid),
+            (GameAssets.Player.Attack.South, attackSouthTextureGrid),
+            (GameAssets.Player.Attack.SouthWest, attackSouthWestTextureGrid),
+            (GameAssets.Player.Attack.West, attackWestTextureGrid),
+            (GameAssets.Player.Attack.NorthWest, attackNorthWestTextureGrid),
+            // Idle
+            (GameAssets.Player.Idle.North, idleNorthTextureGrid),
+            (GameAssets.Player.Idle.NorthEast, idleNorthEastTextureGrid),
+            (GameAssets.Player.Idle.East, idleEastTextureGrid),
+            (GameAssets.Player.Idle.SouthEast, idleSouthEastTextureGrid),
+            (GameAssets.Player.Idle.South, idleSouthTextureGrid),
+            (GameAssets.Player.Idle.SouthWest, idleSouthWestTextureGrid),
+            (GameAssets.Player.Idle.West, idleWestTextureGrid),
+            (GameAssets.Player.Idle.NorthWest, idleNorthWestTextureGrid),
         };
 
         foreach (var (clip, grid) in playerClips)

@@ -36,6 +36,64 @@ public static class GameAssets
             public static readonly AssetRef<AnimationClip> NorthWest =
                 AssetRef<AnimationClip>.FromPath(RunPath + "north-west");
         }
+        
+        public static class Idle
+        {
+            private const string IdlePath = BasePrefix + "idle/";
+
+            public static readonly AssetRef<AnimationClip> North =
+                AssetRef<AnimationClip>.FromPath(IdlePath + "north");
+
+            public static readonly AssetRef<AnimationClip> NorthEast =
+                AssetRef<AnimationClip>.FromPath(IdlePath + "north-east");
+
+            public static readonly AssetRef<AnimationClip> East =
+                AssetRef<AnimationClip>.FromPath(IdlePath + "east");
+
+            public static readonly AssetRef<AnimationClip> SouthEast =
+                AssetRef<AnimationClip>.FromPath(IdlePath + "south-east");
+
+            public static readonly AssetRef<AnimationClip> South =
+                AssetRef<AnimationClip>.FromPath(IdlePath + "south");
+
+            public static readonly AssetRef<AnimationClip> SouthWest =
+                AssetRef<AnimationClip>.FromPath(IdlePath + "south-west");
+
+            public static readonly AssetRef<AnimationClip> West =
+                AssetRef<AnimationClip>.FromPath(IdlePath + "west");
+
+            public static readonly AssetRef<AnimationClip> NorthWest =
+                AssetRef<AnimationClip>.FromPath(IdlePath + "north-west");
+        }
+        
+        public static class Attack
+        {
+            private const string AttackPath = BasePrefix + "attack/";
+
+            public static readonly AssetRef<AnimationClip> North =
+                AssetRef<AnimationClip>.FromPath(AttackPath + "north");
+
+            public static readonly AssetRef<AnimationClip> NorthEast =
+                AssetRef<AnimationClip>.FromPath(AttackPath + "north-east");
+
+            public static readonly AssetRef<AnimationClip> East =
+                AssetRef<AnimationClip>.FromPath(AttackPath + "east");
+
+            public static readonly AssetRef<AnimationClip> SouthEast =
+                AssetRef<AnimationClip>.FromPath(AttackPath + "south-east");
+
+            public static readonly AssetRef<AnimationClip> South =
+                AssetRef<AnimationClip>.FromPath(AttackPath + "south");
+
+            public static readonly AssetRef<AnimationClip> SouthWest =
+                AssetRef<AnimationClip>.FromPath(AttackPath + "south-west");
+
+            public static readonly AssetRef<AnimationClip> West =
+                AssetRef<AnimationClip>.FromPath(AttackPath + "west");
+
+            public static readonly AssetRef<AnimationClip> NorthWest =
+                AssetRef<AnimationClip>.FromPath(AttackPath + "north-west");
+        }
     }
     
     public static class Projectile
