@@ -16,9 +16,34 @@ public static class GameSprites
         SpriteSheet playerSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png"));
         
-        TextureGrid idleTextureGrid = new (32, 32, 0,12);
-        var idleAnimation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, idleTextureGrid, frameCount:8, fps:12f);
-        assetStore.Register(GameAssets.Player.Idle, idleAnimation);
+        /* Run Sprites */
+        
+        TextureGrid runNorthTextureGrid = new(32, 34, 0, 636);
+        TextureGrid runNorthEastTextureGrid = new(32, 34, 0, 1068);
+        TextureGrid runEastTextureGrid = new(32, 34, 0, 923);
+        TextureGrid runSouthEastTextureGrid = new(32, 34, 0, 779);
+        TextureGrid runSouthTextureGrid = new(32, 34, 0, 60);
+        TextureGrid runSouthWestTextureGrid = new(32, 34, 0, 203);
+        TextureGrid runWestTextureGrid = new(32, 34, 0, 347);
+        TextureGrid runNorthWestTextureGrid = new(32, 34, 0, 492);
+        
+        var playerClips = new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid)>
+        {
+            (GameAssets.Player.Run.North, runNorthTextureGrid),
+            (GameAssets.Player.Run.NorthEast, runNorthEastTextureGrid),
+            (GameAssets.Player.Run.East, runEastTextureGrid),
+            (GameAssets.Player.Run.SouthEast, runSouthEastTextureGrid),
+            (GameAssets.Player.Run.South, runSouthTextureGrid),
+            (GameAssets.Player.Run.SouthWest, runSouthWestTextureGrid),
+            (GameAssets.Player.Run.West, runWestTextureGrid),
+            (GameAssets.Player.Run.NorthWest, runNorthWestTextureGrid),
+        };
+
+        foreach (var (clip, grid) in playerClips)
+        {
+            var runAnimation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, frameCount:6, fps:7f);
+            assetStore.Register(clip, runAnimation);
+        }
     }
 
     private static void InitProjectileSprites(IAssetStore assetStore)

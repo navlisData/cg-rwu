@@ -7,8 +7,8 @@ namespace engine.TextureProcessing;
 public sealed class StaticSprite
 {
     public SpriteSheetId SpriteSheetId { get; init; }
-    public RectangleF RectPx { get; init; }     // x,y,w,h in Pixeln
-    public Vector2 PivotPx { get; init; }     // optional
+    public RectangleF RectPx { get; init; }
+    public Vector2 PivotPx { get; init; }
 }
 
 public sealed class SpriteSet : List<StaticSprite> { public SpriteSet() {} public SpriteSet(IEnumerable<StaticSprite> s) : base(s) {} }
@@ -20,10 +20,22 @@ public sealed class AnimationClip
     public bool Loop { get; init; } = true;
 }
 
-// Discriminated Union für "ein Element einer Sheet-Liste"
+// Discriminated Unions
 public abstract record SheetKey
 {
     public sealed record StaticSpriteKey(AssetRef<StaticSprite> Key) : SheetKey;
     public sealed record SpriteSetKey(AssetRef<SpriteSet> Key) : SheetKey;
     public sealed record AnimationSpriteKey(AssetRef<AnimationClip> Key) : SheetKey;
+}
+
+public abstract record VisualType
+{
+    public sealed record StaticSpriteKey(AssetRef<StaticSprite> Key) : VisualType;
+    public sealed record AnimationSpriteKey(AssetRef<AnimationClip> Key) : VisualType;
+    
+    public static implicit operator VisualType(AssetRef<StaticSprite> key) =>
+        new StaticSpriteKey(key);
+
+    public static implicit operator VisualType(AssetRef<AnimationClip> key) =>
+        new AnimationSpriteKey(key);
 }

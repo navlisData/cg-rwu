@@ -25,7 +25,22 @@ public static class PrefabFactory
         entity.Add(new ReceivesPlayerInput());
         entity.Add(new Sprite
         {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Idle), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
+        });
+        entity.Add(new AlignedCharacter
+        {
+            CharacterDirection = CharacterDirection.South,
+            GraphicByDirection = new()
+            {
+                { CharacterDirection.North, GameAssets.Player.Run.North },
+                { CharacterDirection.NorthEast, GameAssets.Player.Run.NorthEast },
+                { CharacterDirection.East, GameAssets.Player.Run.East },
+                { CharacterDirection.SouthEast, GameAssets.Player.Run.SouthEast },
+                { CharacterDirection.South, GameAssets.Player.Run.South },
+                { CharacterDirection.SouthWest, GameAssets.Player.Run.SouthWest },
+                { CharacterDirection.West, GameAssets.Player.Run.West },
+                { CharacterDirection.NorthWest, GameAssets.Player.Run.NorthWest },
+            }
         });
 
         entity.Add(new Character());

@@ -33,6 +33,7 @@ public class Game : GameWindow
 
     // Rendering systems
     private readonly CameraSystem cameraSystem;
+    private readonly SpriteAnimationSystem spriteAnimationSystem;
 
     // General systems
     private readonly CharacterAlignmentSystem characterAlignSystem;
@@ -61,9 +62,10 @@ public class Game : GameWindow
         this.mapRenderSystem = new MapRenderSystem(this.world, this.assetStore);
         this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assetStore);
         this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assetStore);
+        this.spriteAnimationSystem = new SpriteAnimationSystem(this.world, this.assetStore);
 
         // General systems
-        this.characterAlignSystem = new CharacterAlignmentSystem(this.world);
+        this.characterAlignSystem = new CharacterAlignmentSystem(this.world, this.assetStore);
         this.move = new MoveSystem(this.world);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
@@ -136,6 +138,7 @@ public class Game : GameWindow
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.characterAlignSystem.Run(dt);
+        this.spriteAnimationSystem.Run(dt);
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
     }

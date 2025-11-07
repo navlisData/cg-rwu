@@ -6,13 +6,36 @@ public static class GameAssets
 {
     public static class Player
     {
-        private const string Prefix = "player/";
-        
-        public static readonly AssetRef<AnimationClip> Run =
-            AssetRef<AnimationClip>.FromPath(Prefix + "run");
+        private const string BasePrefix = "player/";
 
-        public static readonly AssetRef<AnimationClip> Idle =
-            AssetRef<AnimationClip>.FromPath(Prefix + "idle");
+        public static class Run
+        {
+            private const string RunPath = BasePrefix + "run/";
+
+            public static readonly AssetRef<AnimationClip> North =
+                AssetRef<AnimationClip>.FromPath(RunPath + "north");
+
+            public static readonly AssetRef<AnimationClip> NorthEast =
+                AssetRef<AnimationClip>.FromPath(RunPath + "north-east");
+
+            public static readonly AssetRef<AnimationClip> East =
+                AssetRef<AnimationClip>.FromPath(RunPath + "east");
+
+            public static readonly AssetRef<AnimationClip> SouthEast =
+                AssetRef<AnimationClip>.FromPath(RunPath + "south-east");
+
+            public static readonly AssetRef<AnimationClip> South =
+                AssetRef<AnimationClip>.FromPath(RunPath + "south");
+
+            public static readonly AssetRef<AnimationClip> SouthWest =
+                AssetRef<AnimationClip>.FromPath(RunPath + "south-west");
+
+            public static readonly AssetRef<AnimationClip> West =
+                AssetRef<AnimationClip>.FromPath(RunPath + "west");
+
+            public static readonly AssetRef<AnimationClip> NorthWest =
+                AssetRef<AnimationClip>.FromPath(RunPath + "north-west");
+        }
     }
     
     public static class Projectile

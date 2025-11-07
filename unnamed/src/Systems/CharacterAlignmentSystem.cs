@@ -1,13 +1,16 @@
 using Engine.Ecs;
 using Engine.Ecs.Systems;
 
+using engine.TextureProcessing;
+
+using OpenTK.Mathematics;
+
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 
 namespace unnamed.systems;
 
-public sealed class CharacterAlignmentSystem(World world) : EntitySetSystem<float>(world, world.Query()
-    .With<Sprite>()
+public sealed class CharacterAlignmentSystem(World world, IAssetStore assetStore) : EntitySetSystem<float>(world, world.Query()
     .With<AlignedCharacter>()
     .Without<Sleeping>()
     .Build()
@@ -15,9 +18,25 @@ public sealed class CharacterAlignmentSystem(World world) : EntitySetSystem<floa
 {
     protected override void Update(float dt, in Entity e)
     {
-        ref Sprite sprite = ref e.Get<Sprite>();
         ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
-        
-        // sprite.Frame = alignedCharacter.GetFrameIdByDirection();
+
+        VisualType type = alignedCharacter.GraphicByDirection[alignedCharacter.CharacterDirection];
+        switch (type)
+        {
+            case VisualType.StaticSpriteKey staticSprite:
+                StaticSprite spriteById = assetStore.Get(staticSprite.Key);
+                if(!e.Has<Sprite>())
+                    e.Add(new Sprite { Frame = spriteById, Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
+                else
+                    e.Get<Sprite>().Frame = spriteById;
+                break;
+            case VisualType.AnimationSpriteKey animationSprite:
+                AnimationClip clipById = assetStore.Get(animationSprite.Key);
+                if (!e.Has<AnimatedSprite>())
+                    e.Add(new AnimatedSprite { AnimationClip = clipById, CurrentFrameIndex = 0, TimeInFrame = 0 });
+                else
+                    e.Get<AnimatedSprite>().AnimationClip = clipById;
+                break;
+        }
     }
 }

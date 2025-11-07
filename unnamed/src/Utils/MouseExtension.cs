@@ -52,14 +52,14 @@ public static class MouseExtensions
 
         return sector switch
         {
-            0 => CharacterDirection.Right,
-            1 => CharacterDirection.UpRight,
-            2 => CharacterDirection.Up,
-            3 => CharacterDirection.UpLeft,
-            4 => CharacterDirection.Left,
-            5 => CharacterDirection.DownLeft,
-            6 => CharacterDirection.Down,
-            _ => CharacterDirection.DownRight
+            0 => CharacterDirection.East,
+            1 => CharacterDirection.NorthEast,
+            2 => CharacterDirection.North,
+            3 => CharacterDirection.NorthWest,
+            4 => CharacterDirection.West,
+            5 => CharacterDirection.SouthWest,
+            6 => CharacterDirection.South,
+            _ => CharacterDirection.SouthEast
         };
     }
 }

@@ -9,26 +9,49 @@ namespace engine.TextureProcessing
         ///     Creates an asset reference by hashing a canonicalized path.
         ///     Signature: <c>static AssetRef&lt;T&gt; FromPath(string path)</c>
         /// </summary>
+        /// <param name="path">
+        ///     Asset path to canonicalize and hash. See <see cref="AssetPath.Canonicalize"/> for
+        ///     normalization and validation rules.
+        /// </param>
         public static AssetRef<T> FromPath(string path)
             => new(Hash64.FromString(AssetPath.Canonicalize(path)));
     }
 
     internal static class AssetPath
     {
-        // Allows only lowercase a–z, digits, and single slashes between non-empty segments.
+        // Allows only lowercase a-z, digits, hyphens, and single slashes between non-empty segments.
+        // Examples of valid paths:
+        //   "textures/ui/button-primary"
+        //   "mesh/lod-0"
         private static readonly Regex SegmentPathRegex =
-            new("^[a-z0-9]+(?:/[a-z0-9]+)*$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+            new(@"^[a-z0-9-]+(?:/[a-z0-9-]+)*$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         /// <summary>
         ///     Canonicalizes and validates an asset path.
-        ///     Allowed characters after canonicalization: [a-z], [0-9], '/' (between non-empty segments).
-        ///     Signature: <c>static string Canonicalize(string raw)</c>
         /// </summary>
-        /// <exception cref="ArgumentNullException">When <paramref name="raw"/> is null.</exception>
-        /// <exception cref="ArgumentException">When the path is empty or violates the allowed pattern.</exception>
+        /// <param name="raw">
+        ///     Raw path as provided by the caller. Leading/trailing whitespace is trimmed and
+        ///     letters are converted to lowercase invariant.
+        /// </param>
+        /// <returns>
+        ///     A canonicalized path string.
+        ///     Allowed characters after canonicalization:
+        ///     - lowercase letters: <c>[a-z]</c>
+        ///     - digits: <c>[0-9]</c>
+        ///     - hyphen: <c>'-'</c> (within segments)
+        ///     - forward slash: <c>'/'</c> as a separator between non-empty segments
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when <paramref name="raw"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when the path is empty after trimming or violates the allowed pattern
+        ///     (e.g. contains invalid characters, leading/trailing slash, or empty segments).
+        /// </exception>
         public static string Canonicalize(string raw)
         {
-            if (raw is null) throw new ArgumentNullException(nameof(raw));
+            if (raw is null)
+                throw new ArgumentNullException(nameof(raw));
 
             var trimmedPath = raw.Trim().ToLowerInvariant();
 
@@ -36,9 +59,14 @@ namespace engine.TextureProcessing
                 throw new ArgumentException("Asset path must not be empty.", nameof(raw));
 
             if (!SegmentPathRegex.IsMatch(trimmedPath))
-                throw new ArgumentException(
-                    "Path may only contain lowercase [a–z], digits [0–9], and single '/' separators (no leading/trailing/double slashes).",
-                    nameof(raw));
+            {
+                const string message =
+                    "Path may only contain lowercase letters [a-z], digits [0-9], hyphens '-', " +
+                    "and single '/' separators between non-empty segments " +
+                    "(no leading, trailing, or consecutive slashes).";
+
+                throw new ArgumentException(message, nameof(raw));
+            }
 
             return trimmedPath;
         }
@@ -50,16 +78,22 @@ namespace engine.TextureProcessing
         ///     Computes a 64-bit FNV-1a hash for the given string using UTF-8 bytes.
         /// </summary>
         /// <param name="s">Input string to hash (must not be null).</param>
-        /// <returns>A non-zero 64-bit hash value (0 is remapped to 1 as a sentinel).</returns>
+        /// <returns>
+        ///     A non-zero 64-bit hash value (0 is remapped to 1 as a sentinel).
+        /// </returns>
         /// <remarks>
-        /// Implementation details:
+        ///     Implementation details:
         ///     - UTF-8 encoding ensures platform-stable byte sequences.
-        ///     - The multiplication uses <c>unchecked</c> to allow intentional 64-bit wraparound per FNV-1a.
+        ///     - The multiplication uses <c>unchecked</c> to allow intentional 64-bit
+        ///       wraparound per the FNV-1a specification.
         /// </remarks>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="s"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when <paramref name="s"/> is <c>null</c>.
+        /// </exception>
         public static ulong FromString(string s)
         {
-            if (s is null) throw new ArgumentNullException(nameof(s));
+            if (s is null)
+                throw new ArgumentNullException(nameof(s));
 
             const ulong offset = 14695981039346656037UL; // FNV-1a offset basis
             const ulong prime  = 1099511628211UL;        // FNV-1a prime

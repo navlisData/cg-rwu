@@ -9,7 +9,7 @@ public static class KeyboardStateExtensions
     /// <see cref="OpenTK.Windowing.GraphicsLibraryFramework.KeyboardState"/> using the
     /// configured movement keys (e.g., Controls.MoveUp/Right/Down/Left).
     /// Opposing inputs are neutralized per axis; when no effective input remains,
-    /// the method returns <see cref="CharacterDirection.Down"/>.
+    /// the method returns <see cref="CharacterDirection.South"/>.
     /// </summary>
     /// <param name="keyboardState">
     /// The keyboard snapshot to evaluate for directional input.
@@ -50,15 +50,15 @@ public static class KeyboardStateExtensions
             return currentDirection;
 
         // Diagonals
-        if (verticalAxis < 0 && horizontalAxis > 0) return CharacterDirection.UpRight;
-        if (verticalAxis < 0 && horizontalAxis < 0) return CharacterDirection.UpLeft;
-        if (verticalAxis > 0 && horizontalAxis > 0) return CharacterDirection.DownRight;
-        if (verticalAxis > 0 && horizontalAxis < 0) return CharacterDirection.DownLeft;
+        if (verticalAxis < 0 && horizontalAxis > 0) return CharacterDirection.NorthEast;
+        if (verticalAxis < 0 && horizontalAxis < 0) return CharacterDirection.NorthWest;
+        if (verticalAxis > 0 && horizontalAxis > 0) return CharacterDirection.SouthEast;
+        if (verticalAxis > 0 && horizontalAxis < 0) return CharacterDirection.SouthWest;
 
         // Cardinals
-        if (verticalAxis < 0) return CharacterDirection.Up;
-        if (verticalAxis > 0) return CharacterDirection.Down;
-        if (horizontalAxis > 0) return CharacterDirection.Right;
-        return CharacterDirection.Left;
+        if (verticalAxis < 0) return CharacterDirection.North;
+        if (verticalAxis > 0) return CharacterDirection.South;
+        if (horizontalAxis > 0) return CharacterDirection.East;
+        return CharacterDirection.West;
     }
 }
