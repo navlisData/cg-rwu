@@ -21,7 +21,7 @@ public sealed class CharacterAlignmentSystem(World world, IAssetStore assetStore
     {
         ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
 
-        var directedActionByChar = directedActionDatabase.Get(alignedCharacter.CharacterType);
+        var directedActionByChar = directedActionDatabase.GetByCharacterType(alignedCharacter.CharacterType);
         VisualType type = directedActionByChar.Get(alignedCharacter.ActionIndex, alignedCharacter.CharacterDirection);
         switch (type)
         {

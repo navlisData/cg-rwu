@@ -6,7 +6,7 @@ public sealed class DirectedActionDatabase
 {
     private readonly Dictionary<CharacterType, SpriteResolver> sets = new();
 
-    public SpriteResolver Get(CharacterType type) => this.sets[type];
+    public SpriteResolver GetByCharacterType(CharacterType type) => this.sets[type];
 
     private void Register(CharacterType type, SpriteResolver resolver)
         => this.sets[type] = resolver;
