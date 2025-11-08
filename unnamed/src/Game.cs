@@ -15,6 +15,7 @@ using unnamed.Prefabs;
 using unnamed.Rendering;
 using unnamed.systems;
 using unnamed.Texture;
+using unnamed.Texture.DirectedAction;
 using unnamed.Utils;
 
 namespace unnamed;
@@ -30,6 +31,7 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
+    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
 
     // Rendering systems
     private readonly CameraSystem cameraSystem;
@@ -65,7 +67,7 @@ public class Game : GameWindow
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world, this.assetStore);
 
         // General systems
-        this.characterAlignSystem = new CharacterAlignmentSystem(this.world, this.assetStore);
+        this.characterAlignSystem = new CharacterAlignmentSystem(this.world, this.assetStore, this.directedActionDatabase);
         this.move = new MoveSystem(this.world);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);

@@ -1,4 +1,4 @@
-namespace unnamed.Utils;
+namespace unnamed.Enums;
 
 public enum CharacterDirection
 {

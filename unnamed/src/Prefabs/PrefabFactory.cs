@@ -8,6 +8,7 @@ using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Enums;
 using unnamed.Texture;
 using unnamed.Utils;
 
@@ -29,21 +30,11 @@ public static class PrefabFactory
         });
         entity.Add(new AlignedCharacter
         {
-            CharacterDirection = CharacterDirection.South,
-            GraphicByDirection = new()
-            {
-                { CharacterDirection.North, GameAssets.Player.Run.North },
-                { CharacterDirection.NorthEast, GameAssets.Player.Run.NorthEast },
-                { CharacterDirection.East, GameAssets.Player.Run.East },
-                { CharacterDirection.SouthEast, GameAssets.Player.Run.SouthEast },
-                { CharacterDirection.South, GameAssets.Player.Run.South },
-                { CharacterDirection.SouthWest, GameAssets.Player.Run.SouthWest },
-                { CharacterDirection.West, GameAssets.Player.Run.West },
-                { CharacterDirection.NorthWest, GameAssets.Player.Run.NorthWest },
-            }
+            CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
         });
 
         entity.Add(new Character());
+        entity.Add(new Player());
         return entity;
     }
 

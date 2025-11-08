@@ -1,4 +1,4 @@
-using unnamed.Utils;
+using unnamed.Enums;
 
 namespace unnamed.Components.Physics;
 

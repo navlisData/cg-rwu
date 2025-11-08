@@ -1,11 +1,10 @@
-using engine.TextureProcessing;
-
-using unnamed.Utils;
+using unnamed.Enums;
 
 namespace unnamed.Components.Rendering;
 
 public struct AlignedCharacter
 {
     public CharacterDirection CharacterDirection;
-    public Dictionary<CharacterDirection, VisualType> GraphicByDirection;
+    public int ActionIndex;
+    public CharacterType CharacterType;
 }
