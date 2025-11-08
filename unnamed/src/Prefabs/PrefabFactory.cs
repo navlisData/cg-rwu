@@ -8,6 +8,7 @@ using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Enums;
 using unnamed.Texture;
 using unnamed.Utils;
 
@@ -25,25 +26,17 @@ public static class PrefabFactory
         entity.Add(new ReceivesPlayerInput());
         entity.Add(new Sprite
         {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South),
+            Tint = new Vector4(0f, 0f, 0f, 1f),
+            Layer = 0
         });
         entity.Add(new AlignedCharacter
         {
-            CharacterDirection = CharacterDirection.South,
-            GraphicByDirection = new()
-            {
-                { CharacterDirection.North, GameAssets.Player.Run.North },
-                { CharacterDirection.NorthEast, GameAssets.Player.Run.NorthEast },
-                { CharacterDirection.East, GameAssets.Player.Run.East },
-                { CharacterDirection.SouthEast, GameAssets.Player.Run.SouthEast },
-                { CharacterDirection.South, GameAssets.Player.Run.South },
-                { CharacterDirection.SouthWest, GameAssets.Player.Run.SouthWest },
-                { CharacterDirection.West, GameAssets.Player.Run.West },
-                { CharacterDirection.NorthWest, GameAssets.Player.Run.NorthWest },
-            }
+            CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
         });
 
         entity.Add(new Character());
+        entity.Add(new Player());
         return entity;
     }
 
@@ -68,7 +61,7 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateBullet(World world, Position startPos, Vector2 velocity, float rotation, float height, 
+    public static Entity CreateBullet(World world, Position startPos, Vector2 velocity, float rotation, float height,
         IAssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
@@ -76,7 +69,9 @@ public static class PrefabFactory
         entity.Add(new Transform { Size = new Vector2(2f, 2f), Scale = 1.2f, Rotation = rotation, Height = height });
         entity.Add(new Sprite
         {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Projectile.Fireball), Tint = new Vector4(1, 1, 1, 1), Layer = 0
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Projectile.Fireball),
+            Tint = new Vector4(1, 1, 1, 1),
+            Layer = 0
         });
         entity.Add(new Velocity { Value = velocity });
         entity.Add(new Projectile { Damage = 10, Lifetime = Lifetime.DestroyOnSleep });

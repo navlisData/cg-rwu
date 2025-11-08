@@ -1,6 +1,8 @@
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+using unnamed.Enums;
+
 namespace unnamed.Utils;
 
 public static class MouseExtensions

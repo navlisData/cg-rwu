@@ -10,10 +10,11 @@ using unnamed.Components.Tags;
 
 namespace unnamed.Rendering;
 
-public sealed class SpriteAnimationSystem(World world, IAssetStore assetStore) : EntitySetSystem<float>(world, world.Query()
-    .With<AnimatedSprite>()
-    .Without<Sleeping>()
-    .Build()
+public sealed class SpriteAnimationSystem(World world, IAssetStore assetStore) : EntitySetSystem<float>(world,
+    world.Query()
+        .With<AnimatedSprite>()
+        .Without<Sleeping>()
+        .Build()
 )
 {
     protected override void Update(float dt, in Entity e)
@@ -31,9 +32,8 @@ public sealed class SpriteAnimationSystem(World world, IAssetStore assetStore) :
         }
 
         StaticSprite currentFrame = animatedSprite.AnimationClip.Frames[animatedSprite.CurrentFrameIndex];
-        if(!e.Has<Sprite>())
-            e.Add(new Sprite { Frame = currentFrame, Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
-        else
-            e.Get<Sprite>().Frame = currentFrame;
+        if (!e.Has<Sprite>())
+            e.Add(new Sprite { Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
+        e.Get<Sprite>().Frame = currentFrame;
     }
 }

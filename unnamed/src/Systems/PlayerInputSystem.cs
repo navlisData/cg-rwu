@@ -9,6 +9,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Enums;
 using unnamed.Prefabs;
 using unnamed.Utils;
 
@@ -27,7 +28,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
     private readonly Func<MouseState> mouseStateProvider =
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
-    protected override void Update((float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets) args, in Entity e)
+    protected override void Update(
+        (float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets) args, in Entity e)
     {
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
@@ -35,14 +37,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         ref Camera2D camera2D = ref args.camera;
         ref Position playerPosition = ref args.player;
 
-        if (e.Has<AlignedCharacter>())
-        {
-            ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
-            alignedCharacter.CharacterDirection =
-                mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
-        }
-
-        if (e.Has<Velocity>())
+        if (e.Has<Player>())
         {
             Vector2 direction = Vector2.Zero;
             if (keyboardState.IsKeyDown(Controls.MoveLeft))
@@ -66,6 +61,9 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             }
 
             ref Velocity velocity = ref e.Get<Velocity>();
+            ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
+            alignedCharacter.CharacterDirection =
+                mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
 
             const float acceleration = 12;
             const float friction = 8;
@@ -75,6 +73,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             {
                 direction = direction.Normalized();
                 velocity.Value += direction * (acceleration * dt);
+                alignedCharacter.ActionIndex = (int)PlayerAction.Move;
             }
             else
             {
@@ -84,6 +83,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 {
                     velocity.Value = Vector2.Zero;
                 }
+
+                alignedCharacter.ActionIndex = (int)PlayerAction.Idle;
             }
 
             float maxSquared = maxSpeed * maxSpeed;
@@ -103,7 +104,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                                            new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
 
                 Entity unused = PrefabFactory.CreateBullet(this.world, playerPosition,
-                    bulletDirection * 5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2, args.assets);
+                    bulletDirection * 5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
+                    args.assets);
 #if DEBUG
                 Console.WriteLine($"{mousePositionWorld}");
 #endif
