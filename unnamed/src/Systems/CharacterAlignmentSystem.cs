@@ -11,7 +11,10 @@ using unnamed.Texture.DirectedAction;
 
 namespace unnamed.systems;
 
-public sealed class CharacterAlignmentSystem(World world, IAssetStore assetStore, DirectedActionDatabase directedActionDatabase) : EntitySetSystem<float>(world, world.Query()
+public sealed class CharacterAlignmentSystem(
+    World world,
+    IAssetStore assetStore,
+    DirectedActionDatabase directedActionDatabase) : EntitySetSystem<float>(world, world.Query()
     .With<AlignedCharacter>()
     .Without<Sleeping>()
     .Build()
@@ -27,7 +30,7 @@ public sealed class CharacterAlignmentSystem(World world, IAssetStore assetStore
         {
             case VisualType.StaticSpriteKey staticSprite:
                 StaticSprite spriteById = assetStore.Get(staticSprite.Key);
-                if(!e.Has<Sprite>())
+                if (!e.Has<Sprite>())
                     e.Add(new Sprite { Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
                 e.Get<Sprite>().Frame = spriteById;
                 break;

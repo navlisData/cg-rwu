@@ -4,7 +4,7 @@ using unnamed.Enums;
 
 namespace unnamed.Texture.DirectedAction;
 
-public sealed class DirectedActionSpriteResolver<TAction> : SpriteResolver
+public sealed class DirectedActionSpriteResolver<TAction> : ISpriteResolver
     where TAction : struct, Enum
 {
     private readonly DirectedActionMapper<TAction> spriteByDirectedAction = new();

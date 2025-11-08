@@ -28,14 +28,15 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
     private readonly Func<MouseState> mouseStateProvider =
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
-    protected override void Update((float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets) args, in Entity e)
+    protected override void Update(
+        (float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets) args, in Entity e)
     {
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
         float dt = args.dt;
         ref Camera2D camera2D = ref args.camera;
         ref Position playerPosition = ref args.player;
-        
+
         if (e.Has<Player>())
         {
             Vector2 direction = Vector2.Zero;
@@ -82,6 +83,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 {
                     velocity.Value = Vector2.Zero;
                 }
+
                 alignedCharacter.ActionIndex = (int)PlayerAction.Idle;
             }
 
@@ -102,7 +104,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                                            new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
 
                 Entity unused = PrefabFactory.CreateBullet(this.world, playerPosition,
-                    bulletDirection * 5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2, args.assets);
+                    bulletDirection * 5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
+                    args.assets);
 #if DEBUG
                 Console.WriteLine($"{mousePositionWorld}");
 #endif

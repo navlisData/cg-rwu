@@ -67,7 +67,8 @@ public class Game : GameWindow
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world, this.assetStore);
 
         // General systems
-        this.characterAlignSystem = new CharacterAlignmentSystem(this.world, this.assetStore, this.directedActionDatabase);
+        this.characterAlignSystem =
+            new CharacterAlignmentSystem(this.world, this.assetStore, this.directedActionDatabase);
         this.move = new MoveSystem(this.world);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
@@ -87,11 +88,11 @@ public class Game : GameWindow
         GameSprites.Init(assetStore);
 
         this.player = PrefabFactory.CreatePlayer(
-                this.world,
-                new Position(),
-                new Vector2(0f, 0f),
-                new Vector2(2, 5),
-                this.assetStore);
+            this.world,
+            new Position(),
+            new Vector2(0f, 0f),
+            new Vector2(2, 5),
+            this.assetStore);
 
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
@@ -100,12 +101,12 @@ public class Game : GameWindow
         List<StaticSprite> flowers = assetStore.Get(GameAssets.MapTiles.Flowers);
         List<StaticSprite> path = assetStore.Get(GameAssets.MapTiles.Pathway);
         List<StaticSprite> grass = assetStore.Get(GameAssets.MapTiles.Grass);
-        
+
         var allMapTiles = new List<StaticSprite>(flowers.Count + path.Count + grass.Count);
         allMapTiles.AddRange(flowers);
         allMapTiles.AddRange(path);
         allMapTiles.AddRange(grass);
-        
+
         foreach (int gridY in Enumerable.Range(-10, 20))
         {
             foreach (int gridX in Enumerable.Range(-10, 20))
@@ -116,7 +117,7 @@ public class Game : GameWindow
                 {
                     foreach (int x in Enumerable.Range(0, Constants.GridSizeX))
                     {
-                        StaticSprite sprite = allMapTiles.ElementAt(rnd.Next(allMapTiles.Count-1));
+                        StaticSprite sprite = allMapTiles.ElementAt(rnd.Next(allMapTiles.Count - 1));
                         Entity mapTile = PrefabFactory.CreateMapTile(this.world, TileType.Pathway, chunk,
                             new Vector2i(x, y), sprite);
                         tiles[(y * Constants.GridSizeY) + x] = mapTile;
@@ -136,7 +137,8 @@ public class Game : GameWindow
             this.Close();
         }
 
-        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize, this.assetStore));
+        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize,
+            this.assetStore));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.characterAlignSystem.Run(dt);
