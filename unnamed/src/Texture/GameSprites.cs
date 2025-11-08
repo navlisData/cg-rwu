@@ -15,7 +15,7 @@ public static class GameSprites
     {
         SpriteSheet playerSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png"));
-        
+
         /* Run Sprites */
         TextureGrid runNorthTextureGrid = new(32, 36, 0, 636);
         TextureGrid runNorthEastTextureGrid = new(32, 35, 0, 1068);
@@ -25,7 +25,7 @@ public static class GameSprites
         TextureGrid runSouthWestTextureGrid = new(32, 35, 0, 203);
         TextureGrid runWestTextureGrid = new(32, 35, 0, 347);
         TextureGrid runNorthWestTextureGrid = new(32, 35, 0, 492);
-        
+
         /* Attack Sprites */
         TextureGrid attackNorthTextureGrid = new(32, 35, 0, 683);
         TextureGrid attackNorthEastTextureGrid = new(32, 35, 0, 1115);
@@ -35,7 +35,7 @@ public static class GameSprites
         TextureGrid attackSouthWestTextureGrid = new(32, 36, 0, 250);
         TextureGrid attackWestTextureGrid = new(32, 35, 0, 395);
         TextureGrid attackNorthWestTextureGrid = new(32, 35, 0, 539);
-        
+
         /* Idle Sprites */
         TextureGrid idleNorthTextureGrid = new(32, 35, 0, 587);
         TextureGrid idleNorthEastTextureGrid = new(32, 35, 0, 1019);
@@ -45,7 +45,7 @@ public static class GameSprites
         TextureGrid idleSouthWestTextureGrid = new(32, 36, 0, 154);
         TextureGrid idleWestTextureGrid = new(32, 35, 0, 299);
         TextureGrid idleNorthWestTextureGrid = new(32, 35, 0, 443);
-        
+
         var playerClips = new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid, bool loop)>
         {
             // Run
@@ -79,7 +79,7 @@ public static class GameSprites
 
         foreach (var (clip, grid, loop) in playerClips)
         {
-            var animation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, frameCount:6, fps:7f, loop:loop);
+            var animation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, frameCount: 6, fps: 7f, loop: loop);
             assetStore.Register(clip, animation);
         }
     }
@@ -88,26 +88,27 @@ public static class GameSprites
     {
         SpriteSheet projectileSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "fireball.png"));
-        
-        TextureGrid projectileTextureGrid = new (64, 32, 0,16 );
-        var idleAnimation = SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, frameCount:8, fps:12f);
+
+        TextureGrid projectileTextureGrid = new(64, 32, 0, 16);
+        var idleAnimation =
+            SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, frameCount: 8, fps: 12f);
         assetStore.Register(GameAssets.Projectile.Fireball, idleAnimation);
     }
-    
+
     private static void InitMapTiles(IAssetStore assetStore)
     {
         SpriteSheet mapTileSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png"));
-        
-        TextureGrid flowerTextureGrid = new (32, 32, 128,0, Rows:4);
+
+        TextureGrid flowerTextureGrid = new(32, 32, 128, 0, Rows: 4);
         var flowerTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, flowerTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Flowers, flowerTiles);
-        
-        TextureGrid pathwayTextureGrid = new (32, 32, 0,128, Rows:4);
+
+        TextureGrid pathwayTextureGrid = new(32, 32, 0, 128, Rows: 4);
         var pathwayTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, pathwayTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Pathway, pathwayTiles);
-        
-        TextureGrid grassTextureGrid = new (32, 32, 0,0, Rows:4, Columns:4);
+
+        TextureGrid grassTextureGrid = new(32, 32, 0, 0, Rows: 4, Columns: 4);
         var grassTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, grassTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Grass, grassTiles);
     }
