@@ -67,11 +67,9 @@ public static class PrefabFactory
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
         entity.Add(new Transform { Size = new Vector2(2f, 2f), Scale = 1.2f, Rotation = rotation, Height = height });
-        entity.Add(new Sprite
+        entity.Add(new AnimatedSprite
         {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Projectile.Fireball),
-            Tint = new Vector4(1, 1, 1, 1),
-            Layer = 0
+            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Projectile.Fireball), TimeInFrame = 0
         });
         entity.Add(new Velocity { Value = velocity });
         entity.Add(new Projectile { Damage = 10, Lifetime = Lifetime.DestroyOnSleep });

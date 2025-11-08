@@ -91,7 +91,7 @@ public static class GameSprites
 
         TextureGrid projectileTextureGrid = new(64, 32, 0, 16);
         var idleAnimation =
-            SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, frameCount: 8, fps: 12f);
+            SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, frameCount: 8, fps: 24f);
         assetStore.Register(GameAssets.Projectile.Fireball, idleAnimation);
     }
 
