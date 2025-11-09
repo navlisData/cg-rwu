@@ -38,7 +38,7 @@ public sealed class CharacterAlignmentSystem(
                 AnimationClip clipById = assetStore.Get(animationSprite.Key);
                 if (!e.Has<AnimatedSprite>())
                     e.Add(new AnimatedSprite { CurrentFrameIndex = 0, TimeInFrame = 0 });
-                e.Get<AnimatedSprite>().AnimationClip = clipById;
+                e.Get<AnimatedSprite>().RequestedAnimation = clipById;
                 break;
         }
     }

@@ -64,7 +64,7 @@ public class Game : GameWindow
         this.mapRenderSystem = new MapRenderSystem(this.world, this.assetStore);
         this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assetStore);
         this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assetStore);
-        this.spriteAnimationSystem = new SpriteAnimationSystem(this.world, this.assetStore);
+        this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
 
         // General systems
         this.characterAlignSystem =
