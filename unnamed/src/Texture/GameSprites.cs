@@ -46,40 +46,41 @@ public static class GameSprites
         TextureGrid idleWestTextureGrid = new(32, 35, 0, 299);
         TextureGrid idleNorthWestTextureGrid = new(32, 35, 0, 443);
 
-        var playerClips = new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid, bool loop, byte priority)>
-        {
-            // Run
-            (GameAssets.Player.Run.North, runNorthTextureGrid, true, 0),
-            (GameAssets.Player.Run.NorthEast, runNorthEastTextureGrid, true, 0),
-            (GameAssets.Player.Run.East, runEastTextureGrid, true, 0),
-            (GameAssets.Player.Run.SouthEast, runSouthEastTextureGrid, true, 0),
-            (GameAssets.Player.Run.South, runSouthTextureGrid, true, 0),
-            (GameAssets.Player.Run.SouthWest, runSouthWestTextureGrid, true, 0),
-            (GameAssets.Player.Run.West, runWestTextureGrid, true, 0),
-            (GameAssets.Player.Run.NorthWest, runNorthWestTextureGrid, true, 0),
-            // Attack
-            (GameAssets.Player.Attack.North, attackNorthTextureGrid, false, 5),
-            (GameAssets.Player.Attack.NorthEast, attackNorthEastTextureGrid, false, 5),
-            (GameAssets.Player.Attack.East, attackEastTextureGrid, false, 5),
-            (GameAssets.Player.Attack.SouthEast, attackSouthEastTextureGrid, false, 5),
-            (GameAssets.Player.Attack.South, attackSouthTextureGrid, false, 5),
-            (GameAssets.Player.Attack.SouthWest, attackSouthWestTextureGrid, false, 5),
-            (GameAssets.Player.Attack.West, attackWestTextureGrid, false, 5),
-            (GameAssets.Player.Attack.NorthWest, attackNorthWestTextureGrid, false, 5),
-            // Idle
-            (GameAssets.Player.Idle.North, idleNorthTextureGrid, true, 0),
-            (GameAssets.Player.Idle.NorthEast, idleNorthEastTextureGrid, true, 0),
-            (GameAssets.Player.Idle.East, idleEastTextureGrid, true, 0),
-            (GameAssets.Player.Idle.SouthEast, idleSouthEastTextureGrid, true, 0),
-            (GameAssets.Player.Idle.South, idleSouthTextureGrid, true, 0),
-            (GameAssets.Player.Idle.SouthWest, idleSouthWestTextureGrid, true, 0),
-            (GameAssets.Player.Idle.West, idleWestTextureGrid, true, 0),
-            (GameAssets.Player.Idle.NorthWest, idleNorthWestTextureGrid, true, 0),
-        };
+        var playerClips =
+            new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid, bool loop, byte priority, float fps)>
+            {
+                // Run
+                (GameAssets.Player.Run.North, runNorthTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.NorthEast, runNorthEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.East, runEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.SouthEast, runSouthEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.South, runSouthTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.SouthWest, runSouthWestTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.West, runWestTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.NorthWest, runNorthWestTextureGrid, true, 0, 7f),
+                // Attack
+                (GameAssets.Player.Attack.North, attackNorthTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.NorthEast, attackNorthEastTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.East, attackEastTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.SouthEast, attackSouthEastTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.South, attackSouthTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.SouthWest, attackSouthWestTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.West, attackWestTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.NorthWest, attackNorthWestTextureGrid, false, 5, 12f),
+                // Idle
+                (GameAssets.Player.Idle.North, idleNorthTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.NorthEast, idleNorthEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.East, idleEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.SouthEast, idleSouthEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.South, idleSouthTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.SouthWest, idleSouthWestTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.West, idleWestTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.NorthWest, idleNorthWestTextureGrid, true, 0, 7f),
+            };
 
-        foreach (var (clip, grid, loop, priority) in playerClips)
+        foreach (var (clip, grid, loop, priority, fps) in playerClips)
         {
-            var animation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, frameCount: 6, fps: 7f,
+            var animation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, frameCount: 6, fps: fps,
                 priority: priority, loop: loop);
             assetStore.Register(clip, animation);
         }
