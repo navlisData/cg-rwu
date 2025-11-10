@@ -10,7 +10,6 @@ namespace unnamed.Utils;
 public static class GraphicsUtils
 {
     public static readonly uint[] QuadIndices = [0, 1, 2, 2, 1, 3];
-    public static readonly uint[] QuadIndices2 = [0, 1, 2, 2, 3, 0];
 
     /// <summary>
     ///     Builds quad vertices and indices for a sprite on a texture atlas.
