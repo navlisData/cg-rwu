@@ -94,15 +94,14 @@ public sealed class Map
     /// <summary>
     ///     Sets a tile type at a world-space tile coordinate, creating the chunk if needed.
     /// </summary>
-    public void SetTile(Vector2i worldTile, Tile tile)
+    public void SetTile(Position position, Tile tile)
     {
-        Vector2i chunkPos = new(worldTile.X >> 4, worldTile.Y >> 4);
-        Vector2i local = new(worldTile.X & 15, worldTile.Y & 15);
-
-        Entity chunk = this.GetOrCreateChunk(chunkPos);
+        Entity chunk = this.GetOrCreateChunk(position.Chunk);
         ref TileGrid grid = ref chunk.Get<TileGrid>();
 
-        grid.Tiles[local.X + (local.Y * ChunkSize)] = tile;
+        Vector2i tilePos = position.Tile;
+
+        grid.Tiles[tilePos.X + (tilePos.Y * ChunkSize)] = tile;
     }
 
     /// <summary>
