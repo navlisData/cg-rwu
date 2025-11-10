@@ -8,9 +8,10 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
+using unnamed.GameMap;
+using unnamed.GameMap.MapGeneration;
 using unnamed.Prefabs;
 using unnamed.Rendering;
 using unnamed.systems;
@@ -31,22 +32,23 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
-    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
 
     // Rendering systems
     private readonly CameraSystem cameraSystem;
-    private readonly SpriteAnimationSystem spriteAnimationSystem;
 
     // General systems
     private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
+    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly FollowingSystem followSystem;
+    private readonly Map gameMap;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
+    private readonly SpriteAnimationSystem spriteAnimationSystem;
 
     private readonly World world = new();
 
@@ -57,6 +59,8 @@ public class Game : GameWindow
 
     public Game() : base(NativeSettings, Settings)
     {
+        this.gameMap = new Map(this.world);
+
         // Rendering systems
         this.cameraSystem = new CameraSystem(this.world);
         this.characterRenderSystem = new CharacterRenderSystem(this.world, this.assetStore);
@@ -85,7 +89,7 @@ public class Game : GameWindow
         this.shaderProgram = Shader.Setup("sprite.vert", "sprite.frag");
         this.shadowProgram = Shader.Setup("sprite.vert", "shadow.frag");
 
-        GameSprites.Init(assetStore);
+        GameSprites.Init(this.assetStore);
 
         this.player = PrefabFactory.CreatePlayer(
             this.world,
@@ -97,34 +101,20 @@ public class Game : GameWindow
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
-        Random rnd = Random.Shared;
-        List<StaticSprite> flowers = assetStore.Get(GameAssets.MapTiles.Flowers);
-        List<StaticSprite> path = assetStore.Get(GameAssets.MapTiles.Pathway);
-        List<StaticSprite> grass = assetStore.Get(GameAssets.MapTiles.Grass);
+        List<StaticSprite> flowers = this.assetStore.Get(GameAssets.MapTiles.Flowers);
+        List<StaticSprite> path = this.assetStore.Get(GameAssets.MapTiles.Pathway);
+        List<StaticSprite> grass = this.assetStore.Get(GameAssets.MapTiles.Grass);
 
-        var allMapTiles = new List<StaticSprite>(flowers.Count + path.Count + grass.Count);
+        List<StaticSprite> allMapTiles = new(flowers.Count + path.Count + grass.Count);
         allMapTiles.AddRange(flowers);
         allMapTiles.AddRange(path);
         allMapTiles.AddRange(grass);
 
-        foreach (int gridY in Enumerable.Range(-10, 20))
-        {
-            foreach (int gridX in Enumerable.Range(-10, 20))
-            {
-                Entity chunk = PrefabFactory.CreateMapChunk(this.world, new Vector2i(gridX, gridY));
-                ref Entity[] tiles = ref chunk.Get<TileRef>().Tiles;
-                foreach (int y in Enumerable.Range(0, Constants.GridSizeY))
-                {
-                    foreach (int x in Enumerable.Range(0, Constants.GridSizeX))
-                    {
-                        StaticSprite sprite = allMapTiles.ElementAt(rnd.Next(allMapTiles.Count - 1));
-                        Entity mapTile = PrefabFactory.CreateMapTile(this.world, TileType.Pathway, chunk,
-                            new Vector2i(x, y), sprite);
-                        tiles[(y * Constants.GridSizeY) + x] = mapTile;
-                    }
-                }
-            }
-        }
+        this.gameMap.MapGenerator = new RandomTileGenerator(allMapTiles);
+
+        this.gameMap.GenerateArea(
+            new Vector2i(-10, -10),
+            new Vector2i(10, 10));
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)

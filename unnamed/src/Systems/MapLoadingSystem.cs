@@ -9,7 +9,7 @@ namespace unnamed.systems;
 
 public class MapLoadingSystem(World world) : EntitySetSystem<Position>(world,
     world.Query()
-        .With<TileRef>()
+        .With<TileGrid>()
         .Build())
 {
     protected override void Update(Position camera, in Entity e)

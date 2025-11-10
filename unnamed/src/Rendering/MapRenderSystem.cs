@@ -11,17 +11,17 @@ using OpenTK.Mathematics;
 using unnamed.Components.Map;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.GameMap;
 using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
 public class MapRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
     world.Query()
-        .With<TileRef>()
+        .With<TileGrid>()
         .With<Loaded>()
         .Build())
 {
-    private readonly IAssetStore assets = assets;
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
 
@@ -60,29 +60,31 @@ public class MapRenderSystem(World world, IAssetStore assets) : ExtendedEntitySe
     protected override void Update(Camera2D camera, in Entity e)
     {
         Vector2i chunkPosition = e.Get<GridPosition>().ToVector2I();
-        ref Entity[] tiles = ref e.Get<TileRef>().Tiles;
+        ref Tile[] tiles = ref e.Get<TileGrid>().Tiles;
 
-        foreach (Entity tile in tiles)
+        for (int y = 0; y < Map.ChunkSize; y++)
         {
-            Vector2i inChunkPosition = tile.Get<GridPosition>().ToVector2I();
-            ref Sprite sprite = ref tile.Get<Sprite>();
+            for (int x = 0; x < Map.ChunkSize; x++)
+            {
+                Tile tile = tiles[x + (y * Map.ChunkSize)];
+                StaticSprite sprite = tile.Sprite;
 
-            StaticSprite frame = sprite.Frame;
-            Texture2D texture = assets.GetTextureById(frame.SpriteSheetId);
-            RectangleF rect = frame.RectPx;
+                Texture2D texture = assets.GetTextureById(sprite.SpriteSheetId);
+                RectangleF rect = sprite.RectPx;
 
-            Matrix4 modelSquare = Matrix4.CreateTranslation(
-                ((chunkPosition.X * Constants.GridSizeX) + inChunkPosition.X) * Constants.TileSizeX,
-                ((chunkPosition.Y * Constants.GridSizeY) + inChunkPosition.Y) * Constants.TileSizeY, 0f);
-            Matrix4 mvpSquare = modelSquare * camera.ViewProjection;
+                Matrix4 modelSquare = Matrix4.CreateTranslation(
+                    ((chunkPosition.X * Map.ChunkSize) + x) * Map.TileSize,
+                    ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize, 0f);
+                Matrix4 mvpSquare = modelSquare * camera.ViewProjection;
 
-            GraphicsUtils.FillSpriteQuadGeometry(
-                new Vector2(Constants.TileSizeX, Constants.TileSizeY),
-                in rect, in texture,
-                in this.vertexScratch, false, false);
+                GraphicsUtils.FillSpriteQuadGeometry(
+                    new Vector2(Map.TileSize, Map.TileSize),
+                    in rect, in texture,
+                    in this.vertexScratch, false, false);
 
-            GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
-                ref mvpSquare);
+                GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
+                    ref mvpSquare);
+            }
         }
     }
 
