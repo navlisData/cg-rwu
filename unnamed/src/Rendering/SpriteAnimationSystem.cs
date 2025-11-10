@@ -21,14 +21,20 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
     {
         ref AnimatedSprite animatedSprite = ref e.Get<AnimatedSprite>();
 
-        HandleAnimationRequest(ref animatedSprite);
-        if (animatedSprite.AnimationClip is null) return;
+        bool updated = HandleAnimationRequest(ref animatedSprite);
+        if (animatedSprite.AnimationClip is null)
+        {
+            return;
+        }
 
         animatedSprite.TimeInFrame += dt;
 
-        var clip = animatedSprite.AnimationClip;
+        AnimationClip? clip = animatedSprite.AnimationClip;
         float secondsPerFrame = 1.0f / clip.Fps;
-        if (animatedSprite.TimeInFrame < secondsPerFrame) return;
+        if (!updated && animatedSprite.TimeInFrame < secondsPerFrame)
+        {
+            return;
+        }
 
         animatedSprite.TimeInFrame -= secondsPerFrame;
         int frameCount = clip.Frames.Count;
@@ -50,21 +56,31 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
 
         StaticSprite currentFrame = clip.Frames[animatedSprite.CurrentFrameIndex];
         if (!e.Has<Sprite>())
+        {
             e.Add(new Sprite { Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
+        }
+
         e.Get<Sprite>().Frame = currentFrame;
     }
 
-    private static void HandleAnimationRequest(ref AnimatedSprite animatedSprite)
+    private static bool HandleAnimationRequest(ref AnimatedSprite animatedSprite)
     {
-        var requested = animatedSprite.RequestedAnimation;
+        AnimationClip? requested = animatedSprite.RequestedAnimation;
         if (requested is null)
-            return;
+        {
+            return false;
+        }
 
         byte currentPrio = animatedSprite.AnimationClip?.Priority ?? 0;
         bool sameAnimation = ReferenceEquals(requested, animatedSprite.AnimationClip);
 
-        if (!sameAnimation && requested.Priority >= currentPrio)
-            SetRequested(requested, ref animatedSprite);
+        if (sameAnimation || requested.Priority < currentPrio)
+        {
+            return false;
+        }
+
+        SetRequested(requested, ref animatedSprite);
+        return true;
     }
 
     private static void SetRequested(AnimationClip requestedClip, ref AnimatedSprite targetSprite)
