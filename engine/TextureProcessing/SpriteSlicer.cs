@@ -20,10 +20,14 @@ namespace engine.TextureProcessing;
 /// <param name="Columns">Number of columns; 0 to auto-compute from texture width.</param>
 /// <param name="Rows">Number of rows; 0 to auto-compute from texture height.</param>
 public readonly record struct TextureGrid(
-    int CellW, int CellH,
-    int OffsetX = 0, int OffsetY = 0,
-    int GapX = 0, int GapY = 0,
-    int Columns = 0, int Rows = 0)
+    int CellW,
+    int CellH,
+    int OffsetX = 0,
+    int OffsetY = 0,
+    int GapX = 0,
+    int GapY = 0,
+    int Columns = 0,
+    int Rows = 0)
 {
     /// <summary>
     /// Resolves the effective grid dimensions against a given texture size.
@@ -35,12 +39,14 @@ public readonly record struct TextureGrid(
     {
         if (Columns > 0 && Rows > 0) return (Columns, Rows);
 
-        int cols = Columns > 0 ? Columns
+        int cols = Columns > 0
+            ? Columns
             : (texW - OffsetX >= CellW
                 ? 1 + (texW - OffsetX - CellW) / (CellW + GapX)
                 : 0);
 
-        int rows = Rows > 0 ? Rows
+        int rows = Rows > 0
+            ? Rows
             : (texH - OffsetY >= CellH
                 ? 1 + (texH - OffsetY - CellH) / (CellH + GapY)
                 : 0);
@@ -63,12 +69,7 @@ public static class SpriteSlicer
     /// <returns>A <see cref="StaticSprite"/> referencing the given region.</returns>
     public static StaticSprite FromRect(SpriteSheet spriteSheet, Rectangle spriteRectangle, Vector2? pivot = null)
     {
-        return new()
-        {
-            SpriteSheetId = spriteSheet.Id,
-            RectPx = spriteRectangle,
-            PivotPx = pivot ?? new Vector2(0,0)
-        };
+        return new() { SpriteSheetId = spriteSheet.Id, RectPx = spriteRectangle, PivotPx = pivot ?? new Vector2(0, 0) };
     }
 
     /// <summary>
@@ -84,8 +85,9 @@ public static class SpriteSlicer
     {
         var (cols, rows) = textureGrid.Resolve(spriteSheet.Size.X, spriteSheet.Size.Y);
         if (cols == 0 || rows == 0) return new SpriteSet();
-        
+
         IEnumerable<int> all = indices ?? Enumerable.Range(0, cols * rows);
+
         IEnumerable<StaticSprite> Make()
         {
             foreach (var i in all)
@@ -93,9 +95,10 @@ public static class SpriteSlicer
                 int cx = i % cols, cy = i / cols;
                 int x = textureGrid.OffsetX + cx * (textureGrid.CellW + textureGrid.GapX);
                 int y = textureGrid.OffsetY + cy * (textureGrid.CellH + textureGrid.GapY);
-                yield return FromRect(spriteSheet, new Rectangle(x,y,textureGrid.CellW,textureGrid.CellH));
+                yield return FromRect(spriteSheet, new Rectangle(x, y, textureGrid.CellW, textureGrid.CellH));
             }
         }
+
         return new SpriteSet(Make());
     }
 
@@ -106,12 +109,14 @@ public static class SpriteSlicer
     /// <param name="textureGrid">Grid definition used to slice frames.</param>
     /// <param name="frameCount">Number of frames to include starting at <paramref name="startIndex"/>.</param>
     /// <param name="fps">Playback frames per second.</param>
+    /// <param name="priority">Can be used to implement overriding logic.</param>
     /// <param name="loop">Should the animation be looped.</param>
     /// <param name="startIndex">Starting zero-based cell index (row-major order).</param>
     /// <returns>An <see cref="AnimationClip"/> with the selected frames.</returns>
-    public static AnimationClip ClipFromGrid(SpriteSheet spriteSheet, TextureGrid textureGrid, int frameCount, float fps, bool loop = true, int startIndex = 0)
+    public static AnimationClip ClipFromGrid(SpriteSheet spriteSheet, TextureGrid textureGrid, int frameCount,
+        float fps, byte priority = 0, bool loop = true, int startIndex = 0)
     {
         var set = FromGrid(spriteSheet, textureGrid, Enumerable.Range(startIndex, frameCount));
-        return new AnimationClip { Frames = set, Fps = fps, Loop = loop };
+        return new AnimationClip { Frames = set, Fps = fps, Loop = loop, Priority = priority };
     }
 }

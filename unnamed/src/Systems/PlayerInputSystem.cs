@@ -106,6 +106,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 Entity unused = PrefabFactory.CreateBullet(this.world, playerPosition,
                     bulletDirection * 7.5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
                     args.assets);
+
+                alignedCharacter.ActionIndex = (int)PlayerAction.Shoot;
 #if DEBUG
                 Console.WriteLine($"{mousePositionWorld}");
 #endif
