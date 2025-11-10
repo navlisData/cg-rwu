@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Engine.Ecs;
 
 using OpenTK.Mathematics;
@@ -108,12 +110,7 @@ public sealed class Map
     /// </summary>
     public void GenerateArea(Vector2i minChunk, Vector2i maxChunk)
     {
-#if DEBUG
-        if (this.MapGenerator == null)
-        {
-            throw new InvalidOperationException("No GameMap generator assigned");
-        }
-#endif
+        Debug.Assert(this.MapGenerator != null, "MapGenerator not set");
         for (int cy = minChunk.Y; cy <= maxChunk.Y; cy++)
         {
             for (int cx = minChunk.X; cx <= maxChunk.X; cx++)
