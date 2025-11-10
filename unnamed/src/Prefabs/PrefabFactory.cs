@@ -4,13 +4,11 @@ using engine.TextureProcessing;
 
 using OpenTK.Mathematics;
 
-using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
 using unnamed.Texture;
-using unnamed.Utils;
 
 namespace unnamed.Prefabs;
 
@@ -73,26 +71,6 @@ public static class PrefabFactory
         });
         entity.Add(new Velocity { Value = velocity });
         entity.Add(new Projectile { Damage = 10, Lifetime = Lifetime.DestroyOnSleep });
-        return entity;
-    }
-
-    public static Entity CreateMapChunk(World world, Vector2i gridPos)
-    {
-        Entity entity = world.CreateEntity();
-        entity.Add(new GridPosition(gridPos));
-        entity.Add(new TileRef { Tiles = new Entity[Constants.GridSizeX * Constants.GridSizeY] });
-        entity.Add(new Loaded());
-        return entity;
-    }
-
-    public static Entity CreateMapTile(World world, TileType type, Entity chunk,
-        Vector2i position, StaticSprite sprite)
-    {
-        Entity entity = world.CreateEntity();
-        entity.Add(new ChunkRef(chunk));
-        entity.Add(new GridPosition(position));
-        entity.Add(type);
-        entity.Add(new Sprite { Frame = sprite, Tint = new Vector4(1, 1, 1, 1), Layer = 0 });
         return entity;
     }
 }

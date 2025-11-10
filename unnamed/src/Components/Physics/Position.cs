@@ -2,8 +2,6 @@ using System.Diagnostics.Contracts;
 
 using OpenTK.Mathematics;
 
-using unnamed.Utils;
-
 namespace unnamed.Components.Physics;
 
 public struct Position : IEquatable<Position>
@@ -31,57 +29,57 @@ public struct Position : IEquatable<Position>
     public Vector2 ToWorldPosition()
     {
         return new Vector2(
-            (((this.Chunk.X * Constants.GridSizeX) + this.Tile.X) * Constants.TileSizeX) + this.Pos.X,
-            (((this.Chunk.Y * Constants.GridSizeY) + this.Tile.Y) * Constants.TileSizeY) + this.Pos.Y);
+            (((this.Chunk.X * GameMap.Map.ChunkSize) + this.Tile.X) * GameMap.Map.TileSize) + this.Pos.X,
+            (((this.Chunk.Y * GameMap.Map.ChunkSize) + this.Tile.Y) * GameMap.Map.TileSize) + this.Pos.Y);
     }
 
     private void ReAlign()
     {
-        while (this.Pos.X > Constants.TileSizeX)
+        while (this.Pos.X >= GameMap.Map.TileSize)
         {
-            this.Pos.X -= Constants.TileSizeX;
+            this.Pos.X -= GameMap.Map.TileSize;
             this.Tile.X += 1;
         }
 
         while (this.Pos.X < 0f)
         {
-            this.Pos.X += Constants.TileSizeX;
+            this.Pos.X += GameMap.Map.TileSize;
             this.Tile.X -= 1;
         }
 
-        while (this.Pos.Y > Constants.TileSizeX)
+        while (this.Pos.Y >= GameMap.Map.TileSize)
         {
-            this.Pos.Y -= Constants.TileSizeX;
+            this.Pos.Y -= GameMap.Map.TileSize;
             this.Tile.Y += 1;
         }
 
         while (this.Pos.Y < 0f)
         {
-            this.Pos.Y += Constants.TileSizeX;
+            this.Pos.Y += GameMap.Map.TileSize;
             this.Tile.Y -= 1;
         }
 
-        while (this.Tile.X > Constants.GridSizeX)
+        while (this.Tile.X >= GameMap.Map.ChunkSize)
         {
-            this.Tile.X -= Constants.GridSizeX;
+            this.Tile.X -= GameMap.Map.ChunkSize;
             this.Chunk.X += 1;
         }
 
         while (this.Tile.X < 0f)
         {
-            this.Tile.X += Constants.GridSizeX;
+            this.Tile.X += GameMap.Map.ChunkSize;
             this.Chunk.X -= 1;
         }
 
-        while (this.Tile.Y > Constants.GridSizeX)
+        while (this.Tile.Y >= GameMap.Map.ChunkSize)
         {
-            this.Tile.Y -= Constants.GridSizeX;
+            this.Tile.Y -= GameMap.Map.ChunkSize;
             this.Chunk.Y += 1;
         }
 
         while (this.Tile.Y < 0f)
         {
-            this.Tile.Y += Constants.GridSizeX;
+            this.Tile.Y += GameMap.Map.ChunkSize;
             this.Chunk.Y -= 1;
         }
     }
@@ -121,9 +119,9 @@ public struct Position : IEquatable<Position>
     [Pure]
     public static Position operator -(Position left, in Position right)
     {
-        left.Chunk = -right.Chunk;
-        left.Tile = -right.Chunk;
-        left.Pos = -right.Pos;
+        left.Chunk -= right.Chunk;
+        left.Tile -= right.Tile;
+        left.Pos -= right.Pos;
         left.ReAlign();
         return left;
     }
@@ -131,9 +129,9 @@ public struct Position : IEquatable<Position>
     [Pure]
     public static Position operator -(Position left)
     {
-        left.Chunk = -left.Chunk;
-        left.Tile = -left.Chunk;
-        left.Pos = -left.Pos;
+        left.Chunk -= left.Chunk;
+        left.Tile -= left.Tile;
+        left.Pos -= left.Pos;
         left.ReAlign();
         return left;
     }
