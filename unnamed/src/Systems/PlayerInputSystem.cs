@@ -11,12 +11,13 @@ using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
 using unnamed.Prefabs;
+using unnamed.Texture;
 using unnamed.Utils;
 
 namespace unnamed.systems;
 
 public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
-    : EntitySetSystem<(float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets)>(world,
+    : EntitySetSystem<(float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets, PlayerControlService pcs)>(world,
         world.Query()
             .With<ReceivesPlayerInput>()
             .Build()
@@ -29,14 +30,14 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
     protected override void Update(
-        (float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets) args, in Entity e)
+        (float dt, Camera2D camera, Position player, Vector2i windowSize, IAssetStore assets, PlayerControlService pcs) args, in Entity e)
     {
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
         float dt = args.dt;
         ref Camera2D camera2D = ref args.camera;
         ref Position playerPosition = ref args.player;
-
+        
         if (e.Has<Player>())
         {
             Vector2 direction = Vector2.Zero;
@@ -71,9 +72,13 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
 
             if (direction != Vector2.Zero)
             {
+                // alignedCharacter.ActionIndex = (int)PlayerAction.Move;
+                args.pcs.TryUpdateAction(PlayerAction.Move, out bool success);
+                
                 direction = direction.Normalized();
-                velocity.Value += direction * (acceleration * dt);
-                alignedCharacter.ActionIndex = (int)PlayerAction.Move;
+                velocity.Value = success 
+                    ? velocity.Value += direction * (acceleration * dt)
+                    : Vector2.Zero;
             }
             else
             {
@@ -84,7 +89,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                     velocity.Value = Vector2.Zero;
                 }
 
-                alignedCharacter.ActionIndex = (int)PlayerAction.Idle;
+                // alignedCharacter.ActionIndex = (int)PlayerAction.Idle;
+                args.pcs.TryUpdateAction(PlayerAction.Idle, out bool _);
             }
 
             float maxSquared = maxSpeed * maxSpeed;
@@ -107,11 +113,16 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                     bulletDirection * 7.5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
                     args.assets);
 
-                alignedCharacter.ActionIndex = (int)PlayerAction.Shoot;
+                // alignedCharacter.ActionIndex = (int)PlayerAction.Shoot;
+                var clip = args.assets.Get(GameAssets.Player.Attack.East);
+                float visibleForSeconds = clip.Frames.Count / clip.Fps;
+                args.pcs.TryUpdateAction(PlayerAction.Shoot, visibleForSeconds, out bool _);
 #if DEBUG
                 Console.WriteLine($"{mousePositionWorld}");
 #endif
             }
+
+            alignedCharacter.ActionIndex = (int)args.pcs.GetCurrentAction()!;
         }
 
         if (e.Has<Camera2D>())

@@ -32,6 +32,8 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
+    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
+    private readonly PlayerControlService pcs = new PlayerControlService();
 
     // Rendering systems
     private readonly CameraSystem cameraSystem;
@@ -39,7 +41,6 @@ public class Game : GameWindow
     // General systems
     private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
-    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
     private readonly MapLoadingSystem mapLoadingSystem;
@@ -121,6 +122,7 @@ public class Game : GameWindow
     {
         base.OnUpdateFrame(args);
         float dt = (float)args.Time;
+        this.pcs.Sync(dt);
 
         if (this.KeyboardState.IsKeyDown(Keys.Escape))
         {
@@ -128,7 +130,7 @@ public class Game : GameWindow
         }
 
         this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize,
-            this.assetStore));
+            this.assetStore, pcs));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.characterAlignSystem.Run(dt);
