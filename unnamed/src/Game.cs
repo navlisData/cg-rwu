@@ -105,16 +105,11 @@ public class Game : GameWindow
         List<StaticSprite> path = this.assetStore.Get(GameAssets.MapTiles.Pathway);
         List<StaticSprite> grass = this.assetStore.Get(GameAssets.MapTiles.Grass);
 
-        List<StaticSprite> allMapTiles = new(flowers.Count + path.Count + grass.Count);
-        allMapTiles.AddRange(flowers);
-        allMapTiles.AddRange(path);
-        allMapTiles.AddRange(grass);
-
-        this.gameMap.MapGenerator = new RandomTileGenerator(allMapTiles);
-
-        this.gameMap.GenerateArea(
-            new Vector2i(-10, -10),
-            new Vector2i(10, 10));
+        this.gameMap.MapGenerator = new GraphBasedGenerator();
+        this.gameMap.SpriteConverter = new SpriteConverter(flowers, grass, path);
+        this.gameMap.GenerateMap(
+            new Vector2i(-1, -1),
+            new Vector2i(1, 1));
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)

@@ -1,10 +1,8 @@
-using OpenTK.Mathematics;
-
-using unnamed.Components.Map;
+using unnamed.Enums;
 
 namespace unnamed.GameMap.MapGeneration;
 
 public interface IMapGenerator
 {
-    Tile GenerateTile(Vector2i position);
+    void GenerateMap(in TileFlags[,] map);
 }

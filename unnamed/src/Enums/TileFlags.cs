@@ -3,5 +3,7 @@ namespace unnamed.Enums;
 [Flags]
 public enum TileFlags
 {
-    Walkable = 1 << 0
+    None = 0,
+    Walkable = 1 << 0,
+    Path = 1 << 1
 }

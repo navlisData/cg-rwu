@@ -6,6 +6,7 @@ using OpenTK.Mathematics;
 
 using unnamed.Components.Map;
 using unnamed.Components.Physics;
+using unnamed.Enums;
 using unnamed.GameMap.MapGeneration;
 
 namespace unnamed.GameMap;
@@ -30,6 +31,7 @@ public sealed class Map
     private readonly World world;
 
     public IMapGenerator? MapGenerator = null;
+    public SpriteConverter? SpriteConverter = null;
 
     public Map(World world)
     {
@@ -105,27 +107,37 @@ public sealed class Map
     }
 
     /// <summary>
-    ///     Generates a rectangular region of chunks using the current <see cref="IMapGenerator" />.
+    ///     Generates a rectangular region of chunks using the current <see cref="MapGenerator" />.
     /// </summary>
-    public void GenerateArea(Vector2i minChunk, Vector2i maxChunk)
+    public void GenerateMap(Vector2i minChunk, Vector2i maxChunk)
     {
-        Debug.Assert(this.MapGenerator != null, "MapGenerator not set");
-        for (int cy = minChunk.Y; cy <= maxChunk.Y; cy++)
-        {
-            for (int cx = minChunk.X; cx <= maxChunk.X; cx++)
-            {
-                Vector2i chunkPos = new(cx, cy);
-                Entity chunk = this.GetOrCreateChunk(chunkPos);
-                ref TileGrid grid = ref chunk.Get<TileGrid>();
+        Debug.Assert(this.MapGenerator != null);
+        Debug.Assert(this.SpriteConverter != null);
+        Debug.Assert(minChunk.X <= maxChunk.X && minChunk.Y <= maxChunk.Y);
 
-                for (int ty = 0; ty < ChunkSize; ty += 1)
+        int widthTiles = (Math.Abs(minChunk.X - maxChunk.X) + 1) * ChunkSize;
+        int heightTiles = (Math.Abs(minChunk.Y - maxChunk.Y) + 1) * ChunkSize;
+
+        TileFlags[,] map = new TileFlags[widthTiles, heightTiles];
+
+        this.MapGenerator.GenerateMap(map);
+
+        for (int cy = minChunk.Y, my = 0; cy <= maxChunk.Y; cy += 1, my += 1)
+        for (int cx = minChunk.X, mx = 0; cx <= maxChunk.X; cx += 1, mx += 1)
+        {
+            Vector2i chunkPos = new(cx, cy);
+            Entity chunk = this.GetOrCreateChunk(chunkPos);
+            ref TileGrid grid = ref chunk.Get<TileGrid>();
+
+            for (int ty = 0; ty < ChunkSize; ty += 1)
+            for (int tx = 0; tx < ChunkSize; tx += 1)
+            {
+                TileFlags flags = map[(mx * ChunkSize) + tx, (my * ChunkSize) + ty];
+
+                grid.Tiles[tx + (ty * ChunkSize)] = new Tile
                 {
-                    for (int tx = 0; tx < ChunkSize; tx += 1)
-                    {
-                        Vector2i worldTile = new((cx * ChunkSize) + tx, (cy * ChunkSize) + ty);
-                        grid.Tiles[tx + (ty * ChunkSize)] = this.MapGenerator.GenerateTile(worldTile);
-                    }
-                }
+                    Flags = flags, Sprite = this.SpriteConverter.ConvertTileToSprite(flags)
+                };
             }
         }
     }
