@@ -4,6 +4,7 @@ using engine.TextureProcessing;
 
 using OpenTK.Mathematics;
 
+using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
@@ -35,6 +36,7 @@ public static class PrefabFactory
 
         entity.Add(new Character());
         entity.Add(new Player());
+        entity.Add(new PlayerActionState());
         return entity;
     }
 

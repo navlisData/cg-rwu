@@ -1,3 +1,5 @@
+using engine.Control;
+
 using Engine.Ecs;
 
 using engine.TextureProcessing;
@@ -10,6 +12,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
+using unnamed.Enums;
 using unnamed.GameMap;
 using unnamed.GameMap.MapGeneration;
 using unnamed.Prefabs;
@@ -33,7 +36,7 @@ public class Game : GameWindow
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
-    private readonly PlayerControlService pcs = new PlayerControlService();
+    private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
 
     // Rendering systems
     private readonly CameraSystem cameraSystem;
@@ -122,7 +125,6 @@ public class Game : GameWindow
     {
         base.OnUpdateFrame(args);
         float dt = (float)args.Time;
-        this.pcs.Sync(dt);
 
         if (this.KeyboardState.IsKeyDown(Keys.Escape))
         {
@@ -130,7 +132,7 @@ public class Game : GameWindow
         }
 
         this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize,
-            this.assetStore, pcs));
+            this.assetStore, this.playerActionHandler));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.characterAlignSystem.Run(dt);
