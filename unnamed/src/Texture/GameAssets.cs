@@ -118,6 +118,63 @@ public static class GameAssets
             AssetRef<SpriteSet>.FromPath(Prefix + "grass");
     }
 
+    public static class WallTiles
+    {
+        private const string Prefix = "walls/";
+
+        public static readonly AssetRef<StaticSprite> Illegal =
+            AssetRef<StaticSprite>.FromPath(Prefix + "Illegal");
+
+        public static readonly AssetRef<StaticSprite> WallFrameTopLeft =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameTopLeft");
+
+        public static readonly AssetRef<StaticSprite> WallFrameTopCenter =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameTopCenter");
+
+        public static readonly AssetRef<StaticSprite> WallFrameTopRight =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameTopRight");
+
+        public static readonly AssetRef<StaticSprite> WallFrameLeft =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameLeft");
+
+        public static readonly AssetRef<StaticSprite> WallFrameCenter =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameCenter");
+
+        public static readonly AssetRef<StaticSprite> WallFrameRight =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameRight");
+
+        public static readonly AssetRef<StaticSprite> WallFrameOuterCornerTopRight =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameOuterCornerTopRight");
+
+        public static readonly AssetRef<StaticSprite> WallFrameOuterCornerTopLeft =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameOuterCornerTopLeft");
+
+        public static readonly AssetRef<StaticSprite> WallFrameOuterCornerBottomLeft =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameOuterCornerBottomLeft");
+
+        public static readonly AssetRef<StaticSprite> WallFrameOuterCornerBottomRight =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallFrameOuterCornerBottomRight");
+
+
+        public static readonly AssetRef<StaticSprite> WallTileTopLeft =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallTileTopLeft");
+
+        public static readonly AssetRef<StaticSprite> WallTileTopCenter =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallTileTopCenter");
+
+        public static readonly AssetRef<StaticSprite> WallTileTopRight =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallTileTopRight");
+
+        public static readonly AssetRef<StaticSprite> WallTileBaseLeft =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallTileBaseLeft");
+
+        public static readonly AssetRef<StaticSprite> WallTileBaseCenter =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallTileBaseCenter");
+
+        public static readonly AssetRef<StaticSprite> WallTileBaseRight =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallTileBaseRight");
+    }
+
     public static class Props
     {
         private const string Prefix = "props/";
