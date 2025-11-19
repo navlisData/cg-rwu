@@ -28,14 +28,15 @@ public sealed class Map
     public const float TileSize = 4;
 
     private readonly Dictionary<Vector2i, Entity> chunks = new();
+
     private readonly World world;
+    public IMapGenerator MapGenerator;
+    public SpriteMapper? SpriteMapper;
 
-    public IMapGenerator? MapGenerator = null;
-    public SpriteConverter? SpriteConverter = null;
-
-    public Map(World world)
+    public Map(World world, IMapGenerator? mapGenerator = null)
     {
         this.world = world;
+        this.MapGenerator = mapGenerator ?? new RandomTileGenerator();
     }
 
     /// <summary>
@@ -111,8 +112,7 @@ public sealed class Map
     /// </summary>
     public void GenerateMap(Vector2i minChunk, Vector2i maxChunk)
     {
-        Debug.Assert(this.MapGenerator != null);
-        Debug.Assert(this.SpriteConverter != null);
+        Debug.Assert(this.SpriteMapper != null);
         Debug.Assert(minChunk.X <= maxChunk.X && minChunk.Y <= maxChunk.Y);
 
         int widthTiles = (Math.Abs(minChunk.X - maxChunk.X) + 1) * ChunkSize;
@@ -121,6 +121,7 @@ public sealed class Map
         TileFlags[,] map = new TileFlags[widthTiles, heightTiles];
 
         this.MapGenerator.GenerateMap(map);
+        this.SpriteMapper.Map = map;
 
         for (int cy = minChunk.Y, my = 0; cy <= maxChunk.Y; cy += 1, my += 1)
         for (int cx = minChunk.X, mx = 0; cx <= maxChunk.X; cx += 1, mx += 1)
@@ -132,11 +133,13 @@ public sealed class Map
             for (int ty = 0; ty < ChunkSize; ty += 1)
             for (int tx = 0; tx < ChunkSize; tx += 1)
             {
-                TileFlags flags = map[(mx * ChunkSize) + tx, (my * ChunkSize) + ty];
+                int x = (mx * ChunkSize) + tx;
+                int y = (my * ChunkSize) + ty;
+                TileFlags flags = map[x, y];
 
                 grid.Tiles[tx + (ty * ChunkSize)] = new Tile
                 {
-                    Flags = flags, Sprite = this.SpriteConverter.ConvertTileToSprite(flags)
+                    Flags = flags, Sprite = this.SpriteMapper.MapToSprite(x, y)
                 };
             }
         }
