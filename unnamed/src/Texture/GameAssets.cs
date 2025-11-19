@@ -173,6 +173,12 @@ public static class GameAssets
 
         public static readonly AssetRef<StaticSprite> WallTileBaseRight =
             AssetRef<StaticSprite>.FromPath(Prefix + "WallTileBaseRight");
+        
+        public static readonly AssetRef<StaticSprite> WallTileTopLeftInner =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallTileTopLeftInner");
+        
+        public static readonly AssetRef<StaticSprite> WallTileBaseLeftInner =
+            AssetRef<StaticSprite>.FromPath(Prefix + "WallTileBaseLeftInner");
     }
 
     public static class Props

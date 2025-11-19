@@ -159,5 +159,9 @@ public static class GameSprites
             SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 128, 32, 32)));
         assetStore.Register(GameAssets.WallTiles.WallTileBaseRight,
             SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 128, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileTopLeftInner,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 32, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileBaseLeftInner,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 64, 32, 32)));
     }
 }

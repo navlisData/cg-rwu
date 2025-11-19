@@ -60,6 +60,11 @@ public class SpriteMapper(IAssetStore assetStore)
             {
                 if (this.IsWallRightOf(x, y))
                 {
+                    if (this.IsWallBottomLeftOf(x, y))
+                    {
+                        return this.GetSprite(GameAssets.WallTiles.WallTileBaseLeftInner);
+                    }
+
                     return this.GetSprite(GameAssets.WallTiles.WallTileBaseCenter);
                 }
 
@@ -78,6 +83,11 @@ public class SpriteMapper(IAssetStore assetStore)
             {
                 if (this.IsWallBottomRightOf(x, y))
                 {
+                    if (this.IsWallBottomLeftOf(x, y - 1))
+                    {
+                        return this.GetSprite(GameAssets.WallTiles.WallTileTopLeftInner);
+                    }
+
                     return this.GetSprite(GameAssets.WallTiles.WallTileTopCenter);
                 }
 
@@ -155,7 +165,6 @@ public class SpriteMapper(IAssetStore assetStore)
             return this.GetSprite(GameAssets.WallTiles.WallFrameTopRight);
         }
 
-        // Map generation error
         this.PrintDebug(x, y, 1, "SingleWallColumn");
         return this.GetSprite(GameAssets.WallTiles.Illegal);
     }
