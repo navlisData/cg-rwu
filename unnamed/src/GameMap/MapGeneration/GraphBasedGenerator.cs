@@ -49,7 +49,6 @@ public class GraphBasedGenerator : IMapGenerator
 
             rooms.Add(newRoom);
             centers.Add(newRoom.Center);
-            // Console.WriteLine($"Room: x {newRoom.X1}, y {newRoom.Y1}, x2 {newRoom.X2}, y2 {newRoom.Y2}, center {newRoom.Center}");
             CarveRoom(map, newRoom);
         }
 
