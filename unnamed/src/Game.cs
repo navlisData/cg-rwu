@@ -59,7 +59,7 @@ public class Game : GameWindow
 
     public Game() : base(NativeSettings, Settings)
     {
-        this.gameMap = new Map(this.world);
+        this.gameMap = new Map(this.world, new GraphBasedGenerator());
 
         // Rendering systems
         this.cameraSystem = new CameraSystem(this.world);
@@ -101,20 +101,10 @@ public class Game : GameWindow
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
 
-        List<StaticSprite> flowers = this.assetStore.Get(GameAssets.MapTiles.Flowers);
-        List<StaticSprite> path = this.assetStore.Get(GameAssets.MapTiles.Pathway);
-        List<StaticSprite> grass = this.assetStore.Get(GameAssets.MapTiles.Grass);
-
-        List<StaticSprite> allMapTiles = new(flowers.Count + path.Count + grass.Count);
-        allMapTiles.AddRange(flowers);
-        allMapTiles.AddRange(path);
-        allMapTiles.AddRange(grass);
-
-        this.gameMap.MapGenerator = new RandomTileGenerator(allMapTiles);
-
-        this.gameMap.GenerateArea(
-            new Vector2i(-10, -10),
-            new Vector2i(10, 10));
+        this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
+        this.gameMap.GenerateMap(
+            new Vector2i(-1, -1),
+            new Vector2i(1, 1));
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
