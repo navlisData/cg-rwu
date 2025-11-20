@@ -6,10 +6,10 @@ public class RandomTileGenerator : IMapGenerator
 {
     private readonly Random rng = Random.Shared;
 
-    public void GenerateMap(in TileFlags[,] map)
+    public void GenerateMap(in IntermediateMap map)
     {
-        int width = map.GetLength(0);
-        int height = map.GetLength(1);
+        int width = map.Width;
+        int height = map.Height;
 
         for (int y = 0; y < width; y += 1)
         for (int x = 0; x < height; x += 1)

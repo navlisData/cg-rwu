@@ -121,7 +121,6 @@ public sealed class Map
         TileFlags[,] map = new TileFlags[widthTiles, heightTiles];
 
         this.MapGenerator.GenerateMap(map);
-        this.SpriteMapper.Map = map;
 
         for (int cy = minChunk.Y, my = 0; cy <= maxChunk.Y; cy += 1, my += 1)
         for (int cx = minChunk.X, mx = 0; cx <= maxChunk.X; cx += 1, mx += 1)
@@ -139,7 +138,7 @@ public sealed class Map
 
                 grid.Tiles[tx + (ty * ChunkSize)] = new Tile
                 {
-                    Flags = flags, Sprite = this.SpriteMapper.MapToSprite(x, y)
+                    Flags = flags, Sprite = this.SpriteMapper.MapToSprite(x, y, map)
                 };
             }
         }
