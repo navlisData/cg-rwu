@@ -2,6 +2,8 @@ using System.Diagnostics;
 
 using Engine.Ecs;
 
+using engine.TextureProcessing;
+
 using OpenTK.Mathematics;
 
 using unnamed.Components.Map;
@@ -136,9 +138,11 @@ public sealed class Map
                 int y = (my * ChunkSize) + ty;
                 TileFlags flags = map[x, y];
 
+                (StaticSprite sprite, StaticSprite? overlay, ushort layer) = this.SpriteMapper.MapToSprite(x, y, map);
+
                 grid.Tiles[tx + (ty * ChunkSize)] = new Tile
                 {
-                    Flags = flags, Sprite = this.SpriteMapper.MapToSprite(x, y, map)
+                    Flags = flags, Sprite = sprite, OverlaySprite = overlay, layer = layer
                 };
             }
         }

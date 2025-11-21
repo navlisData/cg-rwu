@@ -11,10 +11,12 @@ public class SpriteMapper(IAssetStore assetStore)
 {
     private readonly Random rng = Random.Shared;
 
-    internal StaticSprite MapToSprite(int x, int y, in IntermediateMap map)
+    internal (StaticSprite, StaticSprite?, ushort) MapToSprite(int x, int y, in IntermediateMap map)
     {
         TileFlags tile = map[x, y];
         StaticSprite sprite;
+        StaticSprite? overlay = null;
+        ushort layer = 0;
 
         if (tile.IsWalkable())
         {
@@ -22,35 +24,38 @@ public class SpriteMapper(IAssetStore assetStore)
 
             if (map.IsWallBottomCenterOf(x, y))
             {
-                return this.GetWallTop(x, y, in map);
+                overlay = this.GetWallTop(x, y, in map);
+                sprite = this.GetSprite(GameAssets.MapTiles.Grass);
+                layer = 1;
             }
-
-            if (tile.IsPath())
+            else if (tile.IsPath())
             {
-                return this.GetSprite(GameAssets.MapTiles.Pathway);
+                sprite = this.GetSprite(GameAssets.MapTiles.Pathway);
             }
         }
         else
         {
-            sprite = this.GetWall(x, y, in map);
+            (sprite, overlay, layer) = this.GetWall(x, y, in map);
         }
 
-        return sprite;
+        return (sprite, overlay, layer);
     }
 
-    private StaticSprite GetWall(int x, int y, in IntermediateMap map)
+    private (StaticSprite, StaticSprite?, ushort) GetWall(int x, int y, in IntermediateMap map)
     {
         if (!map.IsWallTopCenterOf(x, y) && !map.IsWallBottomCenterOf(x, y))
         {
             this.PrintDebug(x, y, 1, "OneHighWall", in map);
-            return this.GetSprite(GameAssets.WallTiles.Illegal);
+            return (this.GetSprite(GameAssets.WallTiles.Illegal), null, 0);
         }
 
         if (!map.IsWallLeftOf(x, y) && !map.IsWallRightOf(x, y))
         {
             this.PrintDebug(x, y, 1, "SingleWallColumn", in map);
-            return this.GetSprite(GameAssets.WallTiles.Illegal);
+            return (this.GetSprite(GameAssets.WallTiles.Illegal), null, 0);
         }
+
+        StaticSprite under = this.GetSprite(GameAssets.MapTiles.Grass);
 
         if (!map.IsWallBottomCenterOf(x, y))
         {
@@ -60,18 +65,18 @@ public class SpriteMapper(IAssetStore assetStore)
                 {
                     if (map.IsWallBottomLeftOf(x, y))
                     {
-                        return this.GetSprite(GameAssets.WallTiles.WallTileBaseLeftInner);
+                        return (this.GetSprite(GameAssets.WallTiles.WallTileBaseLeftInner), null, 0);
                     }
 
-                    return this.GetSprite(GameAssets.WallTiles.WallTileBaseCenter);
+                    return (this.GetSprite(GameAssets.WallTiles.WallTileBaseCenter), null, 0);
                 }
 
-                return this.GetSprite(GameAssets.WallTiles.WallTileBaseRight);
+                return (under, this.GetSprite(GameAssets.WallTiles.WallTileBaseRight), 0);
             }
 
             if (map.IsWallRightOf(x, y))
             {
-                return this.GetSprite(GameAssets.WallTiles.WallTileBaseLeft);
+                return (under, this.GetSprite(GameAssets.WallTiles.WallTileBaseLeft), 0);
             }
         }
 
@@ -83,18 +88,18 @@ public class SpriteMapper(IAssetStore assetStore)
                 {
                     if (map.IsWallBottomBottomLeftOf(x, y))
                     {
-                        return this.GetSprite(GameAssets.WallTiles.WallTileTopLeftInner);
+                        return (this.GetSprite(GameAssets.WallTiles.WallTileTopLeftInner), null, 0);
                     }
 
-                    return this.GetSprite(GameAssets.WallTiles.WallTileTopCenter);
+                    return (this.GetSprite(GameAssets.WallTiles.WallTileTopCenter), null, 0);
                 }
 
-                return this.GetSprite(GameAssets.WallTiles.WallTileTopRight);
+                return (under, this.GetSprite(GameAssets.WallTiles.WallTileTopRight), 0);
             }
 
             if (map.IsWallBottomRightOf(x, y))
             {
-                return this.GetSprite(GameAssets.WallTiles.WallTileTopLeft);
+                return (under, this.GetSprite(GameAssets.WallTiles.WallTileTopLeft), 0);
             }
         }
 
@@ -102,33 +107,33 @@ public class SpriteMapper(IAssetStore assetStore)
         {
             if (map.IsWallBottomLeftOf(x, y))
             {
-                return this.GetSprite(GameAssets.WallTiles.WallFrameOuterCornerBottomRight);
+                return (under, this.GetSprite(GameAssets.WallTiles.WallFrameOuterCornerBottomRight), 0);
             }
 
-            return this.GetSprite(GameAssets.WallTiles.WallFrameLeft);
+            return (under, this.GetSprite(GameAssets.WallTiles.WallFrameLeft), 1);
         }
 
         if (!map.IsWallRightOf(x, y) || !map.IsWallBottomRightOf(x, y))
         {
             if (map.IsWallBottomRightOf(x, y))
             {
-                return this.GetSprite(GameAssets.WallTiles.WallFrameOuterCornerBottomLeft);
+                return (under, this.GetSprite(GameAssets.WallTiles.WallFrameOuterCornerBottomLeft), 1);
             }
 
-            return this.GetSprite(GameAssets.WallTiles.WallFrameRight);
+            return (under, this.GetSprite(GameAssets.WallTiles.WallFrameRight), 1);
         }
 
         if (!map.IsWallBottomBottomLeftOf(x, y))
         {
-            return this.GetSprite(GameAssets.WallTiles.WallFrameOuterCornerTopRight);
+            return (under, this.GetSprite(GameAssets.WallTiles.WallFrameOuterCornerTopRight), 1);
         }
 
         if (!map.IsWallBottomBottomRightOf(x, y))
         {
-            return this.GetSprite(GameAssets.WallTiles.WallFrameOuterCornerTopLeft);
+            return (under, this.GetSprite(GameAssets.WallTiles.WallFrameOuterCornerTopLeft), 1);
         }
 
-        return this.GetSprite(GameAssets.WallTiles.WallFrameCenter);
+        return (under, this.GetSprite(GameAssets.WallTiles.WallFrameCenter), 1);
     }
 
     private StaticSprite GetWallTop(int x, int y, in IntermediateMap map)
