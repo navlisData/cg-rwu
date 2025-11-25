@@ -131,13 +131,11 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                     args.assets);
 
                 var clip = args.assets.Get(GameAssets.Player.Attack.East);
-                float visibleForSeconds = clip.Frames.Count / clip.Fps;
-
                 currentState = args.actionHandler.TryUpdateAction(
                     ref playerState.CurrentAction,
                     ref playerState.RemainingTime,
                     PlayerAction.Shoot,
-                    visibleForSeconds,
+                    clip.AnimationDuration(),
                     out bool _
                 );
 #if DEBUG
