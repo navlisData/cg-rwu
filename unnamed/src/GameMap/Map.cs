@@ -30,15 +30,18 @@ public sealed class Map
     public const float TileSize = 4;
 
     private readonly Dictionary<Vector2i, Entity> chunks = new();
+    private readonly List<Position> validPositions;
 
     private readonly World world;
     public IMapGenerator MapGenerator;
     public SpriteMapper? SpriteMapper;
+    private int validPositionsIndex;
 
     public Map(World world, IMapGenerator? mapGenerator = null)
     {
         this.world = world;
         this.MapGenerator = mapGenerator ?? new RandomTileGenerator();
+        this.validPositions = new List<Position>();
     }
 
     /// <summary>
@@ -119,10 +122,14 @@ public sealed class Map
 
         int widthTiles = (Math.Abs(minChunk.X - maxChunk.X) + 1) * ChunkSize;
         int heightTiles = (Math.Abs(minChunk.Y - maxChunk.Y) + 1) * ChunkSize;
+        Position bottomLeftCorner = new(minChunk, Vector2i.Zero, Vector2i.Zero);
 
         TileFlags[,] map = new TileFlags[widthTiles, heightTiles];
 
-        this.MapGenerator.GenerateMap(map);
+        this.validPositions.Clear();
+        List<Vector2i> validPositions = this.MapGenerator.GenerateMap(map);
+        this.validPositions.AddRange(validPositions.Select(p =>
+            bottomLeftCorner + new Position(Vector2i.Zero, p, Vector2i.Zero)));
 
         for (int cy = minChunk.Y, my = 0; cy <= maxChunk.Y; cy += 1, my += 1)
         for (int cx = minChunk.X, mx = 0; cx <= maxChunk.X; cx += 1, mx += 1)
@@ -145,6 +152,30 @@ public sealed class Map
                     Flags = flags, Sprite = sprite, OverlaySprite = overlay, layer = layer
                 };
             }
+        }
+    }
+
+    /// <summary>
+    ///     Retrieves the next available valid position, if one exists.
+    /// </summary>
+    /// <param name="validPosition">
+    ///     When the method returns, contains the next valid position if available; otherwise the default value.
+    /// </param>
+    /// <returns>
+    ///     <c>true</c> if a valid position was retrieved; otherwise <c>false</c>.
+    /// </returns>
+    public bool NextValidPosition(out Position validPosition)
+    {
+        try
+        {
+            validPosition = this.validPositions[this.validPositionsIndex];
+            this.validPositionsIndex += 1;
+            return true;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            validPosition = default;
+            return false;
         }
     }
 }

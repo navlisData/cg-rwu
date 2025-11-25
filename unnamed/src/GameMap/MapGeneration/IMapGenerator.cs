@@ -1,6 +1,8 @@
+using OpenTK.Mathematics;
+
 namespace unnamed.GameMap.MapGeneration;
 
 public interface IMapGenerator
 {
-    void GenerateMap(in IntermediateMap map);
+    List<Vector2i> GenerateMap(in IntermediateMap map);
 }

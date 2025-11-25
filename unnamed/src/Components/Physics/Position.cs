@@ -21,6 +21,14 @@ public struct Position : IEquatable<Position>
     /// </summary>
     public Vector2 Pos;
 
+    public Position(Vector2i chunk, Vector2i tile, Vector2 pos)
+    {
+        this.Chunk = chunk;
+        this.Tile = tile;
+        this.Pos = pos;
+        this.ReAlign();
+    }
+
     /// <summary>
     ///     Converts the map-relative <c>Position</c> to the respective world position
     /// </summary>
@@ -31,57 +39,6 @@ public struct Position : IEquatable<Position>
         return new Vector2(
             (((this.Chunk.X * GameMap.Map.ChunkSize) + this.Tile.X) * GameMap.Map.TileSize) + this.Pos.X,
             (((this.Chunk.Y * GameMap.Map.ChunkSize) + this.Tile.Y) * GameMap.Map.TileSize) + this.Pos.Y);
-    }
-
-    private void ReAlign()
-    {
-        while (this.Pos.X >= GameMap.Map.TileSize)
-        {
-            this.Pos.X -= GameMap.Map.TileSize;
-            this.Tile.X += 1;
-        }
-
-        while (this.Pos.X < 0f)
-        {
-            this.Pos.X += GameMap.Map.TileSize;
-            this.Tile.X -= 1;
-        }
-
-        while (this.Pos.Y >= GameMap.Map.TileSize)
-        {
-            this.Pos.Y -= GameMap.Map.TileSize;
-            this.Tile.Y += 1;
-        }
-
-        while (this.Pos.Y < 0f)
-        {
-            this.Pos.Y += GameMap.Map.TileSize;
-            this.Tile.Y -= 1;
-        }
-
-        while (this.Tile.X >= GameMap.Map.ChunkSize)
-        {
-            this.Tile.X -= GameMap.Map.ChunkSize;
-            this.Chunk.X += 1;
-        }
-
-        while (this.Tile.X < 0f)
-        {
-            this.Tile.X += GameMap.Map.ChunkSize;
-            this.Chunk.X -= 1;
-        }
-
-        while (this.Tile.Y >= GameMap.Map.ChunkSize)
-        {
-            this.Tile.Y -= GameMap.Map.ChunkSize;
-            this.Chunk.Y += 1;
-        }
-
-        while (this.Tile.Y < 0f)
-        {
-            this.Tile.Y += GameMap.Map.ChunkSize;
-            this.Chunk.Y -= 1;
-        }
     }
 
     /// <summary>
@@ -95,7 +52,7 @@ public struct Position : IEquatable<Position>
     public static Position Lerp(in Position a, in Position b, in float blend)
     {
         Vector2.Lerp(a.ToWorldPosition(), b.ToWorldPosition(), blend, out Vector2 world);
-        return new Position() + world;
+        return new Position(Vector2i.Zero, Vector2i.Zero, world);
     }
 
     [Pure]
@@ -162,5 +119,56 @@ public struct Position : IEquatable<Position>
     public override int GetHashCode()
     {
         return HashCode.Combine(this.Chunk, this.Tile, this.Pos);
+    }
+
+    private void ReAlign()
+    {
+        while (this.Pos.X >= GameMap.Map.TileSize)
+        {
+            this.Pos.X -= GameMap.Map.TileSize;
+            this.Tile.X += 1;
+        }
+
+        while (this.Pos.X < 0f)
+        {
+            this.Pos.X += GameMap.Map.TileSize;
+            this.Tile.X -= 1;
+        }
+
+        while (this.Pos.Y >= GameMap.Map.TileSize)
+        {
+            this.Pos.Y -= GameMap.Map.TileSize;
+            this.Tile.Y += 1;
+        }
+
+        while (this.Pos.Y < 0f)
+        {
+            this.Pos.Y += GameMap.Map.TileSize;
+            this.Tile.Y -= 1;
+        }
+
+        while (this.Tile.X >= GameMap.Map.ChunkSize)
+        {
+            this.Tile.X -= GameMap.Map.ChunkSize;
+            this.Chunk.X += 1;
+        }
+
+        while (this.Tile.X < 0f)
+        {
+            this.Tile.X += GameMap.Map.ChunkSize;
+            this.Chunk.X -= 1;
+        }
+
+        while (this.Tile.Y >= GameMap.Map.ChunkSize)
+        {
+            this.Tile.Y -= GameMap.Map.ChunkSize;
+            this.Chunk.Y += 1;
+        }
+
+        while (this.Tile.Y < 0f)
+        {
+            this.Tile.Y += GameMap.Map.ChunkSize;
+            this.Chunk.Y -= 1;
+        }
     }
 }

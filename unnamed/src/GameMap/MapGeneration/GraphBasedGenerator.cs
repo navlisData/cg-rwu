@@ -1,3 +1,5 @@
+using OpenTK.Mathematics;
+
 using unnamed.Enums;
 
 namespace unnamed.GameMap.MapGeneration;
@@ -11,7 +13,7 @@ public class GraphBasedGenerator : IMapGenerator
 
     private readonly float roomTriesPerChunk = 3;
 
-    public void GenerateMap(in IntermediateMap map)
+    public List<Vector2i> GenerateMap(in IntermediateMap map)
     {
         int width = map.Width;
         int height = map.Height;
@@ -19,7 +21,7 @@ public class GraphBasedGenerator : IMapGenerator
         int roomTries = (int)(this.roomTriesPerChunk * width * height / ChunkSizeSquared);
 
         List<Rect> rooms = new();
-        List<(int x, int y)> centers = new();
+        List<Vector2i> centers = new();
 
         for (int i = 0; i < roomTries; i += 1)
         {
@@ -52,13 +54,15 @@ public class GraphBasedGenerator : IMapGenerator
             CarveRoom(map, newRoom);
         }
 
-        centers.Sort((a, b) => a.x.CompareTo(b.x));
+        centers.Sort((a, b) => a.X.CompareTo(b.X));
         for (int i = 1; i < centers.Count; i += 1)
         {
             this.CarveCorridor(map, centers[i - 1], centers[i]);
         }
 
         while (EraseIllegalWalls(in map)) { }
+
+        return centers;
     }
 
     private static void CarveRoom(in IntermediateMap map, Rect r)
@@ -70,17 +74,17 @@ public class GraphBasedGenerator : IMapGenerator
         }
     }
 
-    private void CarveCorridor(in IntermediateMap map, (int x, int y) a, (int x, int y) b)
+    private void CarveCorridor(in IntermediateMap map, Vector2i a, Vector2i b)
     {
         if (this.rng.Next(0, 2) == 0)
         {
-            CarveHorizontal(map, a.x, b.x, a.y);
-            CarveVertical(map, a.y, b.y, b.x);
+            CarveHorizontal(map, a.X, b.X, a.Y);
+            CarveVertical(map, a.Y, b.Y, b.X);
         }
         else
         {
-            CarveVertical(map, a.y, b.y, a.x);
-            CarveHorizontal(map, a.x, b.x, b.y);
+            CarveVertical(map, a.Y, b.Y, a.X);
+            CarveHorizontal(map, a.X, b.X, b.Y);
         }
     }
 
@@ -148,7 +152,7 @@ public class GraphBasedGenerator : IMapGenerator
         public readonly int Y1 = y;
         public readonly int Y2 = y + h;
 
-        public (int x, int y) Center => ((this.X1 + this.X2) / 2, (this.Y1 + this.Y2) / 2);
+        public Vector2i Center => ((this.X1 + this.X2) / 2, (this.Y1 + this.Y2) / 2);
 
         public bool Intersects(Rect other)
         {
