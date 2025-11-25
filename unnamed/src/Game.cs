@@ -38,6 +38,8 @@ public class Game : GameWindow
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
 
+    private readonly SetToMousePositionSystem setToMousePositionSystem;
+    private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
     private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
@@ -79,6 +81,8 @@ public class Game : GameWindow
         this.move = new MoveSystem(this.world, this.gameMap);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
+        this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
+        this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
     }
 
     protected override void OnLoad()
@@ -124,7 +128,9 @@ public class Game : GameWindow
             this.Close();
         }
 
-        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize,
+        this.cameraInputSystem.Run(dt);
+        this.setToMousePositionSystem.Run(this.camera.Get<Camera2D>());
+        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.ClientSize,
             this.assetStore, this.playerActionHandler));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);

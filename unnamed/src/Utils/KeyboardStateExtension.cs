@@ -36,7 +36,8 @@ public static class KeyboardStateExtensions
     /// }
     /// </code>
     /// </example>
-    public static CharacterDirection Get8WayDirectionFromControls(this KeyboardState keyboardState, CharacterDirection currentDirection)
+    public static CharacterDirection Get8WayDirectionFromControls(this KeyboardState keyboardState,
+        CharacterDirection currentDirection)
     {
         bool isUpPressed = keyboardState.IsKeyDown(Controls.MoveUp);
         bool isRightPressed = keyboardState.IsKeyDown(Controls.MoveRight);
@@ -45,7 +46,7 @@ public static class KeyboardStateExtensions
 
         // Axes: positive X = right, positive Y = down
         int horizontalAxis = (isRightPressed ? 1 : 0) - (isLeftPressed ? 1 : 0);
-        int verticalAxis = (isDownPressed  ? 1 : 0) - (isUpPressed   ? 1 : 0);
+        int verticalAxis = (isDownPressed ? 1 : 0) - (isUpPressed ? 1 : 0);
 
         // Neutral: no directional input
         if (horizontalAxis == 0 && verticalAxis == 0)

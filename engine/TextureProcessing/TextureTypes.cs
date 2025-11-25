@@ -45,7 +45,6 @@ public sealed class AnimationClip
     }
 }
 
-// Discriminated Unions
 public abstract record SheetKey
 {
     public sealed record StaticSpriteKey(AssetRef<StaticSprite> Key) : SheetKey;
