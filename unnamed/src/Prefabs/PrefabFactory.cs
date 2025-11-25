@@ -91,4 +91,17 @@ public static class PrefabFactory
         entity.Add(new Ui());
         return entity;
     }
+
+    public static Entity CreateExplosion(World world, IAssetStore assetStore, Position position,
+        AssetRef<AnimationClip> animationClip)
+    {
+        Entity entity = world.CreateEntity();
+        entity.Add(position);
+        entity.Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f });
+        entity.Add(new AnimatedSprite
+        {
+            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(animationClip), TimeInFrame = 0
+        });
+        return entity;
+    }
 }
