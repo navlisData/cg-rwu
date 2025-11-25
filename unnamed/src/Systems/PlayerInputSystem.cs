@@ -1,5 +1,7 @@
 using engine.Control;
 
+using System.Diagnostics;
+
 using Engine.Ecs;
 using Engine.Ecs.Systems;
 
@@ -40,11 +42,14 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
         float dt = args.dt;
+        ref ReceivesPlayerInput playerInput = ref e.Get<ReceivesPlayerInput>();
         ref Camera2D camera2D = ref args.camera;
         ref Position playerPosition = ref args.player;
 
-        if (e.Has<Player>())
+        if ((playerInput & ReceivesPlayerInput.MovementControls) == ReceivesPlayerInput.MovementControls)
         {
+            Debug.Assert(e.Has<Velocity>());
+
             PlayerAction currentState;
 
             Vector2 direction = Vector2.Zero;
@@ -71,9 +76,6 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             ref PlayerActionState playerState = ref e.Get<PlayerActionState>();
 
             ref Velocity velocity = ref e.Get<Velocity>();
-            ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
-            alignedCharacter.CharacterDirection =
-                mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
 
             const float acceleration = 12;
             const float friction = 8;
@@ -81,17 +83,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
 
             if (direction != Vector2.Zero)
             {
-                currentState = args.actionHandler.TryUpdateAction(
-                    ref playerState.CurrentAction,
-                    ref playerState.RemainingTime,
-                    desiredAction: PlayerAction.Move,
-                    out bool success
-                );
-
                 direction = direction.Normalized();
-                velocity.Value = success
-                    ? velocity.Value += direction * (acceleration * dt)
-                    : Vector2.Zero;
+                velocity.Value += direction * (acceleration * dt);
             }
             else
             {
@@ -101,13 +94,6 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 {
                     velocity.Value = Vector2.Zero;
                 }
-
-                currentState = args.actionHandler.TryUpdateAction(
-                    ref playerState.CurrentAction,
-                    ref playerState.RemainingTime,
-                    PlayerAction.Idle,
-                    out bool _
-                );
             }
 
             float maxSquared = maxSpeed * maxSpeed;
@@ -115,7 +101,30 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             {
                 velocity.Value = velocity.Value.Normalized() * maxSpeed;
             }
+        }
 
+        if ((playerInput & ReceivesPlayerInput.AlignByMouse) == ReceivesPlayerInput.AlignByMouse)
+        {
+            Debug.Assert(e.Has<AlignedCharacter>());
+            Debug.Assert(e.Has<Velocity>());
+
+            ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
+            ref Velocity velocity = ref e.Get<Velocity>();
+            alignedCharacter.CharacterDirection =
+                mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
+
+            if (velocity.Value == Vector2.Zero)
+            {
+                alignedCharacter.ActionIndex = (int)PlayerAction.Idle;
+            }
+            else
+            {
+                alignedCharacter.ActionIndex = (int)PlayerAction.Move;
+            }
+        }
+
+        if ((playerInput & ReceivesPlayerInput.MouseControls) == ReceivesPlayerInput.MouseControls)
+        {
             if (mouseState.IsButtonReleased(Controls.PlayerShoot))
             {
                 Vector2 mousePositionWorld =
@@ -126,32 +135,24 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                     -Vector2.NormalizeFast(playerPosition.ToWorldPosition() -
                                            new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
 
-                Entity unused = PrefabFactory.CreateBullet(this.world, playerPosition,
+                PrefabFactory.CreateBullet(this.world, playerPosition,
                     bulletDirection * 7.5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
                     args.assets);
 
-                var clip = args.assets.Get(GameAssets.Player.Attack.East);
-                currentState = args.actionHandler.TryUpdateAction(
-                    ref playerState.CurrentAction,
-                    ref playerState.RemainingTime,
-                    PlayerAction.Shoot,
-                    clip.AnimationDuration(),
-                    out bool _
-                );
+                if ((playerInput & ReceivesPlayerInput.AlignByMouse) == ReceivesPlayerInput.AlignByMouse)
+                {
+                    e.Get<AlignedCharacter>().ActionIndex = (int)PlayerAction.Shoot;
+                }
 #if DEBUG
-                Console.WriteLine($"{mousePositionWorld}");
+                Console.WriteLine(
+                    $"Clicked at {mousePositionWorld} (Global Coords)");
 #endif
             }
-
-            alignedCharacter.ActionIndex = (byte)currentState;
-            args.actionHandler.Sync(
-                ref playerState.CurrentAction,
-                ref playerState.RemainingTime,
-                dt);
         }
 
-        if (e.Has<Camera2D>())
+        if ((playerInput & ReceivesPlayerInput.CameraControls) == ReceivesPlayerInput.CameraControls)
         {
+            Debug.Assert(e.Has<Camera2D>());
             ref Camera2D camera = ref e.Get<Camera2D>();
 
             camera.Zoom *= (float)Math.Pow(1.1f, mouseState.ScrollDelta.Y);
@@ -165,6 +166,28 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             if (keyboardState.IsKeyDown(Controls.RotateCamCCW))
             {
                 camera.Rotation -= .1f;
+            }
+        }
+
+        if ((playerInput & ReceivesPlayerInput.PositionByMouse) == ReceivesPlayerInput.PositionByMouse)
+        {
+            Debug.Assert(e.Has<Position>());
+            Debug.Assert(e.Has<Transform>());
+            ref Position pos = ref e.Get<Position>();
+            ref Transform transform = ref e.Get<Transform>();
+
+            try
+            {
+                Vector2 mousePositionWorld =
+                    Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport,
+                        camera2D.ViewProjection);
+
+                pos = new Position(Vector2i.Zero, Vector2i.Zero, mousePositionWorld);
+                transform.Scale = 1 / camera2D.Zoom;
+            }
+            catch
+            {
+                // ignored, this will fail if the Window is not initialized yet
             }
         }
     }
