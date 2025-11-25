@@ -12,12 +12,14 @@ public class MapLoadingSystem(World world) : EntitySetSystem<Position>(world,
         .With<TileGrid>()
         .Build())
 {
+    private const int LoadingRadius = 1;
+
     protected override void Update(Position camera, in Entity e)
     {
         ref GridPosition chunkPosition = ref e.Get<GridPosition>();
 
-        if (chunkPosition.X <= camera.Chunk.X + 1 && chunkPosition.Y <= camera.Chunk.Y + 1 &&
-            chunkPosition.X >= camera.Chunk.X - 1 && chunkPosition.Y >= camera.Chunk.Y - 1)
+        if (chunkPosition.X <= camera.Chunk.X + LoadingRadius && chunkPosition.Y <= camera.Chunk.Y + LoadingRadius &&
+            chunkPosition.X >= camera.Chunk.X - LoadingRadius && chunkPosition.Y >= camera.Chunk.Y - LoadingRadius)
         {
             e.Add(new Loaded());
         }

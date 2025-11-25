@@ -63,7 +63,7 @@ public class Game : GameWindow
 
     public Game() : base(NativeSettings, Settings)
     {
-        this.gameMap = new Map(this.world);
+        this.gameMap = new Map(this.world, new GraphBasedGenerator());
 
         // Rendering systems
         this.cameraSystem = new CameraSystem(this.world);
@@ -77,7 +77,7 @@ public class Game : GameWindow
         // General systems
         this.characterAlignSystem =
             new CharacterAlignmentSystem(this.world, this.assetStore, this.directedActionDatabase);
-        this.move = new MoveSystem(this.world);
+        this.move = new MoveSystem(this.world, this.gameMap);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
     }
@@ -95,30 +95,21 @@ public class Game : GameWindow
 
         GameSprites.Init(this.assetStore);
 
+        this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
+        this.gameMap.GenerateMap(
+            new Vector2i(-2, -2),
+            new Vector2i(2, 2));
+
+        this.gameMap.NextValidPosition(out Position playerStartPosition);
         this.player = PrefabFactory.CreatePlayer(
             this.world,
-            new Position(),
+            playerStartPosition,
             new Vector2(0f, 0f),
             new Vector2(2, 5),
             this.assetStore);
 
         this.camera =
-            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
-
-        List<StaticSprite> flowers = this.assetStore.Get(GameAssets.MapTiles.Flowers);
-        List<StaticSprite> path = this.assetStore.Get(GameAssets.MapTiles.Pathway);
-        List<StaticSprite> grass = this.assetStore.Get(GameAssets.MapTiles.Grass);
-
-        List<StaticSprite> allMapTiles = new(flowers.Count + path.Count + grass.Count);
-        allMapTiles.AddRange(flowers);
-        allMapTiles.AddRange(path);
-        allMapTiles.AddRange(grass);
-
-        this.gameMap.MapGenerator = new RandomTileGenerator(allMapTiles);
-
-        this.gameMap.GenerateArea(
-            new Vector2i(-10, -10),
-            new Vector2i(10, 10));
+            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -148,10 +139,11 @@ public class Game : GameWindow
 
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
-        this.mapRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 0));
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
 
         this.SwapBuffers();
     }

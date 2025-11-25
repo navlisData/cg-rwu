@@ -1,3 +1,5 @@
+using System.Drawing;
+
 using engine.TextureProcessing;
 
 using unnamed.Enums;
@@ -11,6 +13,7 @@ public static class GameSprites
         InitPlayerSprites(assetStore);
         InitProjectileSprites(assetStore);
         InitMapTiles(assetStore);
+        InitWallTiles(assetStore);
     }
 
     private static void InitPlayerSprites(IAssetStore assetStore)
@@ -48,46 +51,42 @@ public static class GameSprites
         TextureGrid idleWestTextureGrid = new(32, 35, 0, 299);
         TextureGrid idleNorthWestTextureGrid = new(32, 35, 0, 443);
 
-        var playerClips =
-            new List<(AssetRef<AnimationClip> Clip, TextureGrid Grid, bool loop, byte priority, float fps)>
+        List<(AssetRef<AnimationClip> Clip, TextureGrid Grid, bool loop, byte priority, float fps)> playerClips =
+            new()
             {
                 // Run
-                (GameAssets.Player.Run.North, runNorthTextureGrid, true, PlayerAction.Move.Priority(), 7f),
-                (GameAssets.Player.Run.NorthEast, runNorthEastTextureGrid, true, PlayerAction.Move.Priority(), 7f),
-                (GameAssets.Player.Run.East, runEastTextureGrid, true, PlayerAction.Move.Priority(), 7f),
-                (GameAssets.Player.Run.SouthEast, runSouthEastTextureGrid, true, PlayerAction.Move.Priority(), 7f),
-                (GameAssets.Player.Run.South, runSouthTextureGrid, true, PlayerAction.Move.Priority(), 7f),
-                (GameAssets.Player.Run.SouthWest, runSouthWestTextureGrid, true, PlayerAction.Move.Priority(), 7f),
-                (GameAssets.Player.Run.West, runWestTextureGrid, true, PlayerAction.Move.Priority(), 7f),
-                (GameAssets.Player.Run.NorthWest, runNorthWestTextureGrid, true, PlayerAction.Move.Priority(), 7f),
+                (GameAssets.Player.Run.North, runNorthTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.NorthEast, runNorthEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.East, runEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.SouthEast, runSouthEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.South, runSouthTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.SouthWest, runSouthWestTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.West, runWestTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Run.NorthWest, runNorthWestTextureGrid, true, 0, 7f),
                 // Attack
-                (GameAssets.Player.Attack.North, attackNorthTextureGrid, false, PlayerAction.Shoot.Priority(), 12f),
-                (GameAssets.Player.Attack.NorthEast, attackNorthEastTextureGrid, false, PlayerAction.Shoot.Priority(),
-                    12f),
-                (GameAssets.Player.Attack.East, attackEastTextureGrid, false, PlayerAction.Shoot.Priority(), 12f),
-                (GameAssets.Player.Attack.SouthEast, attackSouthEastTextureGrid, false, PlayerAction.Shoot.Priority(),
-                    12f),
-                (GameAssets.Player.Attack.South, attackSouthTextureGrid, false, PlayerAction.Shoot.Priority(), 12f),
-                (GameAssets.Player.Attack.SouthWest, attackSouthWestTextureGrid, false, PlayerAction.Shoot.Priority(),
-                    12f),
-                (GameAssets.Player.Attack.West, attackWestTextureGrid, false, PlayerAction.Shoot.Priority(), 12f),
-                (GameAssets.Player.Attack.NorthWest, attackNorthWestTextureGrid, false, PlayerAction.Shoot.Priority(),
-                    12f),
+                (GameAssets.Player.Attack.North, attackNorthTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.NorthEast, attackNorthEastTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.East, attackEastTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.SouthEast, attackSouthEastTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.South, attackSouthTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.SouthWest, attackSouthWestTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.West, attackWestTextureGrid, false, 5, 12f),
+                (GameAssets.Player.Attack.NorthWest, attackNorthWestTextureGrid, false, 5, 12f),
                 // Idle
-                (GameAssets.Player.Idle.North, idleNorthTextureGrid, true, PlayerAction.Idle.Priority(), 7f),
-                (GameAssets.Player.Idle.NorthEast, idleNorthEastTextureGrid, true, PlayerAction.Idle.Priority(), 7f),
-                (GameAssets.Player.Idle.East, idleEastTextureGrid, true, PlayerAction.Idle.Priority(), 7f),
-                (GameAssets.Player.Idle.SouthEast, idleSouthEastTextureGrid, true, PlayerAction.Idle.Priority(), 7f),
-                (GameAssets.Player.Idle.South, idleSouthTextureGrid, true, PlayerAction.Idle.Priority(), 7f),
-                (GameAssets.Player.Idle.SouthWest, idleSouthWestTextureGrid, true, PlayerAction.Idle.Priority(), 7f),
-                (GameAssets.Player.Idle.West, idleWestTextureGrid, true, PlayerAction.Idle.Priority(), 7f),
-                (GameAssets.Player.Idle.NorthWest, idleNorthWestTextureGrid, true, PlayerAction.Idle.Priority(), 7f),
+                (GameAssets.Player.Idle.North, idleNorthTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.NorthEast, idleNorthEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.East, idleEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.SouthEast, idleSouthEastTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.South, idleSouthTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.SouthWest, idleSouthWestTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.West, idleWestTextureGrid, true, 0, 7f),
+                (GameAssets.Player.Idle.NorthWest, idleNorthWestTextureGrid, true, 0, 7f)
             };
 
-        foreach (var (clip, grid, loop, priority, fps) in playerClips)
+        foreach ((AssetRef<AnimationClip> clip, TextureGrid grid, bool loop, byte priority, float fps) in playerClips)
         {
-            var animation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, frameCount: 6, fps: fps,
-                priority: priority, loop: loop);
+            AnimationClip animation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, 6, fps,
+                priority, loop);
             assetStore.Register(clip, animation);
         }
     }
@@ -98,8 +97,8 @@ public static class GameSprites
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "fireball.png"));
 
         TextureGrid projectileTextureGrid = new(64, 32, 0, 16);
-        var idleAnimation =
-            SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, frameCount: 8, fps: 24f);
+        AnimationClip idleAnimation =
+            SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, 8, 24f);
         assetStore.Register(GameAssets.Projectile.Fireball, idleAnimation);
     }
 
@@ -108,16 +107,63 @@ public static class GameSprites
         SpriteSheet mapTileSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png"));
 
-        TextureGrid flowerTextureGrid = new(32, 32, 128, 0, Rows: 4);
-        var flowerTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, flowerTextureGrid);
+        TextureGrid flowerTextureGrid = new(32, 32, 128, Rows: 4);
+        SpriteSet flowerTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, flowerTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Flowers, flowerTiles);
 
         TextureGrid pathwayTextureGrid = new(32, 32, 0, 128, Rows: 4);
-        var pathwayTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, pathwayTextureGrid);
+        SpriteSet pathwayTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, pathwayTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Pathway, pathwayTiles);
 
-        TextureGrid grassTextureGrid = new(32, 32, 0, 0, Rows: 4, Columns: 4);
-        var grassTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, grassTextureGrid);
+        TextureGrid grassTextureGrid = new(32, 32, Rows: 4, Columns: 4);
+        SpriteSet grassTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, grassTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Grass, grassTiles);
+    }
+
+    private static void InitWallTiles(IAssetStore assetStore)
+    {
+        SpriteSheet wallTileSpriteSheet =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "walls.png"));
+
+        assetStore.Register(GameAssets.WallTiles.Illegal,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(0, 0, 32, 32)));
+
+        assetStore.Register(GameAssets.WallTiles.WallFrameTopLeft,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 32, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameTopCenter,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 32, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameTopRight,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 32, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameLeft,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 64, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameCenter,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 64, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameRight,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 64, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameOuterCornerTopLeft,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(128, 32, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameOuterCornerTopRight,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(256, 32, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameOuterCornerBottomLeft,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(128, 128, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallFrameOuterCornerBottomRight,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(256, 128, 32, 32)));
+
+        assetStore.Register(GameAssets.WallTiles.WallTileTopLeft,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 96, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileTopCenter,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 96, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileTopRight,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 96, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileBaseLeft,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 128, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileBaseCenter,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 128, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileBaseRight,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 128, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileTopLeftInner,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 32, 32, 32)));
+        assetStore.Register(GameAssets.WallTiles.WallTileBaseLeftInner,
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 64, 32, 32)));
     }
 }
