@@ -21,7 +21,7 @@ public static class PrefabFactory
     {
         Entity entity = world.CreateEntity();
         entity.Add(startPos);
-        entity.Add(new Velocity { Value = startVel });
+        entity.Add(new Velocity());
         entity.Add(new Transform { Size = size, Scale = 1 });
         entity.Add(new ReceivesPlayerInput());
         entity.Add(new Sprite
@@ -63,7 +63,7 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateBullet(World world, Position startPos, Vector2 velocity, float rotation, float height,
+    public static Entity CreateBullet(World world, Position startPos, Velocity velocity, float rotation, float height,
         IAssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
@@ -73,7 +73,7 @@ public static class PrefabFactory
         {
             CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Projectile.Fireball), TimeInFrame = 0
         });
-        entity.Add(new Velocity { Value = velocity });
+        entity.Add(velocity);
         entity.Add(new Projectile
         {
             Damage = 10,

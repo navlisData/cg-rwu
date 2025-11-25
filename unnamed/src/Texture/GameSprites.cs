@@ -115,7 +115,7 @@ public static class GameSprites
 
         TextureGrid explosionTextureGrid = new(64, 64);
         AnimationClip explosionAnimation =
-            SpriteSlicer.ClipFromGrid(explosionSpriteSheet, explosionTextureGrid, 44, 24f, loop: false);
+            SpriteSlicer.ClipFromGrid(explosionSpriteSheet, explosionTextureGrid, 44, 60f, loop: false);
         assetStore.Register(GameAssets.Explosion.BulletExplosion, explosionAnimation);
     }
 
