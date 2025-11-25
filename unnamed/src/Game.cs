@@ -105,7 +105,7 @@ public class Game : GameWindow
             this.assetStore);
 
         this.camera =
-            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
+            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)

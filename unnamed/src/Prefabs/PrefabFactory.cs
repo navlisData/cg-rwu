@@ -38,12 +38,12 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateFollowingCamera(World world, in Entity target, Vector2i viewport)
+    public static Entity CreateFollowingCamera(World world, in Entity target, Vector2i viewport, Position startPos)
     {
         Entity entity = world.CreateEntity();
         entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport });
         entity.Add(new Follows { Target = target, LerpSpeed = 10f });
-        entity.Add(new Position());
+        entity.Add(startPos);
         entity.Add(new ReceivesPlayerInput());
         entity.Add(new Hidden());
         return entity;
