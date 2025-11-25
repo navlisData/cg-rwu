@@ -162,7 +162,9 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         if ((playerInput & ReceivesPlayerInput.PositionByMouse) == ReceivesPlayerInput.PositionByMouse)
         {
             Debug.Assert(e.Has<Position>());
+            Debug.Assert(e.Has<Transform>());
             ref Position pos = ref e.Get<Position>();
+            ref Transform transform = ref e.Get<Transform>();
 
             try
             {
@@ -171,6 +173,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                         camera2D.ViewProjection);
 
                 pos = new Position(Vector2i.Zero, Vector2i.Zero, mousePositionWorld);
+                transform.Scale = 1 / camera2D.Zoom;
             }
             catch
             {

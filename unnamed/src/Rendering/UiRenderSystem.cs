@@ -71,8 +71,10 @@ public class UiRenderSystem(World world, IAssetStore assets) : ExtendedEntitySet
         Matrix4 modelSquare = Matrix4.CreateTranslation(position.X, position.Y, 0f);
         Matrix4 mvpSquare = modelSquare * camera.ViewProjection;
 
-        GraphicsUtils.FillSpriteQuadGeometry(in transform.Size, in rect, in texture, in this.vertexScratch, true,
-            false);
+        Vector2 scaledSize = transform.Size * transform.Scale;
+
+        GraphicsUtils.FillSpriteQuadGeometry(in scaledSize, in rect, in texture, in this.vertexScratch, true,
+            true);
 
         GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
             ref mvpSquare);
