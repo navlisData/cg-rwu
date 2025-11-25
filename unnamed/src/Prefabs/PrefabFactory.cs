@@ -82,7 +82,7 @@ public static class PrefabFactory
         Entity entity = world.CreateEntity();
         entity.Add(new Position());
         entity.Add(ReceivesPlayerInput.PositionByMouse);
-        entity.Add(new Transform { Size = new Vector2(2f, 2f), Scale = 1f });
+        entity.Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f });
         entity.Add(new Sprite
         {
             Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = new Vector4(0f, 0f, 0f, 1f)
