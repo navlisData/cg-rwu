@@ -33,10 +33,7 @@ public class Game : GameWindow
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
 
-    // Rendering systems
     private readonly CameraSystem cameraSystem;
-
-    // General systems
     private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
@@ -49,6 +46,7 @@ public class Game : GameWindow
     private readonly ProjectileRenderingSystem projectileRenderSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
+    private readonly UiRenderSystem uiRenderSystem;
 
     private readonly World world = new();
 
@@ -69,6 +67,7 @@ public class Game : GameWindow
         this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assetStore);
         this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assetStore);
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
+        this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
 
         // General systems
         this.characterAlignSystem =
@@ -106,6 +105,9 @@ public class Game : GameWindow
 
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
+
+        this.CursorState = CursorState.Hidden;
+        PrefabFactory.CreateCrossHair(this.world, this.assetStore);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -140,6 +142,7 @@ public class Game : GameWindow
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
+        this.uiRenderSystem.Run(this.shaderProgram, cameraPosition);
 
         this.SwapBuffers();
     }
@@ -160,6 +163,7 @@ public class Game : GameWindow
         this.shadowRenderSystem.OnUnload();
         this.projectileRenderSystem.OnUnload();
         this.characterRenderSystem.OnUnload();
+        this.uiRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);
     }
 }

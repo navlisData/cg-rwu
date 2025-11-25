@@ -21,7 +21,8 @@ public static class PrefabFactory
         entity.Add(startPos);
         entity.Add(new Velocity { Value = startVel });
         entity.Add(new Transform { Size = size, Scale = 1 });
-        entity.Add(new ReceivesPlayerInput());
+        entity.Add(ReceivesPlayerInput.MovementControls | ReceivesPlayerInput.AlignByMouse |
+                   ReceivesPlayerInput.MouseControls);
         entity.Add(new Sprite
         {
             Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South),
@@ -35,6 +36,7 @@ public static class PrefabFactory
 
         entity.Add(new Character());
         entity.Add(new Player());
+        entity.Add(new HasShadow());
         return entity;
     }
 
@@ -44,7 +46,7 @@ public static class PrefabFactory
         entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport });
         entity.Add(new Follows { Target = target, LerpSpeed = 10f });
         entity.Add(startPos);
-        entity.Add(new ReceivesPlayerInput());
+        entity.Add(ReceivesPlayerInput.CameraControls);
         entity.Add(new Hidden());
         return entity;
     }
@@ -71,6 +73,21 @@ public static class PrefabFactory
         });
         entity.Add(new Velocity { Value = velocity });
         entity.Add(new Projectile { Damage = 10, Lifetime = Lifetime.DestroyOnSleep });
+        entity.Add(new HasShadow());
+        return entity;
+    }
+
+    public static Entity CreateCrossHair(World world, IAssetStore assetStore)
+    {
+        Entity entity = world.CreateEntity();
+        entity.Add(new Position());
+        entity.Add(ReceivesPlayerInput.PositionByMouse);
+        entity.Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f });
+        entity.Add(new Sprite
+        {
+            Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = new Vector4(0f, 0f, 0f, 1f)
+        });
+        entity.Add(new Ui());
         return entity;
     }
 }

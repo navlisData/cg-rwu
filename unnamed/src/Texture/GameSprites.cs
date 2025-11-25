@@ -12,6 +12,7 @@ public static class GameSprites
         InitProjectileSprites(assetStore);
         InitMapTiles(assetStore);
         InitWallTiles(assetStore);
+        InitCrosshair(assetStore);
     }
 
     private static void InitPlayerSprites(IAssetStore assetStore)
@@ -163,5 +164,13 @@ public static class GameSprites
             SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 32, 32, 32)));
         assetStore.Register(GameAssets.WallTiles.WallTileBaseLeftInner,
             SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 64, 32, 32)));
+    }
+
+    private static void InitCrosshair(IAssetStore assetStore)
+    {
+        SpriteSheet crossHair =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "crosshair.png"));
+        assetStore.Register(GameAssets.Crosshair.Simple,
+            SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64)));
     }
 }

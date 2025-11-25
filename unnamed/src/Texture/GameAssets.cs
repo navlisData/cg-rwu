@@ -173,10 +173,10 @@ public static class GameAssets
 
         public static readonly AssetRef<StaticSprite> WallTileBaseRight =
             AssetRef<StaticSprite>.FromPath(Prefix + "WallTileBaseRight");
-        
+
         public static readonly AssetRef<StaticSprite> WallTileTopLeftInner =
             AssetRef<StaticSprite>.FromPath(Prefix + "WallTileTopLeftInner");
-        
+
         public static readonly AssetRef<StaticSprite> WallTileBaseLeftInner =
             AssetRef<StaticSprite>.FromPath(Prefix + "WallTileBaseLeftInner");
     }
@@ -187,5 +187,13 @@ public static class GameAssets
 
         public static readonly AssetRef<StaticSprite> Chest =
             AssetRef<StaticSprite>.FromPath(Prefix + "chest");
+    }
+
+    public static class Crosshair
+    {
+        private const string Prefix = "crosshair/";
+
+        public static readonly AssetRef<StaticSprite> Simple =
+            AssetRef<StaticSprite>.FromPath(Prefix + "simple");
     }
 }
