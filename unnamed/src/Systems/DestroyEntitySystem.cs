@@ -1,7 +1,7 @@
 using Engine.Ecs;
 using Engine.Ecs.Systems;
 
-using unnamed.Components.Tags;
+using unnamed.Components.Map;
 
 namespace unnamed.systems;
 
@@ -13,6 +13,12 @@ public sealed class DestroyEntitySystem(World world) : EntitySetSystem<float>(wo
 {
     protected override void Update(float dt, in Entity e)
     {
-        this.world.DestroyEntity(e);
+        ref MarkedToDestroy mtd = ref e.Get<MarkedToDestroy>();
+
+        mtd.RemainingLifetime -= dt;
+        if (mtd.RemainingLifetime <= 0f)
+        {
+            this.world.DestroyEntity(e);
+        }
     }
 }

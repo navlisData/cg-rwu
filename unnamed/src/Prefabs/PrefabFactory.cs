@@ -5,6 +5,7 @@ using engine.TextureProcessing;
 using OpenTK.Mathematics;
 
 using unnamed.Components.General;
+using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
@@ -73,7 +74,13 @@ public static class PrefabFactory
             CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Projectile.Fireball), TimeInFrame = 0
         });
         entity.Add(new Velocity { Value = velocity });
-        entity.Add(new Projectile { Damage = 10, Lifetime = Lifetime.DestroyOnSleep });
+        entity.Add(new Projectile
+        {
+            Damage = 10,
+            Lifetime = Lifetime.DestroyOnSleep,
+            ExplosionAnimation = GameAssets.Explosion.BulletExplosion,
+            ExplosionRadius = 1
+        });
         entity.Add(new HasShadow());
         return entity;
     }
@@ -92,12 +99,14 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateExplosion(World world, IAssetStore assetStore, Position position,
+    public static Entity CreateExplosion(World world, IAssetStore assetStore, Position position, float height,
         AssetRef<AnimationClip> animationClip)
     {
         Entity entity = world.CreateEntity();
         entity.Add(position);
-        entity.Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f });
+        entity.Add(new Transform { Size = new Vector2(1f, 1f), Scale = 2.5f, Height = height });
+        entity.Add(new Projectile());
+        entity.Add(new MarkedToDestroy { RemainingLifetime = assetStore.Get(animationClip).AnimationDuration() });
         entity.Add(new AnimatedSprite
         {
             CurrentFrameIndex = 0, AnimationClip = assetStore.Get(animationClip), TimeInFrame = 0

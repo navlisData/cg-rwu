@@ -5,6 +5,7 @@ using engine.TextureProcessing;
 
 using OpenTK.Mathematics;
 
+using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Tags;
 using unnamed.GameMap;
@@ -35,9 +36,9 @@ public sealed class MoveSystem(World world, Map map, IAssetStore assetStore) : E
         {
             if (e.Has<Projectile>())
             {
-                PrefabFactory.CreateExplosion(this.world, assetStore, position,
+                PrefabFactory.CreateExplosion(this.world, assetStore, position, transform.Height,
                     e.Get<Projectile>().ExplosionAnimation);
-                this.world.DestroyEntity(e);
+                e.Add(new MarkedToDestroy());
                 return;
             }
         }
