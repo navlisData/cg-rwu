@@ -91,20 +91,21 @@ public class Game : GameWindow
 
         GameSprites.Init(this.assetStore);
 
+        this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
+        this.gameMap.GenerateMap(
+            new Vector2i(-2, -2),
+            new Vector2i(2, 2));
+
+        this.gameMap.NextValidPosition(out Position playerStartPosition);
         this.player = PrefabFactory.CreatePlayer(
             this.world,
-            new Position(),
+            playerStartPosition,
             new Vector2(0f, 0f),
             new Vector2(2, 5),
             this.assetStore);
 
         this.camera =
-            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize);
-
-        this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
-        this.gameMap.GenerateMap(
-            new Vector2i(-1, -1),
-            new Vector2i(1, 1));
+            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -134,10 +135,11 @@ public class Game : GameWindow
 
         ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
 
-        this.mapRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 0));
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
 
         this.SwapBuffers();
     }

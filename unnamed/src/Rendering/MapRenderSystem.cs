@@ -16,11 +16,12 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class MapRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
-    world.Query()
-        .With<TileGrid>()
-        .With<Loaded>()
-        .Build())
+public class MapRenderSystem(World world, IAssetStore assets)
+    : ExtendedEntitySetSystem<int, (Camera2D camera, int layer)>(world,
+        world.Query()
+            .With<TileGrid>()
+            .With<Loaded>()
+            .Build())
 {
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
@@ -57,8 +58,9 @@ public class MapRenderSystem(World world, IAssetStore assets) : ExtendedEntitySe
         return false;
     }
 
-    protected override void Update(Camera2D camera, in Entity e)
+    protected override void Update((Camera2D camera, int layer) context, in Entity e)
     {
+        (Camera2D camera, int layer) = context;
         Vector2i chunkPosition = e.Get<GridPosition>().ToVector2I();
         ref Tile[] tiles = ref e.Get<TileGrid>().Tiles;
 
@@ -67,15 +69,17 @@ public class MapRenderSystem(World world, IAssetStore assets) : ExtendedEntitySe
             for (int x = 0; x < Map.ChunkSize; x++)
             {
                 Tile tile = tiles[x + (y * Map.ChunkSize)];
-                StaticSprite sprite = tile.Sprite;
-
-                Texture2D texture = assets.GetTextureById(sprite.SpriteSheetId);
-                RectangleF rect = sprite.RectPx;
+                if (tile.layer != layer) { continue; }
 
                 Matrix4 modelSquare = Matrix4.CreateTranslation(
                     ((chunkPosition.X * Map.ChunkSize) + x) * Map.TileSize,
                     ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize, 0f);
                 Matrix4 mvpSquare = modelSquare * camera.ViewProjection;
+
+                StaticSprite sprite = tile.Sprite;
+
+                Texture2D texture = assets.GetTextureById(sprite.SpriteSheetId);
+                RectangleF rect = sprite.RectPx;
 
                 GraphicsUtils.FillSpriteQuadGeometry(
                     new Vector2(Map.TileSize, Map.TileSize),
@@ -84,6 +88,23 @@ public class MapRenderSystem(World world, IAssetStore assets) : ExtendedEntitySe
 
                 GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
                     ref mvpSquare);
+
+                StaticSprite? overlay = tile.OverlaySprite;
+
+                if (overlay != null)
+                {
+                    Texture2D overlayTexture = assets.GetTextureById(overlay.SpriteSheetId);
+                    RectangleF overlayRect = overlay.RectPx;
+
+                    GraphicsUtils.FillSpriteQuadGeometry(
+                        new Vector2(Map.TileSize, Map.TileSize),
+                        in overlayRect, in overlayTexture,
+                        in this.vertexScratch, false, false);
+
+                    GraphicsUtils.RenderSpriteQuad(overlayTexture.Handle, this.mvpUniformLocation,
+                        in this.vertexScratch,
+                        ref mvpSquare);
+                }
             }
         }
     }
