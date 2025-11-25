@@ -3,10 +3,11 @@ using Engine.Ecs.Systems;
 
 using unnamed.Components.Physics;
 using unnamed.Components.Tags;
+using unnamed.GameMap;
 
 namespace unnamed.systems;
 
-public sealed class MoveSystem(World world) : EntitySetSystem<float>(world, world.Query()
+public sealed class MoveSystem(World world, Map map) : EntitySetSystem<float>(world, world.Query()
     .With<Position>()
     .With<Velocity>()
     .Without<Sleeping>()
@@ -17,6 +18,10 @@ public sealed class MoveSystem(World world) : EntitySetSystem<float>(world, worl
     {
         ref Position position = ref e.Get<Position>();
         ref Velocity velocity = ref e.Get<Velocity>();
-        position += (velocity.Value * dt);
+        Position newPosition = position + (velocity.Value * dt);
+
+        if (map.IsWallAt(newPosition)) { return; }
+
+        position = newPosition;
     }
 }

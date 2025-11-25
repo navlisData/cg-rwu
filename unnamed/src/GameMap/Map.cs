@@ -100,6 +100,21 @@ public sealed class Map
     }
 
     /// <summary>
+    ///     Returns <c>true</c> if the tile at the position is a wall else <c>false</c>.
+    ///     <remarks>
+    ///         Returns <c>true</c> for tiles outside the current map
+    ///     </remarks>
+    /// </summary>
+    public bool IsWallAt(in Position pos)
+    {
+        Tile? tile = this.GetTileAt(in pos);
+
+        if (tile == null) { return true; }
+
+        return tile.Flags.IsWall();
+    }
+
+    /// <summary>
     ///     Sets a tile type at a world-space tile coordinate, creating the chunk if needed.
     /// </summary>
     public void SetTile(Position position, Tile tile)
