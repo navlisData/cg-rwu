@@ -6,5 +6,5 @@ namespace unnamed.Texture.DirectedAction;
 
 public interface ISpriteResolver
 {
-    VisualType Get(int actionIndex, CharacterDirection dir);
+    VisualType Get(byte actionIndex, CharacterDirection dir);
 }

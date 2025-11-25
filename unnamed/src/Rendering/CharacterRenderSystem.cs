@@ -63,17 +63,17 @@ public class CharacterRenderSystem(World world, IAssetStore assets) : ExtendedEn
         ref Sprite sprite = ref e.Get<Sprite>();
         Vector2 position = e.Get<Position>().ToWorldPosition();
         ref Transform transform = ref e.Get<Transform>();
-        
+
         StaticSprite frame = sprite.Frame;
         Texture2D texture = assets.GetTextureById(frame.SpriteSheetId);
         RectangleF rect = frame.RectPx;
-        
+
         Matrix4 modelSquare = Matrix4.CreateTranslation(position.X, position.Y, 0f);
         Matrix4 mvpSquare = modelSquare * camera.ViewProjection;
-        
+
         GraphicsUtils.FillSpriteQuadGeometry(in transform.Size, in rect, in texture, in this.vertexScratch, true,
             false);
-        
+
         GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
             ref mvpSquare);
     }

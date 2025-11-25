@@ -1,3 +1,5 @@
+using engine.Control;
+
 using Engine.Ecs;
 
 using engine.TextureProcessing;
@@ -10,6 +12,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
+using unnamed.Enums;
 using unnamed.GameMap;
 using unnamed.GameMap.MapGeneration;
 using unnamed.Prefabs;
@@ -32,11 +35,14 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
+    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
+    private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
 
+    private readonly SetToMousePositionSystem setToMousePositionSystem;
+    private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
     private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
-    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
     private readonly MapLoadingSystem mapLoadingSystem;
@@ -75,6 +81,8 @@ public class Game : GameWindow
         this.move = new MoveSystem(this.world, this.gameMap);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
+        this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
+        this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
     }
 
     protected override void OnLoad()
@@ -120,8 +128,10 @@ public class Game : GameWindow
             this.Close();
         }
 
-        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.player.Get<Position>(), this.ClientSize,
-            this.assetStore));
+        this.cameraInputSystem.Run(dt);
+        this.setToMousePositionSystem.Run(this.camera.Get<Camera2D>());
+        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.ClientSize,
+            this.assetStore, this.playerActionHandler));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
         this.characterAlignSystem.Run(dt);

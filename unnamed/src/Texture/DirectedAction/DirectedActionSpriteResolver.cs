@@ -13,7 +13,7 @@ public sealed class DirectedActionSpriteResolver<TAction> : ISpriteResolver
     private VisualType Get(TAction action, CharacterDirection dir)
         => this.spriteByDirectedAction[action, dir];
 
-    private static TAction FromIndex(int index)
+    private static TAction FromIndex(byte index)
     {
         if (!Enum.IsDefined(typeof(TAction), index))
             throw new ArgumentOutOfRangeException(nameof(index));
@@ -21,6 +21,6 @@ public sealed class DirectedActionSpriteResolver<TAction> : ISpriteResolver
         return (TAction)Enum.ToObject(typeof(TAction), index);
     }
 
-    public VisualType Get(int actionIndex, CharacterDirection dir)
+    public VisualType Get(byte actionIndex, CharacterDirection dir)
         => this.Get(FromIndex(actionIndex), dir);
 }

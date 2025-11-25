@@ -5,6 +5,6 @@ namespace unnamed.Components.Rendering;
 public struct AlignedCharacter
 {
     public CharacterDirection CharacterDirection;
-    public int ActionIndex;
+    public byte ActionIndex;
     public CharacterType CharacterType;
 }

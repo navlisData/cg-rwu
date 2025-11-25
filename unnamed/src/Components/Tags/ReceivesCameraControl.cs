@@ -1,5 +1,5 @@
 namespace unnamed.Components.Tags;
 
-public struct ReceivesPlayerInput
+public struct ReceivesCameraControl
 {
 }

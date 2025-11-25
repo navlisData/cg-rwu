@@ -4,6 +4,7 @@ using engine.TextureProcessing;
 
 using OpenTK.Mathematics;
 
+using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
@@ -21,8 +22,7 @@ public static class PrefabFactory
         entity.Add(startPos);
         entity.Add(new Velocity { Value = startVel });
         entity.Add(new Transform { Size = size, Scale = 1 });
-        entity.Add(ReceivesPlayerInput.MovementControls | ReceivesPlayerInput.AlignByMouse |
-                   ReceivesPlayerInput.MouseControls);
+        entity.Add(new ReceivesPlayerInput());
         entity.Add(new Sprite
         {
             Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South),
@@ -37,6 +37,7 @@ public static class PrefabFactory
         entity.Add(new Character());
         entity.Add(new Player());
         entity.Add(new HasShadow());
+        entity.Add(new PlayerActionState());
         return entity;
     }
 
@@ -46,7 +47,7 @@ public static class PrefabFactory
         entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport });
         entity.Add(new Follows { Target = target, LerpSpeed = 10f });
         entity.Add(startPos);
-        entity.Add(ReceivesPlayerInput.CameraControls);
+        entity.Add(new ReceivesCameraControl());
         entity.Add(new Hidden());
         return entity;
     }
@@ -81,7 +82,7 @@ public static class PrefabFactory
     {
         Entity entity = world.CreateEntity();
         entity.Add(new Position());
-        entity.Add(ReceivesPlayerInput.PositionByMouse);
+        entity.Add(new SetPositionToMouse());
         entity.Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f });
         entity.Add(new Sprite
         {
