@@ -53,6 +53,7 @@ public class Game : GameWindow
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
     private readonly UiRenderSystem uiRenderSystem;
+    private readonly DestroyEntitySystem destroyEntitySystem;
 
     private readonly World world = new();
 
@@ -83,6 +84,7 @@ public class Game : GameWindow
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
         this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
         this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
+        this.destroyEntitySystem = new DestroyEntitySystem(this.world);
     }
 
     protected override void OnLoad()
@@ -138,6 +140,7 @@ public class Game : GameWindow
         this.spriteAnimationSystem.Run(dt);
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
+        this.destroyEntitySystem.Run(dt);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
