@@ -181,6 +181,14 @@ public static class GameAssets
             AssetRef<StaticSprite>.FromPath(Prefix + "WallTileBaseLeftInner");
     }
 
+    public static class Explosion
+    {
+        private const string Prefix = "explosion/";
+
+        public static readonly AssetRef<AnimationClip> BulletExplosion =
+            AssetRef<AnimationClip>.FromPath(Prefix + "bullet-explosion");
+    }
+
     public static class Props
     {
         private const string Prefix = "props/";

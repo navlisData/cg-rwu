@@ -22,7 +22,6 @@ public class ProjectileRenderingSystem(World world, IAssetStore assets) : Extend
         .With<Sprite>()
         .With<Position>()
         .With<Transform>()
-        .With<Velocity>()
         .Without<Sleeping>()
         .Build())
 {
@@ -78,7 +77,9 @@ public class ProjectileRenderingSystem(World world, IAssetStore assets) : Extend
 
         Matrix4 mvpSquare = modelSquare * camera.ViewProjection;
 
-        GraphicsUtils.FillSpriteQuadGeometry(in transform.Size, in rect, in texture, in this.vertexScratch, true,
+        Vector2 scaledSize = transform.Size * transform.Scale;
+
+        GraphicsUtils.FillSpriteQuadGeometry(in scaledSize, in rect, in texture, in this.vertexScratch, true,
             true);
 
         GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,

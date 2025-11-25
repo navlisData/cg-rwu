@@ -12,6 +12,7 @@ public static class GameSprites
     {
         InitPlayerSprites(assetStore);
         InitProjectileSprites(assetStore);
+        InitExplosionSprites(assetStore);
         InitMapTiles(assetStore);
         InitWallTiles(assetStore);
         InitCrosshair(assetStore);
@@ -105,6 +106,17 @@ public static class GameSprites
         AnimationClip idleAnimation =
             SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, 8, 24f);
         assetStore.Register(GameAssets.Projectile.Fireball, idleAnimation);
+    }
+
+    private static void InitExplosionSprites(IAssetStore assetStore)
+    {
+        SpriteSheet explosionSpriteSheet =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "explosion.png"));
+
+        TextureGrid explosionTextureGrid = new(64, 64);
+        AnimationClip explosionAnimation =
+            SpriteSlicer.ClipFromGrid(explosionSpriteSheet, explosionTextureGrid, 44, 60f, loop: false);
+        assetStore.Register(GameAssets.Explosion.BulletExplosion, explosionAnimation);
     }
 
     private static void InitMapTiles(IAssetStore assetStore)

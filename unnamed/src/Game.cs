@@ -35,24 +35,25 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
-    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
-    private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
-
-    private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
     private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
+    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
+    private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
+
+    private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
     private readonly UiRenderSystem uiRenderSystem;
+    private readonly DestroyEntitySystem destroyEntitySystem;
 
     private readonly World world = new();
 
@@ -78,11 +79,12 @@ public class Game : GameWindow
         // General systems
         this.characterAlignSystem =
             new CharacterAlignmentSystem(this.world, this.assetStore, this.directedActionDatabase);
-        this.move = new MoveSystem(this.world, this.gameMap);
+        this.move = new MoveSystem(this.world, this.gameMap, this.assetStore);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
         this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
         this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
+        this.destroyEntitySystem = new DestroyEntitySystem(this.world);
     }
 
     protected override void OnLoad()
@@ -138,6 +140,7 @@ public class Game : GameWindow
         this.spriteAnimationSystem.Run(dt);
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
+        this.destroyEntitySystem.Run(dt);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)

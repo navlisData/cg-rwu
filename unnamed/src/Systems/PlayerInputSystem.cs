@@ -88,18 +88,18 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 out bool success
             );
 
-            direction = direction.Normalized();
-            velocity.Value = success
-                ? velocity.Value += direction * (acceleration * dt)
-                : Vector2.Zero;
+            velocity.Direction = direction;
+            velocity.Speed = success
+                ? velocity.Speed += acceleration * dt
+                : 0f;
         }
         else
         {
             float effectiveFriction = MathF.Max(0f, 1f - (friction * dt));
-            velocity.Value *= effectiveFriction;
-            if (velocity.Value.LengthSquared < 0.0001f)
+            velocity.Speed *= effectiveFriction;
+            if (velocity.Speed < 0.001f)
             {
-                velocity.Value = Vector2.Zero;
+                velocity.Speed = 0f;
             }
 
             currentState = args.actionHandler.TryUpdateAction(
@@ -110,10 +110,9 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             );
         }
 
-        float maxSquared = maxSpeed * maxSpeed;
-        if (velocity.Value.LengthSquared > maxSquared)
+        if (velocity.Speed > maxSpeed)
         {
-            velocity.Value = velocity.Value.Normalized() * maxSpeed;
+            velocity.Speed = maxSpeed;
         }
 
         if (mouseState.IsButtonReleased(Controls.PlayerShoot))
@@ -127,7 +126,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                                        new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
 
             PrefabFactory.CreateBullet(this.world, playerPosition,
-                bulletDirection * 7.5f, (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
+                new Velocity(bulletDirection, 7.5f), (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
                 args.assets);
 
             var clip = args.assets.Get(GameAssets.Player.Attack.East);
