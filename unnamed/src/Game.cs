@@ -73,7 +73,7 @@ public class Game : GameWindow
         // General systems
         this.characterAlignSystem =
             new CharacterAlignmentSystem(this.world, this.assetStore, this.directedActionDatabase);
-        this.move = new MoveSystem(this.world);
+        this.move = new MoveSystem(this.world, this.gameMap);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
     }

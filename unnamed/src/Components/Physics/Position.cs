@@ -84,11 +84,9 @@ public struct Position : IEquatable<Position>
     }
 
     [Pure]
-    public static Position operator -(Position left)
+    public static Position operator -(Position left, in Vector2 right)
     {
-        left.Chunk -= left.Chunk;
-        left.Tile -= left.Tile;
-        left.Pos -= left.Pos;
+        left.Pos -= right;
         left.ReAlign();
         return left;
     }
