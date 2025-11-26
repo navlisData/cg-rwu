@@ -1,4 +1,5 @@
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 
 using OpenTK.Mathematics;
 
@@ -64,6 +65,12 @@ public struct Position : IEquatable<Position>
     {
         Vector2.Lerp(a.ToWorldPosition(), b.ToWorldPosition(), blend, out Vector2 world);
         return new Position(Vector2i.Zero, Vector2i.Zero, world);
+    }
+
+    public float LengthFast()
+    {
+        Vector2 global = this.ToWorldPosition();
+        return 1.0f / MathHelper.InverseSqrtFast((global.X * global.X) + (global.Y * global.Y));
     }
 
     [Pure]

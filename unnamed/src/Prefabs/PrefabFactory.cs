@@ -133,6 +133,7 @@ public static class PrefabFactory
 
         entity.Add(new Character());
         entity.Add(new HasShadow());
+        entity.Add(new Enemy());
         return entity;
     }
 }
