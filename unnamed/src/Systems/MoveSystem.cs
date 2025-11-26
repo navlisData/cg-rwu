@@ -39,8 +39,8 @@ public sealed class MoveSystem(World world, Map map, IAssetStore assetStore) : E
                 PrefabFactory.CreateExplosion(this.world, assetStore, position + halfWidth * velocity.Direction, transform.Height,
                     e.Get<Projectile>().ExplosionAnimation);
                 e.Add(new MarkedToDestroy());
-                return;
             }
+            return;
         }
 
         position = newPosition;
