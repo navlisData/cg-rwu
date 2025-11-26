@@ -113,6 +113,24 @@ public class Game : GameWindow
             new Vector2(2, 5),
             this.assetStore);
 
+        Random rng = new Random();
+        for (int mc_y = -2; mc_y <= 2; mc_y += 1)
+        for (int mc_x = -2; mc_x <= 2; mc_x += 1)
+        {
+            for (int mt_y = 0; mt_y < Map.ChunkSize; mt_y += 1)
+            for (int mt_x = 0; mt_x < Map.ChunkSize; mt_x += 1)
+            {
+                Position pos = new (mc_x, mc_y, mt_x, mt_y, 2, 2);
+                if (!this.gameMap.IsWallAt(pos))
+                {
+                    if (rng.Next(0, 10) == 0)
+                    {
+                        PrefabFactory.CreateEnemy(this.world, pos, new Vector2(2, 5), this.assetStore);
+                    }
+                }
+            }
+        }
+
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
 

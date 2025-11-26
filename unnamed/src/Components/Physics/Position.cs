@@ -28,6 +28,17 @@ public struct Position : IEquatable<Position>
         this.Pos = pos;
         this.ReAlign();
     }
+    
+    public Position(int chunkX, int chunkY, int tileX, int tileY, float posX, float posY)
+    {
+        this.Chunk.X = chunkX;
+        this.Chunk.Y = chunkY;
+        this.Tile.X = tileX;
+        this.Tile.Y = tileY;
+        this.Pos.X = posX;
+        this.Pos.Y = posY;
+        this.ReAlign();
+    }
 
     /// <summary>
     ///     Converts the map-relative <c>Position</c> to the respective world position

@@ -113,4 +113,26 @@ public static class PrefabFactory
         });
         return entity;
     }
+    
+    public static Entity CreateEnemy(World world, Position startPos, Vector2 size,
+        IAssetStore assetStore)
+    {
+        Entity entity = world.CreateEntity();
+        entity.Add(startPos);
+        entity.Add(new Transform { Size = size, Scale = 1 });
+        entity.Add(new Sprite
+        {
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South),
+            Tint = new Vector4(0f, 0f, 0f, 1f),
+            Layer = 0
+        });
+        entity.Add(new AlignedCharacter
+        {
+            CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
+        });
+
+        entity.Add(new Character());
+        entity.Add(new HasShadow());
+        return entity;
+    }
 }
