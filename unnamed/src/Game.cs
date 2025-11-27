@@ -168,7 +168,7 @@ public class Game : GameWindow
         this.setToMousePositionSystem.Run(this.camera.Get<Camera2D>());
         this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.ClientSize,
             this.assetStore, this.playerActionHandler));
-        this.followSystem.Run(dt);
+        this.followSystem.Run((dt, this.enemyActionHandler));
         this.cameraSystem.Run(dt);
         this.enemyControlSystem.Run((dt, this.enemyActionHandler));
         this.characterVisualSystem.Run(dt);

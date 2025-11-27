@@ -21,17 +21,8 @@ public sealed class EnemyControlSystem(World world)
 {
     protected override void Update((float dt, ActionControlHandler<EnemyAction> actionHandler) args, in Entity e)
     {
-        ref NonDirectionalCharacter nonDirectionalCharacter = ref e.Get<NonDirectionalCharacter>();
         ref EnemyActionState enemyState = ref e.Get<EnemyActionState>();
 
-        EnemyAction currentState = args.actionHandler.TryUpdateAction(
-            ref enemyState.CurrentAction,
-            ref enemyState.RemainingTime,
-            desiredAction: EnemyAction.Idle,
-            out bool _
-        );
-
-        nonDirectionalCharacter.ActionIndex = (byte)currentState;
         args.actionHandler.Sync(
             ref enemyState.CurrentAction,
             ref enemyState.RemainingTime,
