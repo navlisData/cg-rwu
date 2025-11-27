@@ -105,21 +105,23 @@ public static class GameSprites
 
         TextureGrid enemyMoveTextureGrid = new(16, 16, GapX: 4);
         AnimationClip moveAnimation =
-            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyMoveTextureGrid, 7, 7f);
-        Console.WriteLine("Move Animation clip length: " + moveAnimation.Frames.Count.ToString());
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyMoveTextureGrid, 7, 5f);
         assetStore.Register(GameAssets.Enemy.Slime1.Move, moveAnimation);
 
         TextureGrid enemyAttackTextureGrid = new(18, 19, 0, 20, GapX: 2);
         AnimationClip attackAnimation =
-            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyAttackTextureGrid, 7, 7f);
-        Console.WriteLine("attackAnimation Animation clip length: " + attackAnimation.Frames.Count.ToString());
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyAttackTextureGrid, 7, 5f);
         assetStore.Register(GameAssets.Enemy.Slime1.Attack, attackAnimation);
 
         TextureGrid enemyIdleTextureGrid = new(16, 14, 0, 40, GapX: 4);
         AnimationClip idleAnimation =
-            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyIdleTextureGrid, 6, 7f);
-        Console.WriteLine("idleAnimation Animation clip length: " + idleAnimation.Frames.Count.ToString());
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyIdleTextureGrid, 6, 5f);
         assetStore.Register(GameAssets.Enemy.Slime1.Idle, idleAnimation);
+
+        TextureGrid enemyDamageTextureGrid = new(14, 16, 0, 55, GapX: 1);
+        AnimationClip damageAnimation =
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyDamageTextureGrid, 4, 5f);
+        assetStore.Register(GameAssets.Enemy.Slime1.Damage, damageAnimation);
     }
 
     private static void InitProjectileSprites(IAssetStore assetStore)

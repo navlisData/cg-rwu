@@ -123,13 +123,13 @@ public static class PrefabFactory
         entity.Add(new Transform { Size = size, Scale = 1 });
         entity.Add(new Sprite
         {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Move),
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle),
             Tint = new Vector4(0f, 0f, 0f, 1f),
             Layer = 0
         });
         entity.Add(new AnimatedSprite
         {
-            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Enemy.Slime1.Move), TimeInFrame = 0
+            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Enemy.Slime1.Idle), TimeInFrame = 0
         });
 
         entity.Add(new Character());
