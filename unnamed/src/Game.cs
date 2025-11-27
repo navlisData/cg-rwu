@@ -10,6 +10,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Enums;
@@ -39,9 +40,12 @@ public class Game : GameWindow
     private readonly CameraSystem cameraSystem;
     private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
+    private readonly DestroyEntitySystem destroyEntitySystem;
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
+    private readonly EntityCollisionDetectSystem ecds;
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
+    private readonly HandleCollisionSystem hcs;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
@@ -53,9 +57,6 @@ public class Game : GameWindow
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
     private readonly UiRenderSystem uiRenderSystem;
-    private readonly DestroyEntitySystem destroyEntitySystem;
-    private readonly EntityCollisionDetectSystem ecds;
-    private readonly HandleCollisionSystem hcs;
 
     private readonly World world = new();
 
@@ -117,7 +118,7 @@ public class Game : GameWindow
             new Vector2(2, 5),
             this.assetStore);
 
-        Random rng = new Random();
+        Random rng = new();
         for (int mc_y = -2; mc_y <= 2; mc_y += 1)
         for (int mc_x = -2; mc_x <= 2; mc_x += 1)
         {
@@ -129,7 +130,8 @@ public class Game : GameWindow
                 {
                     if (rng.Next(0, 10) == 0)
                     {
-                        PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3), this.assetStore);
+                        PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
+                            new EntityStats { Hitpoints = 20 }, this.assetStore);
                     }
                 }
             }

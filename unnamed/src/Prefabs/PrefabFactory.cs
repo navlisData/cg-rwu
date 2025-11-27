@@ -82,6 +82,7 @@ public static class PrefabFactory
             ExplosionRadius = 1
         });
         entity.Add(new HasShadow());
+        entity.Add(EntityCollisionBehavior.Explode);
         return entity;
     }
 
@@ -114,7 +115,7 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateEnemy(World world, Position startPos, Vector2 size,
+    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats,
         IAssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
@@ -134,6 +135,7 @@ public static class PrefabFactory
         entity.Add(new Character());
         entity.Add(new HasShadow());
         entity.Add(new Enemy());
+        entity.Add(stats);
         return entity;
     }
 }
