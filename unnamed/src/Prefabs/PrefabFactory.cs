@@ -82,7 +82,7 @@ public static class PrefabFactory
             ExplosionRadius = 1
         });
         entity.Add(new HasShadow());
-        entity.Add(EntityCollisionBehavior.Explode);
+        entity.Add(EntityCollisionBehavior.DestroySelf | EntityCollisionBehavior.Explode);
         return entity;
     }
 
