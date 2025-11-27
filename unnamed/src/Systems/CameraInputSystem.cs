@@ -16,6 +16,8 @@ public sealed class CameraInputSystem(World world, Func<KeyboardState> keyboardP
         .Build()
     )
 {
+    private bool rotationLocked;
+
     private readonly Func<KeyboardState> keyboardStateProvider =
         keyboardProvider ?? throw new ArgumentNullException(nameof(keyboardProvider));
 
@@ -32,14 +34,27 @@ public sealed class CameraInputSystem(World world, Func<KeyboardState> keyboardP
         camera.Zoom *= (float)Math.Pow(1.1f, mouseState.ScrollDelta.Y);
         camera.Zoom = Math.Clamp(camera.Zoom, 0.01f, 5.0f);
 
-        if (keyboardState.IsKeyDown(Controls.RotateCamCW))
+        bool cwDown = keyboardState.IsKeyDown(Controls.RotateCamCW);
+        bool ccwDown = keyboardState.IsKeyDown(Controls.RotateCamCCW);
+        bool resetChordDown = cwDown && ccwDown;
+
+        if (resetChordDown)
         {
-            camera.Rotation += .1f;
+            camera.Rotation = 0f;
+            this.rotationLocked = true;
         }
 
-        if (keyboardState.IsKeyDown(Controls.RotateCamCCW))
+        if (this.rotationLocked)
         {
-            camera.Rotation -= .1f;
+            if (!cwDown && !ccwDown)
+            {
+                this.rotationLocked = false;
+            }
+
+            return;
         }
+
+        float direction = (cwDown ? 0.1f : 0f) + (ccwDown ? -0.1f : 0f);
+        camera.Rotation += direction;
     }
 }
