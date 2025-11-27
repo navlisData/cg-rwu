@@ -11,6 +11,7 @@ public static class GameSprites
     public static void Init(IAssetStore assetStore)
     {
         InitPlayerSprites(assetStore);
+        InitEnemySprites(assetStore);
         InitProjectileSprites(assetStore);
         InitExplosionSprites(assetStore);
         InitMapTiles(assetStore);
@@ -95,6 +96,30 @@ public static class GameSprites
                 priority, loop);
             assetStore.Register(clip, animation);
         }
+    }
+
+    private static void InitEnemySprites(IAssetStore assetStore)
+    {
+        SpriteSheet enemySpriteSheet =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "slime_enemy.png"));
+
+        TextureGrid enemyMoveTextureGrid = new(16, 16, GapX: 4);
+        AnimationClip moveAnimation =
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyMoveTextureGrid, 7, 7f);
+        Console.WriteLine("Move Animation clip length: " + moveAnimation.Frames.Count.ToString());
+        assetStore.Register(GameAssets.Enemy.Slime1.Move, moveAnimation);
+
+        TextureGrid enemyAttackTextureGrid = new(18, 19, 0, 20, GapX: 2);
+        AnimationClip attackAnimation =
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyAttackTextureGrid, 7, 7f);
+        Console.WriteLine("attackAnimation Animation clip length: " + attackAnimation.Frames.Count.ToString());
+        assetStore.Register(GameAssets.Enemy.Slime1.Attack, attackAnimation);
+
+        TextureGrid enemyIdleTextureGrid = new(16, 14, 0, 40, GapX: 4);
+        AnimationClip idleAnimation =
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyIdleTextureGrid, 6, 7f);
+        Console.WriteLine("idleAnimation Animation clip length: " + idleAnimation.Frames.Count.ToString());
+        assetStore.Register(GameAssets.Enemy.Slime1.Idle, idleAnimation);
     }
 
     private static void InitProjectileSprites(IAssetStore assetStore)

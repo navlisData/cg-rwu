@@ -36,10 +36,12 @@ public sealed class MoveSystem(World world, Map map, IAssetStore assetStore) : E
         {
             if (e.Has<Projectile>())
             {
-                PrefabFactory.CreateExplosion(this.world, assetStore, position + halfWidth * velocity.Direction, transform.Height,
+                PrefabFactory.CreateExplosion(this.world, assetStore, position + halfWidth * velocity.Direction,
+                    transform.Height,
                     e.Get<Projectile>().ExplosionAnimation);
                 e.Add(new MarkedToDestroy());
             }
+
             return;
         }
 

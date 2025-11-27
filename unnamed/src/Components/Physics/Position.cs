@@ -1,5 +1,4 @@
 using System.Diagnostics.Contracts;
-using System.Runtime.CompilerServices;
 
 using OpenTK.Mathematics;
 
@@ -29,7 +28,7 @@ public struct Position : IEquatable<Position>
         this.Pos = pos;
         this.ReAlign();
     }
-    
+
     public Position(int chunkX, int chunkY, int tileX, int tileY, float posX, float posY)
     {
         this.Chunk.X = chunkX;

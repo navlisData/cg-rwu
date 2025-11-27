@@ -113,7 +113,7 @@ public static class PrefabFactory
         });
         return entity;
     }
-    
+
     public static Entity CreateEnemy(World world, Position startPos, Vector2 size,
         IAssetStore assetStore)
     {
@@ -122,13 +122,13 @@ public static class PrefabFactory
         entity.Add(new Transform { Size = size, Scale = 1 });
         entity.Add(new Sprite
         {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South),
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Move),
             Tint = new Vector4(0f, 0f, 0f, 1f),
             Layer = 0
         });
-        entity.Add(new AlignedCharacter
+        entity.Add(new AnimatedSprite
         {
-            CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
+            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Enemy.Slime1.Move), TimeInFrame = 0
         });
 
         entity.Add(new Character());

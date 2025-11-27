@@ -16,11 +16,10 @@ public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : 
         .Build()
 )
 {
-
     protected override void Update(float dt, in Entity e)
     {
         ref Position projectilePos = ref e.Get<Position>();
-        
+
         foreach (var enemy in this.world.Query().With<Enemy>().Build().AsEnumerator(this.world))
         {
             ref Position enemyPos = ref enemy.Get<Position>();

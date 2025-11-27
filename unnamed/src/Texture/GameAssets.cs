@@ -96,6 +96,25 @@ public static class GameAssets
         }
     }
 
+    public static class Enemy
+    {
+        private const string BasePrefix = "enemy/";
+
+        public static class Slime1
+        {
+            private const string Slime1Path = BasePrefix + "slime1/";
+
+            public static readonly AssetRef<AnimationClip> Idle =
+                AssetRef<AnimationClip>.FromPath(Slime1Path + "idle");
+
+            public static readonly AssetRef<AnimationClip> Move =
+                AssetRef<AnimationClip>.FromPath(Slime1Path + "move");
+
+            public static readonly AssetRef<AnimationClip> Attack =
+                AssetRef<AnimationClip>.FromPath(Slime1Path + "attack");
+        }
+    }
+
     public static class Projectile
     {
         private const string Prefix = "projectile/";
