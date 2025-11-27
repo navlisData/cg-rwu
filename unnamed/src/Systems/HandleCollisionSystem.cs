@@ -21,7 +21,6 @@ public class HandleCollisionSystem(World world)
         world.Query()
             .With<Collided>()
             .With<EntityStats>()
-            .With<EnemyActionState>()
             .Build()
     )
 {
@@ -32,7 +31,9 @@ public class HandleCollisionSystem(World world)
 
         if (e.Has<Enemy>())
         {
+            Debug.Assert(e.Has<EnemyActionState>());
             Debug.Assert(e.Has<NonDirectionalCharacter>());
+
             ref EnemyActionState enemyState = ref e.Get<EnemyActionState>();
             ref NonDirectionalCharacter nonDirectionalCharacter = ref e.Get<NonDirectionalCharacter>();
 
