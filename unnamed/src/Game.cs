@@ -141,7 +141,7 @@ public class Game : GameWindow
                     if (rng.Next(0, 10) == 0)
                     {
                         PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
-                            new EntityStats { Hitpoints = 20 }, this.assetStore);
+                            new EntityStats { Hitpoints = 20 }, this.player, this.assetStore);
                     }
                 }
             }

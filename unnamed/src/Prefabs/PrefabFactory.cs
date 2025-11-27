@@ -42,7 +42,7 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats,
+    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats, Entity target,
         IAssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
@@ -58,6 +58,7 @@ public static class PrefabFactory
 
         entity.Add(new Character());
         entity.Add(new Enemy());
+        entity.Add(new Follows { Target = target, Type = FollowType.Linear, FollowRadius = 15, Speed = 2f });
         entity.Add(new HasShadow());
         entity.Add(new EnemyActionState());
         entity.Add(stats);
@@ -68,7 +69,7 @@ public static class PrefabFactory
     {
         Entity entity = world.CreateEntity();
         entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport });
-        entity.Add(new Follows { Target = target, LerpSpeed = 10f });
+        entity.Add(new Follows { Target = target, Speed = 5f, FollowRadius = float.MaxValue, Type = FollowType.Lerp });
         entity.Add(startPos);
         entity.Add(new ReceivesCameraControl());
         entity.Add(new Hidden());
@@ -134,6 +135,30 @@ public static class PrefabFactory
         {
             CurrentFrameIndex = 0, AnimationClip = assetStore.Get(animationClip), TimeInFrame = 0
         });
+        return entity;
+    }
+
+    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats,
+        IAssetStore assetStore)
+    {
+        Entity entity = world.CreateEntity();
+        entity.Add(startPos);
+        entity.Add(new Transform { Size = size, Scale = 1 });
+        entity.Add(new Sprite
+        {
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Move),
+            Tint = new Vector4(0f, 0f, 0f, 1f),
+            Layer = 0
+        });
+        entity.Add(new AnimatedSprite
+        {
+            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Enemy.Slime1.Move), TimeInFrame = 0
+        });
+
+        entity.Add(new Character());
+        entity.Add(new HasShadow());
+        entity.Add(new Enemy());
+        entity.Add(stats);
         return entity;
     }
 }
