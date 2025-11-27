@@ -112,6 +112,9 @@ public static class GameAssets
 
             public static readonly AssetRef<AnimationClip> Attack =
                 AssetRef<AnimationClip>.FromPath(Slime1Path + "attack");
+
+            public static readonly AssetRef<AnimationClip> Damage =
+                AssetRef<AnimationClip>.FromPath(Slime1Path + "damage");
         }
     }
 
