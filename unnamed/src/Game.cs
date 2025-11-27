@@ -10,6 +10,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Enums;
@@ -39,9 +40,12 @@ public class Game : GameWindow
     private readonly CameraSystem cameraSystem;
     private readonly CharacterAlignmentSystem characterAlignSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
+    private readonly DestroyEntitySystem destroyEntitySystem;
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
+    private readonly EntityCollisionDetectSystem ecds;
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
+    private readonly HandleCollisionSystem hcs;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
@@ -53,7 +57,6 @@ public class Game : GameWindow
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
     private readonly UiRenderSystem uiRenderSystem;
-    private readonly DestroyEntitySystem destroyEntitySystem;
 
     private readonly World world = new();
 
@@ -85,6 +88,8 @@ public class Game : GameWindow
         this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
         this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.destroyEntitySystem = new DestroyEntitySystem(this.world);
+        this.ecds = new EntityCollisionDetectSystem(this.world, this.assetStore);
+        this.hcs = new HandleCollisionSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -113,6 +118,25 @@ public class Game : GameWindow
             new Vector2(2, 5),
             this.assetStore);
 
+        Random rng = new();
+        for (int mc_y = -2; mc_y <= 2; mc_y += 1)
+        for (int mc_x = -2; mc_x <= 2; mc_x += 1)
+        {
+            for (int mt_y = 0; mt_y < Map.ChunkSize; mt_y += 1)
+            for (int mt_x = 0; mt_x < Map.ChunkSize; mt_x += 1)
+            {
+                Position pos = new(mc_x, mc_y, mt_x, mt_y, 2, 2);
+                if (!this.gameMap.IsWallAt(pos))
+                {
+                    if (rng.Next(0, 10) == 0)
+                    {
+                        PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
+                            new EntityStats { Hitpoints = 20 }, this.assetStore);
+                    }
+                }
+            }
+        }
+
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
 
@@ -140,6 +164,8 @@ public class Game : GameWindow
         this.spriteAnimationSystem.Run(dt);
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
+        this.ecds.Run(dt);
+        this.hcs.Run(dt);
         this.destroyEntitySystem.Run(dt);
     }
 
