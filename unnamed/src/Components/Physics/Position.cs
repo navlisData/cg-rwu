@@ -66,10 +66,18 @@ public struct Position : IEquatable<Position>
         return new Position(Vector2i.Zero, Vector2i.Zero, world);
     }
 
+    [Pure]
     public float LengthFast()
     {
         Vector2 global = this.ToWorldPosition();
         return 1.0f / MathHelper.InverseSqrtFast((global.X * global.X) + (global.Y * global.Y));
+    }
+
+    public Vector2 NormalizeFast()
+    {
+        Vector2 global = this.ToWorldPosition();
+        global.NormalizeFast();
+        return global;
     }
 
     [Pure]

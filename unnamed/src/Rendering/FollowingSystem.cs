@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Engine.Ecs;
 using Engine.Ecs.Systems;
 
@@ -16,10 +18,26 @@ public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world,
     protected override void Update(float dt, in Entity e)
     {
         ref Entity target = ref e.Get<Follows>().Target;
-        ref float speed = ref e.Get<Follows>().LerpSpeed;
         ref Position selfPosition = ref e.Get<Position>();
         ref Position targetPosition = ref target.Get<Position>();
+        ref Follows follows = ref e.Get<Follows>();
 
-        selfPosition = Position.Lerp(selfPosition, targetPosition, speed * dt);
+        Position positionDifference = targetPosition - selfPosition;
+        float distance = positionDifference.LengthFast();
+
+        if (distance > follows.FollowRadius) { return; }
+
+        switch (follows.Type)
+        {
+            case FollowType.Linear:
+                e.Add(new Velocity { Direction = positionDifference.NormalizeFast(), Speed = follows.Speed });
+                break;
+            case FollowType.Lerp:
+                selfPosition = Position.Lerp(selfPosition, targetPosition, follows.Speed * dt);
+                break;
+            default:
+                Debug.Fail($"Unknown follow type {follows.Type}");
+                break;
+        }
     }
 }
