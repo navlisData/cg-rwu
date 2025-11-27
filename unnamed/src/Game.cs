@@ -21,6 +21,7 @@ using unnamed.Rendering;
 using unnamed.systems;
 using unnamed.Texture;
 using unnamed.Texture.DirectedAction;
+using unnamed.Texture.NonDirectionalAction;
 using unnamed.Utils;
 
 namespace unnamed;
@@ -38,10 +39,10 @@ public class Game : GameWindow
     private readonly IAssetStore assetStore = new AssetStore();
     private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
-    private readonly CharacterAlignmentSystem characterAlignSystem;
+    private readonly CharacterVisualSystem characterVisualSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
     private readonly DestroyEntitySystem destroyEntitySystem;
-    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
+    private readonly EnemyControlSystem enemyControlSystem;
     private readonly EntityCollisionDetectSystem ecds;
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
@@ -49,9 +50,14 @@ public class Game : GameWindow
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
-    private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
+    
+    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
+    private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase = NonDirectionalActionDatabase.CreateDefault();
+
+    private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
+    private readonly ActionControlHandler<EnemyAction> enemyActionHandler = new(EnemyActionExtensions.Priority);
 
     private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
@@ -80,14 +86,15 @@ public class Game : GameWindow
         this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
 
         // General systems
-        this.characterAlignSystem =
-            new CharacterAlignmentSystem(this.world, this.assetStore, this.directedActionDatabase);
+        this.characterVisualSystem =
+            new CharacterVisualSystem(this.world, this.assetStore, this.directedActionDatabase, this.nonDirectionalActionDatabase);
         this.move = new MoveSystem(this.world, this.gameMap, this.assetStore);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
         this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
         this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.destroyEntitySystem = new DestroyEntitySystem(this.world);
+        this.enemyControlSystem = new EnemyControlSystem(this.world);
         this.ecds = new EntityCollisionDetectSystem(this.world, this.assetStore);
         this.hcs = new HandleCollisionSystem(this.world);
     }
@@ -160,12 +167,13 @@ public class Game : GameWindow
             this.assetStore, this.playerActionHandler));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
-        this.characterAlignSystem.Run(dt);
+        this.enemyControlSystem.Run((dt, this.enemyActionHandler));
+        this.characterVisualSystem.Run(dt);
         this.spriteAnimationSystem.Run(dt);
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
         this.ecds.Run(dt);
-        this.hcs.Run(dt);
+        this.hcs.Run((dt, enemyActionHandler, this.assetStore));
         this.destroyEntitySystem.Run(dt);
     }
 

@@ -4,18 +4,18 @@ namespace unnamed.Texture.DirectedAction;
 
 public sealed class DirectedActionDatabase
 {
-    private readonly Dictionary<CharacterType, ISpriteResolver> sets = new();
+    private readonly Dictionary<CharacterType, IDirectedSpriteResolver> sets = new();
 
-    public ISpriteResolver GetByCharacterType(CharacterType type) => this.sets[type];
+    public IDirectedSpriteResolver GetByCharacterType(CharacterType type) => this.sets[type];
 
-    private void Register(CharacterType type, ISpriteResolver resolver)
+    private void Register(CharacterType type, IDirectedSpriteResolver resolver)
         => this.sets[type] = resolver;
 
     public static DirectedActionDatabase CreateDefault()
     {
         var db = new DirectedActionDatabase();
 
-        var playerSet = new DirectedActionSpriteResolver<PlayerAction>
+        var playerSet = new DirectedActionDirectedSpriteResolver<PlayerAction>
         {
             SpriteByDirectedAction =
             {

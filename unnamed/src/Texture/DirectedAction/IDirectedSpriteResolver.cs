@@ -4,7 +4,7 @@ using unnamed.Enums;
 
 namespace unnamed.Texture.DirectedAction;
 
-public interface ISpriteResolver
+public interface IDirectedSpriteResolver
 {
     VisualType Get(byte actionIndex, CharacterDirection dir);
 }

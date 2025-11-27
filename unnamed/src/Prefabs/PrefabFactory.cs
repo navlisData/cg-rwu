@@ -42,6 +42,31 @@ public static class PrefabFactory
         return entity;
     }
 
+    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats,
+        IAssetStore assetStore)
+    {
+        Entity entity = world.CreateEntity();
+        entity.Add(startPos);
+        entity.Add(new Transform { Size = size, Scale = 1 });
+        entity.Add(new Sprite
+        {
+            Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle),
+            Tint = new Vector4(0f, 0f, 0f, 1f),
+            Layer = 0
+        });
+        entity.Add(new NonDirectionalCharacter()
+        {
+            CharacterType = CharacterType.Enemy
+        });
+
+        entity.Add(new Character());
+        entity.Add(new Enemy());
+        entity.Add(new HasShadow());
+        entity.Add(new EnemyActionState());
+        entity.Add(stats);
+        return entity;
+    }
+
     public static Entity CreateFollowingCamera(World world, in Entity target, Vector2i viewport, Position startPos)
     {
         Entity entity = world.CreateEntity();
@@ -112,30 +137,6 @@ public static class PrefabFactory
         {
             CurrentFrameIndex = 0, AnimationClip = assetStore.Get(animationClip), TimeInFrame = 0
         });
-        return entity;
-    }
-
-    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats,
-        IAssetStore assetStore)
-    {
-        Entity entity = world.CreateEntity();
-        entity.Add(startPos);
-        entity.Add(new Transform { Size = size, Scale = 1 });
-        entity.Add(new Sprite
-        {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle),
-            Tint = new Vector4(0f, 0f, 0f, 1f),
-            Layer = 0
-        });
-        entity.Add(new AnimatedSprite
-        {
-            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Enemy.Slime1.Idle), TimeInFrame = 0
-        });
-
-        entity.Add(new Character());
-        entity.Add(new HasShadow());
-        entity.Add(new Enemy());
-        entity.Add(stats);
         return entity;
     }
 }
