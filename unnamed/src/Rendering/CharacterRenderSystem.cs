@@ -33,7 +33,7 @@ public class CharacterRenderSystem(World world, IAssetStore assets) : ExtendedEn
     private int texCoordLocation;
     private int vertexLocation;
 
-    protected override bool BeforeUpdate(int shader)
+    protected override void BeforeUpdate(int shader)
     {
         GL.UseProgram(shader);
 
@@ -54,8 +54,6 @@ public class CharacterRenderSystem(World world, IAssetStore assets) : ExtendedEn
 
         GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
             BufferUsageHint.StaticDraw);
-
-        return false;
     }
 
     protected override void Update(Camera2D camera, in Entity e)

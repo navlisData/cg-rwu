@@ -39,6 +39,7 @@ public static class PrefabFactory
         entity.Add(new Player());
         entity.Add(new HasShadow());
         entity.Add(new PlayerActionState());
+        entity.Add(new EntityStats { Hitpoints = 5 });
         return entity;
     }
 
@@ -54,7 +55,7 @@ public static class PrefabFactory
             Tint = new Vector4(0f, 0f, 0f, 1f),
             Layer = 0
         });
-        entity.Add(new NonDirectionalCharacter() { CharacterType = CharacterType.Enemy });
+        entity.Add(new NonDirectionalCharacter { CharacterType = CharacterType.Enemy });
 
         entity.Add(new Character());
         entity.Add(new Enemy());
