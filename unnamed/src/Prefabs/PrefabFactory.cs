@@ -46,7 +46,7 @@ public static class PrefabFactory
     {
         Entity entity = world.CreateEntity();
         entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport });
-        entity.Add(new Follows { Target = target, LerpSpeed = 10f });
+        entity.Add(new Follows { Target = target, Speed = 5f, FollowRadius = float.MaxValue, Type = FollowType.Lerp });
         entity.Add(startPos);
         entity.Add(new ReceivesCameraControl());
         entity.Add(new Hidden());
@@ -115,7 +115,7 @@ public static class PrefabFactory
         return entity;
     }
 
-    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats,
+    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats, Entity target,
         IAssetStore assetStore)
     {
         Entity entity = world.CreateEntity();
@@ -135,6 +135,7 @@ public static class PrefabFactory
         entity.Add(new Character());
         entity.Add(new HasShadow());
         entity.Add(new Enemy());
+        entity.Add(new Follows { Target = target, Type = FollowType.Linear, FollowRadius = 15, Speed = 2f });
         entity.Add(stats);
         return entity;
     }
