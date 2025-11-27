@@ -54,10 +54,7 @@ public static class PrefabFactory
             Tint = new Vector4(0f, 0f, 0f, 1f),
             Layer = 0
         });
-        entity.Add(new NonDirectionalCharacter()
-        {
-            CharacterType = CharacterType.Enemy
-        });
+        entity.Add(new NonDirectionalCharacter() { CharacterType = CharacterType.Enemy });
 
         entity.Add(new Character());
         entity.Add(new Enemy());

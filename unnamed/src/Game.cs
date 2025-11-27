@@ -52,9 +52,11 @@ public class Game : GameWindow
     private readonly MoveSystem move;
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
-    
+
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
-    private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase = NonDirectionalActionDatabase.CreateDefault();
+
+    private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
+        NonDirectionalActionDatabase.CreateDefault();
 
     private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
     private readonly ActionControlHandler<EnemyAction> enemyActionHandler = new(EnemyActionExtensions.Priority);
@@ -87,7 +89,8 @@ public class Game : GameWindow
 
         // General systems
         this.characterVisualSystem =
-            new CharacterVisualSystem(this.world, this.assetStore, this.directedActionDatabase, this.nonDirectionalActionDatabase);
+            new CharacterVisualSystem(this.world, this.assetStore, this.directedActionDatabase,
+                this.nonDirectionalActionDatabase);
         this.move = new MoveSystem(this.world, this.gameMap, this.assetStore);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);

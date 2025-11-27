@@ -28,7 +28,7 @@ public sealed class CharacterVisualSystem(
         {
             return;
         }
-        
+
         VisualType resolvedType;
         if (e.Has<AlignedCharacter>())
         {
@@ -39,10 +39,11 @@ public sealed class CharacterVisualSystem(
         else
         {
             ref NonDirectionalCharacter nonDirectionalCharacter = ref e.Get<NonDirectionalCharacter>();
-            var nonDirectionalResolver = nonDirectionalActionDatabase.GetByCharacterType(nonDirectionalCharacter.CharacterType);
+            var nonDirectionalResolver =
+                nonDirectionalActionDatabase.GetByCharacterType(nonDirectionalCharacter.CharacterType);
             resolvedType = nonDirectionalResolver.Get(nonDirectionalCharacter.ActionIndex);
         }
-        
+
         switch (resolvedType)
         {
             case VisualType.StaticSpriteKey staticSprite:

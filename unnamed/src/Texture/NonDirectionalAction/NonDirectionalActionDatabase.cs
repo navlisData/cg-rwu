@@ -2,7 +2,6 @@ using unnamed.Enums;
 
 namespace unnamed.Texture.NonDirectionalAction;
 
-
 /// <summary>
 /// Stores non-directional sprite resolvers by character type.
 /// </summary>
