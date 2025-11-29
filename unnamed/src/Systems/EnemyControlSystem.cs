@@ -22,10 +22,12 @@ public sealed class EnemyControlSystem(World world)
 {
     protected override void Update((float dt, ActionControlHandler<EnemyAction> actionHandler) args, in Entity e)
     {
-        ref NonDirectionalCharacter nonDirectionalCharacter = ref e.Get<NonDirectionalCharacter>();
-        ref EnemyActionState enemyState = ref e.Get<EnemyActionState>();
+        EntityHandle handle = this.world.Handle(e);
 
-        EnemyAction action = e.Has<Velocity>()
+        ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
+        ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
+
+        EnemyAction action = handle.Has<Velocity>()
             ? EnemyAction.Move
             : EnemyAction.Idle;
 

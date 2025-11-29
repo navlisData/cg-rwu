@@ -19,123 +19,110 @@ public static class PrefabFactory
     public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size,
         IAssetStore assetStore)
     {
-        Entity entity = world.CreateEntity();
-        entity.Add(startPos);
-        entity.Add(new Velocity());
-        entity.Add(new Transform { Size = size, Scale = 1 });
-        entity.Add(new ReceivesPlayerInput());
-        entity.Add(new Sprite
-        {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South),
-            Tint = new Vector4(0f, 0f, 0f, 1f),
-            Layer = 0
-        });
-        entity.Add(new AlignedCharacter
-        {
-            CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
-        });
-
-        entity.Add(new Character());
-        entity.Add(new Player());
-        entity.Add(new HasShadow());
-        entity.Add(new PlayerActionState());
-        entity.Add(new EntityStats { Hitpoints = 5 });
-        return entity;
+        return world.Create()
+            .Add(startPos)
+            .Add(new Velocity())
+            .Add(new Transform { Size = size, Scale = 1 })
+            .Add(new ReceivesPlayerInput())
+            .Add(new Sprite
+            {
+                Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South),
+                Tint = new Vector4(0f, 0f, 0f, 1f),
+                Layer = 0
+            })
+            .Add(new AlignedCharacter
+            {
+                CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
+            })
+            .Add(new Character())
+            .Add(new Player())
+            .Add(new HasShadow())
+            .Add(new PlayerActionState())
+            .Add(new EntityStats { Hitpoints = 5 })
+            .ToEntity();
     }
 
     public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats, Entity target,
         IAssetStore assetStore)
     {
-        Entity entity = world.CreateEntity();
-        entity.Add(startPos);
-        entity.Add(new Transform { Size = size, Scale = 1 });
-        entity.Add(new Sprite
-        {
-            Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle),
-            Tint = new Vector4(0f, 0f, 0f, 1f),
-            Layer = 0
-        });
-        entity.Add(new NonDirectionalCharacter { CharacterType = CharacterType.Enemy });
-
-        entity.Add(new Character());
-        entity.Add(new Enemy());
-        entity.Add(new Follows { Target = target, Type = FollowType.Linear, FollowRadius = 15, Speed = 2f });
-        entity.Add(new HasShadow());
-        entity.Add(new EnemyActionState());
-        entity.Add(stats);
-        return entity;
+        return world.Create()
+            .Add(startPos)
+            .Add(new Transform { Size = size, Scale = 1 })
+            .Add(new Sprite
+            {
+                Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle),
+                Tint = new Vector4(0f, 0f, 0f, 1f),
+                Layer = 0
+            })
+            .Add(new NonDirectionalCharacter { CharacterType = CharacterType.Enemy })
+            .Add(new Character())
+            .Add(new Enemy())
+            .Add(new Follows { Target = target, Type = FollowType.Linear, FollowRadius = 15, Speed = 2f })
+            .Add(new HasShadow())
+            .Add(new EnemyActionState())
+            .Add(stats)
+            .ToEntity();
     }
 
     public static Entity CreateFollowingCamera(World world, in Entity target, Vector2i viewport, Position startPos)
     {
-        Entity entity = world.CreateEntity();
-        entity.Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport });
-        entity.Add(new Follows { Target = target, Speed = 5f, FollowRadius = float.MaxValue, Type = FollowType.Lerp });
-        entity.Add(startPos);
-        entity.Add(new ReceivesCameraControl());
-        entity.Add(new Hidden());
-        return entity;
-    }
-
-    public static Entity CreateEllipsis(World world, Position startPos, Vector2 size, Vector4 color)
-    {
-        Entity entity = world.CreateEntity();
-        entity.Add(startPos);
-        entity.Add(new Transform { Size = size, Scale = 1 });
-        entity.Add(new ObjectColor { Rgba = color });
-        entity.Add(new Circle());
-        return entity;
+        return world.Create()
+            .Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport })
+            .Add(new Follows { Target = target, Speed = 5f, FollowRadius = float.MaxValue, Type = FollowType.Lerp })
+            .Add(startPos)
+            .Add(new ReceivesCameraControl())
+            .Add(new Hidden())
+            .ToEntity();
     }
 
     public static Entity CreateBullet(World world, Position startPos, Velocity velocity, float rotation, float height,
         IAssetStore assetStore)
     {
-        Entity entity = world.CreateEntity();
-        entity.Add(startPos);
-        entity.Add(new Transform { Size = new Vector2(2f, 2f), Scale = 1.2f, Rotation = rotation, Height = height });
-        entity.Add(new AnimatedSprite
-        {
-            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(GameAssets.Projectile.Fireball), TimeInFrame = 0
-        });
-        entity.Add(velocity);
-        entity.Add(new Projectile
-        {
-            Damage = 10,
-            Lifetime = Lifetime.DestroyOnSleep,
-            ExplosionAnimation = GameAssets.Explosion.BulletExplosion,
-            ExplosionRadius = 1
-        });
-        entity.Add(new HasShadow());
-        entity.Add(EntityCollisionBehavior.DestroySelf | EntityCollisionBehavior.Explode);
-        return entity;
+        return world.Create()
+            .Add(startPos)
+            .Add(new Transform { Size = new Vector2(2f, 2f), Scale = 1.2f, Rotation = rotation, Height = height })
+            .Add(new AnimatedSprite
+            {
+                CurrentFrameIndex = 0,
+                AnimationClip = assetStore.Get(GameAssets.Projectile.Fireball),
+                TimeInFrame = 0
+            })
+            .Add(velocity)
+            .Add(new Projectile
+            {
+                Damage = 10,
+                Lifetime = Lifetime.DestroyOnSleep,
+                ExplosionAnimation = GameAssets.Explosion.BulletExplosion,
+                ExplosionRadius = 1
+            })
+            .Add(new HasShadow())
+            .Add(EntityCollisionBehavior.DestroySelf | EntityCollisionBehavior.Explode)
+            .ToEntity();
     }
 
     public static Entity CreateCrossHair(World world, IAssetStore assetStore)
     {
-        Entity entity = world.CreateEntity();
-        entity.Add(new Position());
-        entity.Add(new SetPositionToMouse());
-        entity.Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f });
-        entity.Add(new Sprite
-        {
-            Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = new Vector4(0f, 0f, 0f, 1f)
-        });
-        entity.Add(new Ui());
-        return entity;
+        return world.Create()
+            .Add(new Position())
+            .Add(new SetPositionToMouse())
+            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f })
+            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = new Vector4(0f, 0f, 0f, 1f) })
+            .Add(new Ui())
+            .ToEntity();
     }
 
     public static Entity CreateExplosion(World world, IAssetStore assetStore, Position position, float height,
         AssetRef<AnimationClip> animationClip)
     {
-        Entity entity = world.CreateEntity();
-        entity.Add(position);
-        entity.Add(new Transform { Size = new Vector2(1f, 1f), Scale = 2.5f, Height = height });
-        entity.Add(new Projectile());
-        entity.Add(new MarkedToDestroy { RemainingLifetime = assetStore.Get(animationClip).AnimationDuration() });
-        entity.Add(new AnimatedSprite
-        {
-            CurrentFrameIndex = 0, AnimationClip = assetStore.Get(animationClip), TimeInFrame = 0
-        });
-        return entity;
+        return world.Create()
+            .Add(position)
+            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 2.5f, Height = height })
+            .Add(new Projectile())
+            .Add(new MarkedToDestroy { RemainingLifetime = assetStore.Get(animationClip).AnimationDuration() })
+            .Add(new AnimatedSprite
+            {
+                CurrentFrameIndex = 0, AnimationClip = assetStore.Get(animationClip), TimeInFrame = 0
+            })
+            .ToEntity();
     }
 }

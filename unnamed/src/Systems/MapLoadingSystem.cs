@@ -16,16 +16,18 @@ public class MapLoadingSystem(World world) : EntitySetSystem<Position>(world,
 
     protected override void Update(Position camera, in Entity e)
     {
-        ref GridPosition chunkPosition = ref e.Get<GridPosition>();
+        EntityHandle handle = this.world.Handle(e);
+
+        ref GridPosition chunkPosition = ref handle.Get<GridPosition>();
 
         if (chunkPosition.X <= camera.Chunk.X + LoadingRadius && chunkPosition.Y <= camera.Chunk.Y + LoadingRadius &&
             chunkPosition.X >= camera.Chunk.X - LoadingRadius && chunkPosition.Y >= camera.Chunk.Y - LoadingRadius)
         {
-            e.Add(new Loaded());
+            handle.Add(new Loaded());
         }
         else
         {
-            e.Remove<Loaded>();
+            handle.Remove<Loaded>();
         }
     }
 }

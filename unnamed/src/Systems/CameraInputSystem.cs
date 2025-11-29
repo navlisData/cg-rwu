@@ -26,10 +26,12 @@ public sealed class CameraInputSystem(World world, Func<KeyboardState> keyboardP
 
     protected override void Update(float dt, in Entity e)
     {
+        EntityHandle handle = this.world.Handle(e);
+
         MouseState mouseState = this.mouseStateProvider();
         KeyboardState keyboardState = this.keyboardStateProvider();
 
-        ref Camera2D camera = ref e.Get<Camera2D>();
+        ref Camera2D camera = ref handle.Get<Camera2D>();
 
         camera.Zoom *= (float)Math.Pow(1.1f, mouseState.ScrollDelta.Y);
         camera.Zoom = Math.Clamp(camera.Zoom, 0.01f, 5.0f);

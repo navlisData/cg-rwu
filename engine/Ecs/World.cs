@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 using Engine.Ecs.Pools;
 using Engine.Ecs.Querying;
 
@@ -20,14 +22,128 @@ public sealed class World
     private int[] versions = new int[256];
 
     /// <summary>
-    ///     Creates a new entity and returns its handle.
+    ///     Creates a new entity and returns its identity.
     /// </summary>
     public Entity CreateEntity()
     {
         int id = this.freeIds.Count > 0 ? this.PopFreeId() : this.nextId++;
         this.EnsureCapacityForId(id);
         this.alive[id] = true;
-        return new Entity(this, id, this.versions[id]);
+        return new Entity(id, this.versions[id]);
+    }
+
+    /// <summary>
+    ///     Creates a new entity and returns a convenience handle bound to this world.
+    /// </summary>
+    /// <returns>A handle that can be used to add/remove/get components fluently.</returns>
+    public EntityHandle Create()
+    {
+        Entity entity = this.CreateEntity();
+        return new EntityHandle(this, entity);
+    }
+
+    /// <summary>
+    ///     Creates a stack-only handle for ergonomic entity operations in this world.
+    /// </summary>
+    /// <param name="e">Entity identity.</param>
+    /// <returns>A stack-only handle bound to this world.</returns>
+    public EntityHandle Handle(in Entity e) => new(this, in e);
+
+    /// <summary>
+    ///     Returns whether the given entity identity refers to a currently live entity in this world.
+    /// </summary>
+    /// <param name="e">Entity identity.</param>
+    /// <returns><c>true</c> if alive and version matches; otherwise <c>false</c>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsAlive(in Entity e) => this.IsAlive(e.Id, e.Version);
+
+    /// <summary>
+    ///     Throws if the entity identity is not valid in this world at this time.
+    /// </summary>
+    /// <param name="e">Entity identity to validate.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the identity is invalid.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Validate(in Entity e)
+    {
+        if (!this.IsAlive(e.Id, e.Version))
+        {
+            throw new InvalidOperationException($"Invalid entity handle (Id={e.Id}, Version={e.Version}).");
+        }
+    }
+
+    /// <summary>
+    ///     Gets a by-ref reference to component <typeparamref name="T" /> for the given entity.
+    /// </summary>
+    /// <typeparam name="T">Component type.</typeparam>
+    /// <param name="e">Entity identity (Id + Version).</param>
+    /// <returns>By-ref reference to the component in pool storage.</returns>
+    public ref T Get<T>(Entity e) where T : struct
+    {
+        this.Validate(e);
+        return ref this.GetPool<T>().GetRef(e.Id);
+    }
+
+    /// <summary>
+    ///     Returns <c>true</c> if the given entity currently has component <typeparamref name="T" />.
+    /// </summary>
+    /// <typeparam name="T">Component type.</typeparam>
+    /// <param name="e">Entity identity.</param>
+    /// <returns><c>true</c> if present; otherwise <c>false</c>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Has<T>(in Entity e) where T : struct
+    {
+        this.Validate(e);
+        return this.GetPool<T>().Has(e.Id);
+    }
+
+    /// <summary>
+    ///     Adds (or overwrites) component <typeparamref name="T" /> for the given entity.
+    /// </summary>
+    /// <typeparam name="T">Component type.</typeparam>
+    /// <param name="e">Entity identity.</param>
+    /// <param name="value">Component value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Add<T>(in Entity e, in T value = default) where T : struct
+    {
+        this.Validate(e);
+        this.GetPool<T>().Add(e.Id, value);
+    }
+
+    /// <summary>
+    ///     Removes component <typeparamref name="T" /> from the given entity if present.
+    /// </summary>
+    /// <typeparam name="T">Component type.</typeparam>
+    /// <param name="e">Entity identity.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Remove<T>(in Entity e) where T : struct
+    {
+        this.Validate(e);
+        this.GetPool<T>().Remove(e.Id);
+    }
+
+    /// <summary>
+    ///     Ensures component <typeparamref name="T" /> exists on the given entity and returns a writable reference to it.
+    ///     Validates the identity (Id + Version) before mutation/access.
+    /// </summary>
+    /// <typeparam name="T">Component type.</typeparam>
+    /// <param name="e">Entity identity (Id + Version).</param>
+    /// <param name="value">Initial value to add when the component is missing.</param>
+    /// <returns>Writable reference to the component stored on the entity.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the identity is invalid.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Ensure<T>(Entity e, in T value = default) where T : struct
+    {
+        this.Validate(e);
+
+        ComponentPool<T> pool = this.GetPool<T>();
+        int id = e.Id;
+
+        if (!pool.Has(id))
+        {
+            pool.Add(id, value);
+        }
+
+        return ref pool.GetRef(id);
     }
 
     /// <summary>
@@ -57,19 +173,6 @@ public sealed class World
     public bool IsAlive(int id, int version)
     {
         return id < this.alive.Length && this.alive[id] && this.versions[id] == version;
-    }
-
-    /// <summary>
-    ///     Throws if the handle is not valid in this world at this time.
-    /// </summary>
-    /// <param name="e">Entity handle to validate.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the handle is invalid.</exception>
-    internal void Validate(in Entity e)
-    {
-        if (!this.IsAlive(e.Id, e.Version))
-        {
-            throw new InvalidOperationException($"Invalid entity handle (Id={e.Id}, Version={e.Version}).");
-        }
     }
 
     /// <summary>

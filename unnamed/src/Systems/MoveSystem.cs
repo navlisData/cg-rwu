@@ -24,9 +24,11 @@ public sealed class MoveSystem(World world, Map map, IAssetStore assetStore) : E
 {
     protected override void Update(float dt, in Entity e)
     {
-        ref Position position = ref e.Get<Position>();
-        ref Velocity velocity = ref e.Get<Velocity>();
-        ref Transform transform = ref e.Get<Transform>();
+        EntityHandle handle = this.world.Handle(e);
+
+        ref Position position = ref handle.Get<Position>();
+        ref Velocity velocity = ref handle.Get<Velocity>();
+        ref Transform transform = ref handle.Get<Transform>();
 
         Position newPosition = position + (velocity.Direction * velocity.Speed * dt);
         Vector2 halfWidth = new(transform.Size.X / 2, 0);
@@ -34,12 +36,12 @@ public sealed class MoveSystem(World world, Map map, IAssetStore assetStore) : E
         if (map.IsWallAt(newPosition + halfWidth) ||
             map.IsWallAt(newPosition - halfWidth))
         {
-            if (e.Has<Projectile>())
+            if (handle.Has<Projectile>())
             {
                 PrefabFactory.CreateExplosion(this.world, assetStore, position + halfWidth * velocity.Direction,
                     transform.Height,
-                    e.Get<Projectile>().ExplosionAnimation);
-                e.Add(new MarkedToDestroy());
+                    handle.Get<Projectile>().ExplosionAnimation);
+                handle.Add(new MarkedToDestroy());
             }
 
             return;

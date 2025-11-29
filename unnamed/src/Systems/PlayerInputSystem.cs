@@ -40,15 +40,17 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         (float dt, Camera2D camera, Vector2i windowSize, IAssetStore assets, ActionControlHandler<PlayerAction>
             actionHandler) args, in Entity e)
     {
+        EntityHandle handle = this.world.Handle(e);
+
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
         float dt = args.dt;
 
-        ref Velocity velocity = ref e.Get<Velocity>();
+        ref Velocity velocity = ref handle.Get<Velocity>();
         ref Camera2D camera2D = ref args.camera;
-        ref Position playerPosition = ref e.Get<Position>();
-        ref PlayerActionState playerState = ref e.Get<PlayerActionState>();
-        ref AlignedCharacter alignedCharacter = ref e.Get<AlignedCharacter>();
+        ref Position playerPosition = ref handle.Get<Position>();
+        ref PlayerActionState playerState = ref handle.Get<PlayerActionState>();
+        ref AlignedCharacter alignedCharacter = ref handle.Get<AlignedCharacter>();
 
         alignedCharacter.CharacterDirection =
             mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
