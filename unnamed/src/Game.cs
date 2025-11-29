@@ -64,6 +64,7 @@ public class Game : GameWindow
     private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
+    private readonly UiScreenAnchorSystem uiAnchorSystem;
     private readonly UiRenderSystem uiRenderSystem;
 
     private readonly World world = new();
@@ -100,6 +101,7 @@ public class Game : GameWindow
         this.enemyControlSystem = new EnemyControlSystem(this.world);
         this.ecds = new EntityCollisionDetectSystem(this.world, this.assetStore);
         this.hcs = new HandleCollisionSystem(this.world);
+        this.uiAnchorSystem = new UiScreenAnchorSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -177,6 +179,7 @@ public class Game : GameWindow
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
         this.ecds.Run(dt);
         this.hcs.Run((dt, enemyActionHandler, this.assetStore));
+        this.uiAnchorSystem.Run(this.camera.Get<Camera2D>());
         this.destroyEntitySystem.Run(dt);
     }
 

@@ -1,13 +1,11 @@
 using Engine.Ecs;
 using Engine.Ecs.Systems;
 
-using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
-using unnamed.Utils;
 
 namespace unnamed.systems;
 
@@ -25,21 +23,12 @@ public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouse
     {
         MouseState mouseState = this.mouseStateProvider();
 
-        ref Position pos = ref e.Get<Position>();
-        ref Transform transform = ref e.Get<Transform>();
-
-        try
+        if (!e.Has<UiScreenAnchor>())
         {
-            Vector2 mousePositionWorld =
-                Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport,
-                    camera2D.ViewProjection);
-
-            pos = new Position(Vector2i.Zero, Vector2i.Zero, mousePositionWorld);
-            transform.Scale = 1 / camera2D.Zoom;
+            e.Add(new UiScreenAnchor());
         }
-        catch
-        {
-            // ignored, this will fail if the Window is not initialized yet
-        }
+            
+        ref UiScreenAnchor anchor = ref e.Get<UiScreenAnchor>();
+        anchor.ScreenPixels = mouseState.Position;
     }
 }
