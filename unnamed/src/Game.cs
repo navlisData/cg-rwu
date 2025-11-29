@@ -188,7 +188,7 @@ public class Game : GameWindow
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        ref Camera2D cameraPosition = ref this.world.Get<Camera2D>(camera);
+        ref Camera2D cameraPosition = ref this.world.Get<Camera2D>(this.camera);
 
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 0));
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
