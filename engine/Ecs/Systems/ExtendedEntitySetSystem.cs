@@ -32,20 +32,25 @@ public abstract class ExtendedEntitySetSystem<TSetup, TUpdate>(World world, Quer
     protected new readonly World world = world ?? throw new ArgumentNullException(nameof(world));
 
     /// <summary>
+    ///     Set to <c>false</c> to skip further updates
+    /// </summary>
+    protected bool doUpdate = true;
+
+    /// <summary>
     ///     Executes the system once for all entities matching the query.
     /// </summary>
     /// <param name="setupContext">Context payload forwarded to <see cref="BeforeUpdate(TSetup)" />.</param>
     /// <param name="updateContext">Context payload forwarded to <see cref="Update(TUpdate, in Entity)" />.</param>
     public void Run(TSetup? setupContext, TUpdate? updateContext)
     {
-        if (this.BeforeUpdate(setupContext))
-        {
-            return;
-        }
+        this.doUpdate = true;
+        this.BeforeUpdate(setupContext);
 
         EntityEnumerator it = this.query.AsEnumerator(this.world);
         foreach (Entity e in it)
         {
+            if (!this.doUpdate) { return; }
+
             this.Update(updateContext, in e);
         }
     }
@@ -61,9 +66,5 @@ public abstract class ExtendedEntitySetSystem<TSetup, TUpdate>(World world, Quer
     ///     Per-update hook. Runs before any update.
     /// </summary>
     /// <param name="context">Context payload</param>
-    /// <returns>Return true to skip all <see cref="Update(TUpdate, in Entity)" /> hooks, false otherwise</returns>
-    protected virtual bool BeforeUpdate(TSetup? context)
-    {
-        return false;
-    }
+    protected abstract void BeforeUpdate(TSetup? context);
 }

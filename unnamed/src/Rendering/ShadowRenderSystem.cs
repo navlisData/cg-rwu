@@ -36,7 +36,7 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
     private int texCoordLocation;
     private int vertexLocation;
 
-    protected override bool BeforeUpdate(int shader)
+    protected override void BeforeUpdate(int shader)
     {
         GL.UseProgram(shader);
         GL.Uniform4(GL.GetUniformLocation(shader, "shadowColor"), this.shadowColor);
@@ -58,8 +58,6 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
 
         GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
             BufferUsageHint.StaticDraw);
-
-        return false;
     }
 
     protected override void Update(Camera2D camera, in Entity e)

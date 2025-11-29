@@ -39,27 +39,28 @@ public class Game : GameWindow
     private readonly IAssetStore assetStore = new AssetStore();
     private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
-    private readonly CharacterVisualSystem characterVisualSystem;
     private readonly CharacterRenderSystem characterRenderSystem;
+    private readonly CharacterVisualSystem characterVisualSystem;
     private readonly DestroyEntitySystem destroyEntitySystem;
+
+    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
+    private readonly ActionControlHandler<EnemyAction> enemyActionHandler = new(EnemyActionExtensions.Priority);
     private readonly EnemyControlSystem enemyControlSystem;
-    private readonly EntityCollisionDetectSystem ecds;
+    private readonly EntityCollisionDetectSystem entityCollisionDetectSystem;
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
-    private readonly HandleCollisionSystem hcs;
+    private readonly HandleCollisionSystem handleCollisionSystem;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
-    private readonly PlayerInputSystem playerInput;
-    private readonly ProjectileRenderingSystem projectileRenderSystem;
-
-    private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
 
     private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
         NonDirectionalActionDatabase.CreateDefault();
 
     private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
-    private readonly ActionControlHandler<EnemyAction> enemyActionHandler = new(EnemyActionExtensions.Priority);
+    private readonly PlayerEnemyCollisionSystem playerEnemyCollisionSystem;
+    private readonly PlayerInputSystem playerInput;
+    private readonly ProjectileRenderingSystem projectileRenderSystem;
 
     private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
@@ -98,8 +99,9 @@ public class Game : GameWindow
         this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.destroyEntitySystem = new DestroyEntitySystem(this.world);
         this.enemyControlSystem = new EnemyControlSystem(this.world);
-        this.ecds = new EntityCollisionDetectSystem(this.world, this.assetStore);
-        this.hcs = new HandleCollisionSystem(this.world);
+        this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
+        this.playerEnemyCollisionSystem = new PlayerEnemyCollisionSystem(this.world, this.assetStore);
+        this.handleCollisionSystem = new HandleCollisionSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -141,7 +143,7 @@ public class Game : GameWindow
                     if (rng.Next(0, 10) == 0)
                     {
                         PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
-                            new EntityStats { Hitpoints = 20 }, this.player, this.assetStore);
+                            new EntityStats { Hitpoints = 20, AttackRange = 2f }, this.player, this.assetStore);
                     }
                 }
             }
@@ -175,8 +177,9 @@ public class Game : GameWindow
         this.spriteAnimationSystem.Run(dt);
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.camera.Get<Position>());
-        this.ecds.Run(dt);
-        this.hcs.Run((dt, enemyActionHandler, this.assetStore));
+        this.entityCollisionDetectSystem.Run(dt);
+        this.playerEnemyCollisionSystem.Run((this.player, dt), this.player);
+        this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
         this.destroyEntitySystem.Run(dt);
     }
 

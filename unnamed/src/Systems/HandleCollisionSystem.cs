@@ -43,15 +43,35 @@ public class HandleCollisionSystem(World world)
             }
             else
             {
-                var clip = args.assetStore.Get(GameAssets.Enemy.Slime1.Damage);
+                AnimationClip clip = args.assetStore.Get(GameAssets.Enemy.Slime1.Damage);
                 EnemyAction currentState = args.actionHandler.TryUpdateAction(
                     ref enemyState.CurrentAction,
                     ref enemyState.RemainingTime,
-                    desiredAction: EnemyAction.Damage,
+                    EnemyAction.Damage,
                     clip.AnimationDuration(),
                     out bool _
                 );
                 nonDirectionalCharacter.ActionIndex = (byte)currentState;
+            }
+        }
+
+        if (e.Has<Player>())
+        {
+            stats.Hitpoints -= 1;
+
+            if (stats.Hitpoints <= 0)
+            {
+#if DEBUG
+                Console.WriteLine("You died!");
+#endif
+                // TODO: End game?
+            }
+            else
+            {
+#if DEBUG
+                Console.WriteLine($"Player HP remaining: {stats.Hitpoints}");
+#endif
+                e.Add(new Invincible { RemainingTime = 1f });
             }
         }
 

@@ -37,8 +37,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
     protected override void Update(
-        (float dt, Camera2D camera, Vector2i windowSize, IAssetStore assets,
-            ActionControlHandler<PlayerAction> actionHandler) args, in Entity e)
+        (float dt, Camera2D camera, Vector2i windowSize, IAssetStore assets, ActionControlHandler<PlayerAction>
+            actionHandler) args, in Entity e)
     {
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
@@ -84,7 +84,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             currentState = args.actionHandler.TryUpdateAction(
                 ref playerState.CurrentAction,
                 ref playerState.RemainingTime,
-                desiredAction: PlayerAction.Move,
+                PlayerAction.Move,
                 out bool success
             );
 
@@ -129,7 +129,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 new Velocity(bulletDirection, 7.5f), (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
                 args.assets);
 
-            var clip = args.assets.Get(GameAssets.Player.Attack.East);
+            AnimationClip clip = args.assets.Get(GameAssets.Player.Attack.East);
             currentState = args.actionHandler.TryUpdateAction(
                 ref playerState.CurrentAction,
                 ref playerState.RemainingTime,
