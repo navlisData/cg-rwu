@@ -23,10 +23,12 @@ public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouse
 
     protected override void Update(Camera2D camera2D, in Entity e)
     {
+        EntityHandle handle = this.world.Handle(e);
+
         MouseState mouseState = this.mouseStateProvider();
 
-        ref Position pos = ref e.Get<Position>();
-        ref Transform transform = ref e.Get<Transform>();
+        ref Position pos = ref handle.Get<Position>();
+        ref Transform transform = ref handle.Get<Transform>();
 
         try
         {

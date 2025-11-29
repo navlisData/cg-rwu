@@ -19,7 +19,9 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
 {
     protected override void Update(float dt, in Entity e)
     {
-        ref AnimatedSprite animatedSprite = ref e.Get<AnimatedSprite>();
+        EntityHandle handle = this.world.Handle(e);
+
+        ref AnimatedSprite animatedSprite = ref handle.Get<AnimatedSprite>();
 
         bool updated = HandleAnimationRequest(ref animatedSprite);
         if (animatedSprite.AnimationClip is null)
@@ -43,7 +45,7 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
         {
             if (!clip.Loop)
             {
-                e.Remove<AnimatedSprite>();
+                handle.Remove<AnimatedSprite>();
                 return;
             }
 
@@ -55,12 +57,12 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
         }
 
         StaticSprite currentFrame = clip.Frames[animatedSprite.CurrentFrameIndex];
-        if (!e.Has<Sprite>())
+        if (!handle.Has<Sprite>())
         {
-            e.Add(new Sprite { Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
+            handle.Add(new Sprite { Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
         }
 
-        e.Get<Sprite>().Frame = currentFrame;
+        handle.Get<Sprite>().Frame = currentFrame;
     }
 
     private static bool HandleAnimationRequest(ref AnimatedSprite animatedSprite)

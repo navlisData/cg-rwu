@@ -52,8 +52,9 @@ public sealed class Map
         if (!this.chunks.TryGetValue(chunkPos, out Entity chunk))
         {
             chunk = this.world.CreateEntity();
-            chunk.Add(new GridPosition(chunkPos));
-            chunk.Add(new TileGrid { Tiles = new Tile[ChunkSize * ChunkSize] });
+            this.world.Add(chunk, new GridPosition(chunkPos));
+            this.world.Add(chunk, new GridPosition(chunkPos));
+            this.world.Add(chunk, new TileGrid { Tiles = new Tile[ChunkSize * ChunkSize] });
             this.chunks.Add(chunkPos, chunk);
         }
 
@@ -94,7 +95,7 @@ public sealed class Map
             return null;
         }
 
-        ref TileGrid grid = ref chunk.Get<TileGrid>();
+        ref TileGrid grid = ref this.world.Get<TileGrid>(chunk);
         int index = pos.Tile.X + (pos.Tile.Y * ChunkSize);
         return grid.Tiles[index];
     }
@@ -120,7 +121,7 @@ public sealed class Map
     public void SetTile(Position position, Tile tile)
     {
         Entity chunk = this.GetOrCreateChunk(position.Chunk);
-        ref TileGrid grid = ref chunk.Get<TileGrid>();
+        ref TileGrid grid = ref this.world.Get<TileGrid>(chunk);
 
         Vector2i tilePos = position.Tile;
 
@@ -151,7 +152,7 @@ public sealed class Map
         {
             Vector2i chunkPos = new(cx, cy);
             Entity chunk = this.GetOrCreateChunk(chunkPos);
-            ref TileGrid grid = ref chunk.Get<TileGrid>();
+            ref TileGrid grid = ref this.world.Get<TileGrid>(chunk);
 
             for (int ty = 0; ty < ChunkSize; ty += 1)
             for (int tx = 0; tx < ChunkSize; tx += 1)

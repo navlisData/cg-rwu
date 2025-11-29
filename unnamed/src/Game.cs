@@ -167,8 +167,8 @@ public class Game : GameWindow
         }
 
         this.cameraInputSystem.Run(dt);
-        this.setToMousePositionSystem.Run(this.camera.Get<Camera2D>());
-        this.playerInput.Run((dt, this.camera.Get<Camera2D>(), this.ClientSize,
+        this.setToMousePositionSystem.Run(this.world.Get<Camera2D>(this.camera));
+        this.playerInput.Run((dt, this.world.Get<Camera2D>(this.camera), this.ClientSize,
             this.assetStore, this.playerActionHandler));
         this.followSystem.Run(dt);
         this.cameraSystem.Run(dt);
@@ -176,7 +176,7 @@ public class Game : GameWindow
         this.characterVisualSystem.Run(dt);
         this.spriteAnimationSystem.Run(dt);
         this.move.Run(dt);
-        this.mapLoadingSystem.Run(this.camera.Get<Position>());
+        this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera));
         this.entityCollisionDetectSystem.Run(dt);
         this.playerEnemyCollisionSystem.Run((this.player, dt), this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
@@ -188,7 +188,7 @@ public class Game : GameWindow
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        ref Camera2D cameraPosition = ref this.camera.Get<Camera2D>();
+        ref Camera2D cameraPosition = ref this.world.Get<Camera2D>(this.camera);
 
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 0));
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
@@ -204,7 +204,7 @@ public class Game : GameWindow
     {
         base.OnResize(e);
         GL.Viewport(0, 0, this.Size.X, this.Size.Y);
-        this.camera.Get<Camera2D>().Viewport = this.Size;
+        this.world.Get<Camera2D>(this.camera).Viewport = this.Size;
     }
 
     protected override void OnUnload()

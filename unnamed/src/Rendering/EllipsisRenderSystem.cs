@@ -31,8 +31,10 @@ public sealed class EllipsisRenderSystem : EntitySetSystem<(int shader, Camera2D
 
     protected override void Update((int shader, Camera2D camera) param, in Entity e)
     {
-        Vector2 position = e.Get<Position>().ToWorldPosition();
-        ref Transform transform = ref e.Get<Transform>();
+        EntityHandle handle = this.world.Handle(e);
+
+        Vector2 position = handle.Get<Position>().ToWorldPosition();
+        ref Transform transform = ref handle.Get<Transform>();
 
         const int segments = 64;
         float[] ellipseVertices = new float[(segments + 2) * 2];
@@ -57,7 +59,9 @@ public sealed class EllipsisRenderSystem : EntitySetSystem<(int shader, Camera2D
             Matrix4.CreateTranslation(position.X, position.Y, 0f);
         Matrix4 ellipseViewProjection = ellipseModel * param.camera.ViewProjection;
         GL.UniformMatrix4(vertexUniform, false, ref ellipseViewProjection);
-        Vector4 color = e.Has<ObjectColor>() ? e.Get<ObjectColor>().Rgba : new Vector4(1f, 1f, 1f, 1f);
+        Vector4 color = handle.Has<ObjectColor>()
+            ? handle.Get<ObjectColor>().Rgba
+            : new Vector4(1f, 1f, 1f, 1f);
         GL.Uniform4(fragmentUniform, color);
         GL.DrawArrays(PrimitiveType.TriangleFan, 0, this.ellipseVertexCount);
     }

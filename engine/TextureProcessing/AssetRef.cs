@@ -96,7 +96,7 @@ namespace engine.TextureProcessing
                 throw new ArgumentNullException(nameof(s));
 
             const ulong offset = 14695981039346656037UL; // FNV-1a offset basis
-            const ulong prime  = 1099511628211UL;        // FNV-1a prime
+            const ulong prime = 1099511628211UL; // FNV-1a prime
 
             ulong hash = offset;
 

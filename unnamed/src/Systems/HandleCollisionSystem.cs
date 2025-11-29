@@ -27,19 +27,21 @@ public class HandleCollisionSystem(World world)
     protected override void Update(
         (float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore) args, in Entity e)
     {
-        ref EntityStats stats = ref e.Get<EntityStats>();
+        EntityHandle handle = this.world.Handle(e);
 
-        if (e.Has<Enemy>())
+        ref EntityStats stats = ref handle.Get<EntityStats>();
+
+        if (handle.Has<Enemy>())
         {
-            Debug.Assert(e.Has<EnemyActionState>());
-            Debug.Assert(e.Has<NonDirectionalCharacter>());
+            Debug.Assert(handle.Has<EnemyActionState>());
+            Debug.Assert(handle.Has<NonDirectionalCharacter>());
 
-            ref EnemyActionState enemyState = ref e.Get<EnemyActionState>();
-            ref NonDirectionalCharacter nonDirectionalCharacter = ref e.Get<NonDirectionalCharacter>();
+            ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
+            ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
 
             if (stats.Hitpoints <= 0)
             {
-                e.Add(new MarkedToDestroy());
+                handle.Add(new MarkedToDestroy());
             }
             else
             {
@@ -55,7 +57,7 @@ public class HandleCollisionSystem(World world)
             }
         }
 
-        if (e.Has<Player>())
+        if (handle.Has<Player>())
         {
             stats.Hitpoints -= 1;
 
@@ -71,10 +73,10 @@ public class HandleCollisionSystem(World world)
 #if DEBUG
                 Console.WriteLine($"Player HP remaining: {stats.Hitpoints}");
 #endif
-                e.Add(new Invincible { RemainingTime = 1f });
+                handle.Add(new Invincible { RemainingTime = 1f });
             }
         }
 
-        e.Remove<Collided>();
+        handle.Remove<Collided>();
     }
 }

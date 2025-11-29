@@ -21,19 +21,20 @@ public class PlayerEnemyCollisionSystem(World world, IAssetStore assetStore)
 {
     protected override void BeforeUpdate((Entity player, float dt) args)
     {
-        Entity player = args.player;
+        EntityHandle playerHandle = this.world.Handle(args.player);
+        ;
         float dt = args.dt;
 
-        if (!player.Has<Invincible>())
+        if (!playerHandle.Has<Invincible>())
         {
             return;
         }
 
-        player.Get<Invincible>().RemainingTime -= dt;
+        playerHandle.Get<Invincible>().RemainingTime -= dt;
 
-        if (player.Get<Invincible>().RemainingTime <= 0f)
+        if (playerHandle.Get<Invincible>().RemainingTime <= 0f)
         {
-            player.Remove<Invincible>();
+            playerHandle.Remove<Invincible>();
         }
         else
         {
@@ -43,9 +44,12 @@ public class PlayerEnemyCollisionSystem(World world, IAssetStore assetStore)
 
     protected override void Update(Entity player, in Entity e)
     {
-        ref Position playerPos = ref player.Get<Position>();
-        ref Position enemyPos = ref e.Get<Position>();
-        ref EntityStats enemyStats = ref e.Get<EntityStats>();
+        EntityHandle handle = this.world.Handle(e);
+        EntityHandle playerHandle = this.world.Handle(player);
+
+        ref Position playerPos = ref playerHandle.Get<Position>();
+        ref Position enemyPos = ref handle.Get<Position>();
+        ref EntityStats enemyStats = ref handle.Get<EntityStats>();
 
         Position distance = playerPos - enemyPos;
 
@@ -54,8 +58,8 @@ public class PlayerEnemyCollisionSystem(World world, IAssetStore assetStore)
             return;
         }
 
-        player.Add(new Collided());
-        e.Add(new DoAttack());
+        playerHandle.Add(new Collided());
+        handle.Add(new DoAttack());
 
         this.doUpdate = false;
     }

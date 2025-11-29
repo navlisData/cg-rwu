@@ -124,7 +124,7 @@ public ref struct EntityEnumerator
                 continue;
             }
 
-            this.Current = new Entity(this.world, id, version);
+            this.Current = new Entity(id, version);
             return true;
         }
 
