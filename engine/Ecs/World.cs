@@ -52,11 +52,55 @@ public sealed class World
     }
 
     /// <summary>
+    ///     Captures a stable reference to an entity for storage in components.
+    /// </summary>
+    /// <param name="e">Entity to capture.</param>
+    /// <returns>A lightweight reference (Id, Version).</returns>
+    public EntityRef ToRef(in Entity e) => new(e.Id, e.Version);
+
+    /// <summary>
+    ///     Resolves an <see cref="EntityRef"/> back to a live entity handle.
+    /// </summary>
+    /// <param name="reference">Reference to resolve.</param>
+    /// <param name="entity">Resolved entity handle if alive.</param>
+    /// <returns><c>true</c> if alive; otherwise <c>false</c>.</returns>
+    public bool TryResolve(in EntityRef reference, out Entity entity)
+    {
+        if (reference.Id < 0 || reference.Version < 0)
+        {
+            entity = default;
+            return false;
+        }
+
+        if (this.IsAlive(reference.Id, reference.Version))
+        {
+            entity = new Entity(this, reference.Id, reference.Version);
+            return true;
+        }
+
+        entity = default;
+        return false;
+    }
+
+    /// <summary>
     ///     Returns whether the given (id, version) pair refers to a currently live entity.
     /// </summary>
     public bool IsAlive(int id, int version)
     {
-        return id < this.alive.Length && this.alive[id] && this.versions[id] == version;
+        return id >= 0
+               && id < this.alive.Length
+               && this.alive[id]
+               && this.versions[id] == version;
+    }
+
+    /// <summary>
+    ///     Returns whether the referenced entity is currently alive.
+    /// </summary>
+    /// <param name="reference">Entity reference (Id, Version).</param>
+    /// <returns><c>true</c> if alive; otherwise <c>false</c>.</returns>
+    public bool IsAlive(in EntityRef reference)
+    {
+        return this.IsAlive(reference.Id, reference.Version);
     }
 
     /// <summary>
@@ -114,7 +158,7 @@ public sealed class World
     /// <returns><c>true</c> if the entity is alive; otherwise <c>false</c>.</returns>
     internal bool TryGetEntityVersion(int id, out int version)
     {
-        if (id < this.alive.Length && this.alive[id])
+        if (id >= 0 && id < this.alive.Length && this.alive[id])
         {
             version = this.versions[id];
             return true;

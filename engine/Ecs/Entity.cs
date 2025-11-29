@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 
+using Engine.Ecs.Pools;
+
 namespace Engine.Ecs;
 
 /// <summary>
@@ -92,5 +94,27 @@ public readonly struct Entity
     {
         this.world.Validate(this);
         this.world.GetPool<T>().Remove(this.Id);
+    }
+
+    /// <summary>
+    ///     Ensures component <typeparamref name="T"/> exists on this entity and returns a writable reference to it.
+    ///     Validates the handle before mutation/access.
+    /// </summary>
+    /// <typeparam name="T">Component type.</typeparam>
+    /// <param name="value">Initial value to add when the component is missing.</param>
+    /// <returns>Writable reference to the component stored on the entity.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the handle is invalid.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly ref T Ensure<T>(in T value = default) where T : struct
+    {
+        this.world.Validate(this);
+
+        ComponentPool<T> pool = this.world.GetPool<T>();
+        if (!pool.Has(this.Id))
+        {
+            pool.Add(this.Id, value);
+        }
+
+        return ref pool.GetRef(this.Id);
     }
 }
