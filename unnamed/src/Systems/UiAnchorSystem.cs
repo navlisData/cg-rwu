@@ -10,7 +10,7 @@ using unnamed.Utils;
 
 namespace unnamed.systems;
 
-public sealed class UiScreenAnchorSystem(World world)
+public sealed class UiAnchorSystem(World world)
     : EntitySetSystem<Camera2D>(world, world.Query()
         .With<Ui>()
         .With<UiScreenAnchor>()
@@ -20,9 +20,11 @@ public sealed class UiScreenAnchorSystem(World world)
 {
     protected override void Update(Camera2D camera2D, in Entity e)
     {
-        ref UiScreenAnchor anchor = ref e.Get<UiScreenAnchor>();
-        ref Position pos = ref e.Get<Position>();
-        ref Transform transform = ref e.Get<Transform>();
+        EntityHandle handle = this.world.Handle(e);
+
+        ref UiScreenAnchor anchor = ref handle.Get<UiScreenAnchor>();
+        ref Position pos = ref handle.Get<Position>();
+        ref Transform transform = ref handle.Get<Transform>();
 
         try
         {

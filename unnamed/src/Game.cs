@@ -65,7 +65,7 @@ public class Game : GameWindow
     private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
-    private readonly UiScreenAnchorSystem uiAnchorSystem;
+    private readonly UiAnchorSystem uiAnchorSystem;
     private readonly UiRenderSystem uiRenderSystem;
 
     private readonly World world = new();
@@ -103,7 +103,7 @@ public class Game : GameWindow
         this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
         this.playerEnemyCollisionSystem = new PlayerEnemyCollisionSystem(this.world, this.assetStore);
         this.handleCollisionSystem = new HandleCollisionSystem(this.world);
-        this.uiAnchorSystem = new UiScreenAnchorSystem(this.world);
+        this.uiAnchorSystem = new UiAnchorSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -182,7 +182,7 @@ public class Game : GameWindow
         this.entityCollisionDetectSystem.Run(dt);
         this.playerEnemyCollisionSystem.Run((this.player, dt), this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
-        this.uiAnchorSystem.Run(this.camera.Get<Camera2D>());
+        this.uiAnchorSystem.Run(this.world.Get<Camera2D>(this.camera));
         this.destroyEntitySystem.Run(dt);
     }
 
