@@ -22,14 +22,11 @@ public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouse
     protected override void Update(Camera2D camera2D, in Entity e)
     {
         EntityHandle handle = this.world.Handle(e);
-        MouseState mouseState = this.mouseStateProvider();
 
-        if (!handle.Has<UiScreenAnchor>())
-        {
-            handle.Add(new UiScreenAnchor());
-        }
-
+        handle.Ensure<UiScreenAnchor>();
         ref UiScreenAnchor anchor = ref handle.Get<UiScreenAnchor>();
+
+        MouseState mouseState = this.mouseStateProvider();
         anchor.ScreenPixels = mouseState.Position;
     }
 }
