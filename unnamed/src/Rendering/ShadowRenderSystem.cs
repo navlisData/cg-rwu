@@ -36,7 +36,7 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
     private int texCoordLocation;
     private int vertexLocation;
 
-    protected override bool BeforeUpdate(int shader)
+    protected override void BeforeUpdate(int shader)
     {
         GL.UseProgram(shader);
         GL.Uniform4(GL.GetUniformLocation(shader, "shadowColor"), this.shadowColor);
@@ -58,15 +58,15 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
 
         GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
             BufferUsageHint.StaticDraw);
-
-        return false;
     }
 
     protected override void Update(Camera2D camera, in Entity e)
     {
-        ref Sprite sprite = ref e.Get<Sprite>();
-        Vector2 position = e.Get<Position>().ToWorldPosition();
-        ref Transform transform = ref e.Get<Transform>();
+        EntityHandle handle = this.world.Handle(e);
+
+        ref Sprite sprite = ref handle.Get<Sprite>();
+        Vector2 position = handle.Get<Position>().ToWorldPosition();
+        ref Transform transform = ref handle.Get<Transform>();
 
         StaticSprite frame = sprite.Frame;
         Texture2D texture = assets.GetTextureById(frame.SpriteSheetId);
@@ -82,7 +82,7 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
 
         GraphicsUtils.FillSpriteQuadGeometry(
             in transform.Size,
-            in rect, in texture, in this.vertexScratch, true, e.Has<Projectile>());
+            in rect, in texture, in this.vertexScratch, true, handle.Has<Projectile>());
 
         GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
             ref mvpSquare);

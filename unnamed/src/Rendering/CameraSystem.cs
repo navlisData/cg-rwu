@@ -16,8 +16,10 @@ public sealed class CameraSystem(World world) : EntitySetSystem<float>(world, wo
 {
     protected override void Update(float dt, in Entity e)
     {
-        ref Camera2D camera = ref e.Get<Camera2D>();
-        Vector2 position = e.Get<Position>().ToWorldPosition();
+        EntityHandle handle = this.world.Handle(e);
+
+        ref Camera2D camera = ref handle.Get<Camera2D>();
+        Vector2 position = handle.Get<Position>().ToWorldPosition();
 
         float halfHeight = camera.OrthographicSize * 0.5f / camera.Zoom;
         float aspectRatio = camera.Viewport.X / (float)camera.Viewport.Y;

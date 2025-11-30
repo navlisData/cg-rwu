@@ -33,7 +33,7 @@ public class MapRenderSystem(World world, IAssetStore assets)
     private int texCoordLocation;
     private int vertexLocation;
 
-    protected override bool BeforeUpdate(int shader)
+    protected override void BeforeUpdate(int shader)
     {
         GL.UseProgram(shader);
 
@@ -54,15 +54,15 @@ public class MapRenderSystem(World world, IAssetStore assets)
 
         GL.BufferData(BufferTarget.ElementArrayBuffer, this.quadIndices.Length * sizeof(uint), this.quadIndices,
             BufferUsageHint.StaticDraw);
-
-        return false;
     }
 
     protected override void Update((Camera2D camera, int layer) context, in Entity e)
     {
+        EntityHandle handle = this.world.Handle(e);
+
         (Camera2D camera, int layer) = context;
-        Vector2i chunkPosition = e.Get<GridPosition>().ToVector2I();
-        ref Tile[] tiles = ref e.Get<TileGrid>().Tiles;
+        Vector2i chunkPosition = handle.Get<GridPosition>().ToVector2I();
+        ref Tile[] tiles = ref handle.Get<TileGrid>().Tiles;
 
         for (int y = 0; y < Map.ChunkSize; y++)
         {

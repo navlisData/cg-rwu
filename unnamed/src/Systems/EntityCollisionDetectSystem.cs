@@ -21,16 +21,18 @@ public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : 
 {
     protected override void Update(float dt, in Entity e)
     {
-        ref Position projectilePos = ref e.Get<Position>();
-        ref EntityCollisionBehavior collisionBehavior = ref e.Get<EntityCollisionBehavior>();
-        ref Projectile projectile = ref e.Get<Projectile>();
+        EntityHandle handle = this.world.Handle(e);
 
-        if (e.Has<CollisionCooldown>())
+        ref Position projectilePos = ref handle.Get<Position>();
+        ref EntityCollisionBehavior collisionBehavior = ref handle.Get<EntityCollisionBehavior>();
+        ref Projectile projectile = ref handle.Get<Projectile>();
+
+        if (handle.Has<CollisionCooldown>())
         {
-            e.Get<CollisionCooldown>().RemainingTime -= dt;
-            if (e.Get<CollisionCooldown>().RemainingTime <= 0f)
+            handle.Get<CollisionCooldown>().RemainingTime -= dt;
+            if (handle.Get<CollisionCooldown>().RemainingTime <= 0f)
             {
-                e.Remove<CollisionCooldown>();
+                handle.Remove<CollisionCooldown>();
             }
             else
             {
@@ -40,27 +42,29 @@ public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : 
 
         foreach (Entity enemy in this.world.Query().With<Enemy>().With<EntityStats>().Build().AsEnumerator(this.world))
         {
-            ref Position enemyPos = ref enemy.Get<Position>();
-            ref EntityStats enemyStats = ref enemy.Get<EntityStats>();
+            EntityHandle enemyHandle = this.world.Handle(enemy);
+
+            ref Position enemyPos = ref enemyHandle.Get<Position>();
+            ref EntityStats enemyStats = ref enemyHandle.Get<EntityStats>();
             Position distance = enemyPos - projectilePos;
             if (distance.LengthFast() <= 1f)
             {
                 if (collisionBehavior.Explode())
                 {
-                    PrefabFactory.CreateExplosion(this.world, assetStore, projectilePos, e.Get<Transform>().Height,
-                        e.Get<Projectile>().ExplosionAnimation);
+                    PrefabFactory.CreateExplosion(this.world, assetStore, projectilePos,
+                        handle.Get<Transform>().Height, handle.Get<Projectile>().ExplosionAnimation);
                 }
 
                 if (collisionBehavior.DestroySelf())
                 {
-                    e.Add(new MarkedToDestroy());
+                    handle.Add(new MarkedToDestroy());
                 }
                 else
                 {
-                    e.Add(new CollisionCooldown(0.5f));
+                    handle.Add(new CollisionCooldown(0.5f));
                 }
 
-                enemy.Add(new Collided());
+                enemyHandle.Add(new Collided());
                 enemyStats.Hitpoints -= projectile.Damage;
             }
         }

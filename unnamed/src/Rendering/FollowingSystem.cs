@@ -17,10 +17,12 @@ public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world,
 {
     protected override void Update(float dt, in Entity e)
     {
-        ref Entity target = ref e.Get<Follows>().Target;
-        ref Position selfPosition = ref e.Get<Position>();
-        ref Position targetPosition = ref target.Get<Position>();
-        ref Follows follows = ref e.Get<Follows>();
+        EntityHandle handle = this.world.Handle(e);
+
+        ref Entity target = ref handle.Get<Follows>().Target;
+        ref Position selfPosition = ref handle.Get<Position>();
+        ref Position targetPosition = ref this.world.Get<Position>(target);
+        ref Follows follows = ref handle.Get<Follows>();
 
         Position positionDifference = targetPosition - selfPosition;
         float distance = positionDifference.LengthFast();
@@ -30,7 +32,7 @@ public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world,
         switch (follows.Type)
         {
             case FollowType.Linear:
-                e.Add(new Velocity { Direction = positionDifference.NormalizeFast(), Speed = follows.Speed });
+                handle.Add(new Velocity { Direction = positionDifference.NormalizeFast(), Speed = follows.Speed });
                 break;
             case FollowType.Lerp:
                 selfPosition = Position.Lerp(selfPosition, targetPosition, follows.Speed * dt);

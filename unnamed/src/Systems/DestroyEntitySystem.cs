@@ -13,7 +13,9 @@ public sealed class DestroyEntitySystem(World world) : EntitySetSystem<float>(wo
 {
     protected override void Update(float dt, in Entity e)
     {
-        ref MarkedToDestroy mtd = ref e.Get<MarkedToDestroy>();
+        EntityHandle handle = this.world.Handle(e);
+
+        ref MarkedToDestroy mtd = ref handle.Get<MarkedToDestroy>();
 
         mtd.RemainingLifetime -= dt;
         if (mtd.RemainingLifetime <= 0f)

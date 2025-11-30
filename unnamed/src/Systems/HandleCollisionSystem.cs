@@ -27,27 +27,29 @@ public class HandleCollisionSystem(World world)
     protected override void Update(
         (float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore) args, in Entity e)
     {
-        ref EntityStats stats = ref e.Get<EntityStats>();
+        EntityHandle handle = this.world.Handle(e);
 
-        if (e.Has<Enemy>())
+        ref EntityStats stats = ref handle.Get<EntityStats>();
+
+        if (handle.Has<Enemy>())
         {
-            Debug.Assert(e.Has<EnemyActionState>());
-            Debug.Assert(e.Has<NonDirectionalCharacter>());
+            Debug.Assert(handle.Has<EnemyActionState>());
+            Debug.Assert(handle.Has<NonDirectionalCharacter>());
 
-            ref EnemyActionState enemyState = ref e.Get<EnemyActionState>();
-            ref NonDirectionalCharacter nonDirectionalCharacter = ref e.Get<NonDirectionalCharacter>();
+            ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
+            ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
 
             if (stats.Hitpoints <= 0)
             {
-                e.Add(new MarkedToDestroy());
+                handle.Add(new MarkedToDestroy());
             }
             else
             {
-                var clip = args.assetStore.Get(GameAssets.Enemy.Slime1.Damage);
+                AnimationClip clip = args.assetStore.Get(GameAssets.Enemy.Slime1.Damage);
                 EnemyAction currentState = args.actionHandler.TryUpdateAction(
                     ref enemyState.CurrentAction,
                     ref enemyState.RemainingTime,
-                    desiredAction: EnemyAction.Damage,
+                    EnemyAction.Damage,
                     clip.AnimationDuration(),
                     out bool _
                 );
@@ -55,6 +57,26 @@ public class HandleCollisionSystem(World world)
             }
         }
 
-        e.Remove<Collided>();
+        if (handle.Has<Player>())
+        {
+            stats.Hitpoints -= 1;
+
+            if (stats.Hitpoints <= 0)
+            {
+#if DEBUG
+                Console.WriteLine("You died!");
+#endif
+                // TODO: End game?
+            }
+            else
+            {
+#if DEBUG
+                Console.WriteLine($"Player HP remaining: {stats.Hitpoints}");
+#endif
+                handle.Add(new Invincible { RemainingTime = 1f });
+            }
+        }
+
+        handle.Remove<Collided>();
     }
 }
