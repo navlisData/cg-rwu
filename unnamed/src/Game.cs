@@ -53,6 +53,7 @@ public class Game : GameWindow
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
+    private readonly OwnerCleanupSystem ownerCleanupSystem;
 
     private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
         NonDirectionalActionDatabase.CreateDefault();
@@ -102,6 +103,7 @@ public class Game : GameWindow
         this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
         this.playerEnemyCollisionSystem = new PlayerEnemyCollisionSystem(this.world, this.assetStore);
         this.handleCollisionSystem = new HandleCollisionSystem(this.world);
+        this.ownerCleanupSystem = new OwnerCleanupSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -180,6 +182,7 @@ public class Game : GameWindow
         this.entityCollisionDetectSystem.Run(dt);
         this.playerEnemyCollisionSystem.Run((this.player, dt), this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
+        this.ownerCleanupSystem.Run(dt);
         this.destroyEntitySystem.Run(dt);
     }
 
