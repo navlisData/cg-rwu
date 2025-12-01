@@ -198,7 +198,7 @@ public class Game : GameWindow
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
-        this.uiRenderSystem.Run((this.shaderProgram, this.Size), this.Size);
+        this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize);
 
         this.SwapBuffers();
     }
@@ -206,8 +206,8 @@ public class Game : GameWindow
     protected override void OnResize(ResizeEventArgs e)
     {
         base.OnResize(e);
-        GL.Viewport(0, 0, this.Size.X, this.Size.Y);
-        this.world.Get<Camera2D>(this.camera).Viewport = this.Size;
+        GL.Viewport(0, 0, this.ClientSize.X, this.ClientSize.Y);
+        this.world.Get<Camera2D>(this.camera).Viewport = this.ClientSize;
     }
 
     protected override void OnUnload()
