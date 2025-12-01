@@ -30,23 +30,56 @@ public sealed class MoveSystem(World world, Map map, IAssetStore assetStore) : E
         ref Velocity velocity = ref handle.Get<Velocity>();
         ref Transform transform = ref handle.Get<Transform>();
 
-        Position newPosition = position + (velocity.Direction * velocity.Speed * dt);
         Vector2 halfWidth = new(transform.Size.X / 2, 0);
+        Vector2 delta = velocity.Direction * velocity.Speed * dt;
 
-        if (map.IsWallAt(newPosition + halfWidth) ||
-            map.IsWallAt(newPosition - halfWidth))
+        Position newPosition = position + delta;
+
+        if (CanMoveTo(newPosition))
         {
-            if (handle.Has<Projectile>())
-            {
-                PrefabFactory.CreateExplosion(this.world, assetStore, position + halfWidth * velocity.Direction,
-                    transform.Height,
-                    handle.Get<Projectile>().ExplosionAnimation);
-                handle.Add(new MarkedToDestroy());
-            }
-
+            position = newPosition;
             return;
         }
 
-        position = newPosition;
+        if (this.HandleWallCollision(handle, newPosition, halfWidth, velocity.Direction, transform.Height))
+        {
+            return;
+        }
+
+        Position newPositionAlongX = position + new Vector2(delta.X, 0);
+        if (CanMoveTo(newPositionAlongX))
+        {
+            position = newPositionAlongX;
+            return;
+        }
+
+        Position newPositionAlongY = position + new Vector2(0, delta.Y);
+        if (CanMoveTo(newPositionAlongY))
+        {
+            position = newPositionAlongY;
+        }
+
+        return;
+
+        bool CanMoveTo(Position pos)
+        {
+            return !map.IsWallAt(pos + halfWidth) &&
+                   !map.IsWallAt(pos - halfWidth);
+        }
+    }
+
+    private bool HandleWallCollision(EntityHandle handle, Position position, Vector2 halfWidth, Vector2 direction,
+        float height)
+    {
+        if (handle.Has<Projectile>())
+        {
+            PrefabFactory.CreateExplosion(this.world, assetStore, position + (halfWidth * direction),
+                height,
+                handle.Get<Projectile>().ExplosionAnimation);
+            handle.Add(new MarkedToDestroy());
+            return true;
+        }
+
+        return false;
     }
 }
