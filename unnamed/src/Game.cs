@@ -195,7 +195,7 @@ public class Game : GameWindow
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
-        this.uiRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.uiRenderSystem.Run((this.shaderProgram, this.Size), cameraPosition);
 
         this.SwapBuffers();
     }

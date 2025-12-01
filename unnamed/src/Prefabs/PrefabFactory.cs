@@ -9,6 +9,7 @@ using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.Texture;
 
@@ -103,11 +104,11 @@ public static class PrefabFactory
     public static Entity CreateCrossHair(World world, IAssetStore assetStore)
     {
         return world.Create()
-            .Add(new Position())
             .Add(new SetPositionToMouse())
-            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f })
+            .Add(new AbsolutePosition())
+            .Add(new AbsoluteSize(64, 64))
+            .Add(new UiAlignment(true, true))
             .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = new Vector4(0f, 0f, 0f, 1f) })
-            .Add(new Ui())
             .ToEntity();
     }
 
