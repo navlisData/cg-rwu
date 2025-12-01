@@ -1,20 +1,18 @@
 using Engine.Ecs;
 using Engine.Ecs.Systems;
 
-using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
-using unnamed.Utils;
+using unnamed.Components.UI;
 
 namespace unnamed.systems;
 
 public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouseProvider) : EntitySetSystem<Camera2D>(
     world, world.Query()
         .With<SetPositionToMouse>()
-        .With<Position>()
+        .With<AbsolutePosition>()
         .Build()
 )
 {
@@ -27,17 +25,11 @@ public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouse
 
         MouseState mouseState = this.mouseStateProvider();
 
-        ref Position pos = ref handle.Get<Position>();
-        ref Transform transform = ref handle.Get<Transform>();
+        ref AbsolutePosition screenPos = ref handle.Get<AbsolutePosition>();
 
         try
         {
-            Vector2 mousePositionWorld =
-                Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport,
-                    camera2D.ViewProjection);
-
-            pos = new Position(Vector2i.Zero, Vector2i.Zero, mousePositionWorld);
-            transform.Scale = 1 / camera2D.Zoom;
+            screenPos = (AbsolutePosition)mouseState.Position;
         }
         catch
         {
