@@ -40,7 +40,7 @@ public class UiRenderSystem(World world, IAssetStore assets)
 
         this.screenProjection = Matrix4.CreateOrthographicOffCenter(
             0, windowSize.X,
-            windowSize.Y, 0,
+            0, windowSize.Y,
             -1f, 1f
         );
 
@@ -68,7 +68,10 @@ public class UiRenderSystem(World world, IAssetStore assets)
         EntityHandle handle = this.world.Handle(e);
 
         ref Sprite sprite = ref handle.Get<Sprite>();
-        AbsolutePosition position = handle.Get<AbsolutePosition>().WrapToScreen(windowSize);
+
+        AbsolutePosition position = handle.Get<AbsolutePosition>();
+        position.Y = windowSize.Y - position.Y;
+        position = position.WrapToScreen(windowSize);
         Vector2 size = (Vector2)handle.Get<AbsoluteSize>();
         UiAlignment alignment = handle.Get<UiAlignment>();
 

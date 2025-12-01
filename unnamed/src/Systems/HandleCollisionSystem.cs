@@ -13,6 +13,7 @@ using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
 using unnamed.Texture;
+using unnamed.Utils.Health;
 
 namespace unnamed.systems;
 
@@ -59,20 +60,14 @@ public class HandleCollisionSystem(World world)
 
         if (handle.Has<Player>())
         {
-            stats.Hitpoints -= 1;
+            handle.AddDamage(1);
 
             if (stats.Hitpoints <= 0)
             {
-#if DEBUG
-                Console.WriteLine("You died!");
-#endif
                 // TODO: End game?
             }
             else
             {
-#if DEBUG
-                Console.WriteLine($"Player HP remaining: {stats.Hitpoints}");
-#endif
                 handle.Add(new Invincible { RemainingTime = 1f });
             }
         }
