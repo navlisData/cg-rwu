@@ -27,7 +27,24 @@ public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world,
         Position positionDifference = targetPosition - selfPosition;
         float distance = positionDifference.LengthFast();
 
-        if (distance > follows.FollowRadius) { return; }
+        if (distance > follows.FollowRadius)
+        {
+            switch (follows.Type)
+            {
+                case FollowType.Linear:
+                    handle.Remove<Velocity>();
+                    break;
+                case FollowType.Lerp:
+                    // Shouldn't happen, as the lerp following directly updates the Position and is only really useful globally 
+                    Debug.WriteLine("Lerp following is out of range of target");
+                    break;
+                default:
+                    Debug.Fail($"Unknown follow type {follows.Type}");
+                    break;
+            }
+
+            return;
+        }
 
         switch (follows.Type)
         {
