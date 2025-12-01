@@ -15,7 +15,7 @@ using unnamed.Utils;
 namespace unnamed.Rendering;
 
 public class UiRenderSystem(World world, IAssetStore assets)
-    : ExtendedEntitySetSystem<(int shader, Vector2i windowSize), Camera2D>(
+    : ExtendedEntitySetSystem<(int shader, Vector2i windowSize), Vector2i>(
         world, world.Query()
             .With<AbsolutePosition>()
             .With<AbsoluteSize>()
@@ -63,12 +63,12 @@ public class UiRenderSystem(World world, IAssetStore assets)
             BufferUsageHint.StaticDraw);
     }
 
-    protected override void Update(Camera2D camera, in Entity e)
+    protected override void Update(Vector2i windowSize, in Entity e)
     {
         EntityHandle handle = this.world.Handle(e);
 
         ref Sprite sprite = ref handle.Get<Sprite>();
-        AbsolutePosition position = handle.Get<AbsolutePosition>();
+        AbsolutePosition position = handle.Get<AbsolutePosition>().WrapToScreen(windowSize);
         Vector2 size = (Vector2)handle.Get<AbsoluteSize>();
         UiAlignment alignment = handle.Get<UiAlignment>();
 
