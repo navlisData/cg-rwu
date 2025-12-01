@@ -31,6 +31,7 @@ public class HandleCollisionSystem(World world)
         EntityHandle handle = this.world.Handle(e);
 
         ref EntityStats stats = ref handle.Get<EntityStats>();
+        ref Collided collided = ref handle.Get<Collided>();
 
         if (handle.Has<Enemy>())
         {
@@ -60,6 +61,18 @@ public class HandleCollisionSystem(World world)
 
         if (handle.Has<Player>())
         {
+            EntityHandle collidedEntityHandle = this.world.Handle(collided.CollidedWith);
+            if (collidedEntityHandle.Has<DoAttack>())
+            {
+                ref DoAttack attack = ref collidedEntityHandle.Get<DoAttack>();
+                attack.DamageIn -= args.dt;
+
+                if (attack.DamageIn > 0f)
+                {
+                    return;
+                }
+            }
+
             handle.AddDamage(1);
 
             if (stats.Hitpoints <= 0)

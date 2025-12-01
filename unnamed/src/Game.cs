@@ -105,7 +105,8 @@ public class Game : GameWindow
         this.destroyEntitySystem = new DestroyEntitySystem(this.world);
         this.enemyControlSystem = new EnemyControlSystem(this.world);
         this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
-        this.playerEnemyCollisionSystem = new PlayerEnemyCollisionSystem(this.world, this.assetStore);
+        this.playerEnemyCollisionSystem =
+            new PlayerEnemyCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
         this.handleCollisionSystem = new HandleCollisionSystem(this.world);
         this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
         this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);

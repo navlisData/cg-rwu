@@ -111,7 +111,7 @@ public static class GameSprites
 
         TextureGrid enemyAttackTextureGrid = new(18, 19, 0, 20, GapX: 2);
         AnimationClip attackAnimation =
-            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyAttackTextureGrid, 7, 5f, loop: false);
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyAttackTextureGrid, 7, 3f, loop: false);
         assetStore.Register(GameAssets.Enemy.Slime1.Attack, attackAnimation);
 
         TextureGrid enemyIdleTextureGrid = new(16, 14, 0, 40, GapX: 4);
