@@ -39,17 +39,21 @@ public static class PrefabFactory
             .Add(new Player())
             .Add(new HasShadow())
             .Add(new PlayerActionState())
-            .Add(new EntityStats { Hitpoints = 5 })
+            .Add(new EntityStats { Hitpoints = 10, MaxHealthUnits = 10 })
+            .Add(new HudHearts { hearts = [] })
+            .Add(new HealthHudLayoutDirty())
             .ToEntity();
     }
 
     public static Entity CreateHealthIndicator(World world, IAssetStore assetStore, HeartStatus heartStatus)
     {
+        StaticSprite frame = assetStore.Get(heartStatus.GetAsset());
+
         return world.Create()
-            .Add(new Position())
+            .Add(new AbsoluteSize(frame.RectPx.Width, frame.RectPx.Height))
+            .Add(new UiAlignment())
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f })
-            .Add(new Sprite { Frame = assetStore.Get(heartStatus.GetAsset()), Tint = new Vector4(0f, 0f, 0f, 1f) })
-            .Add(new Ui())
+            .Add(new Sprite { Frame = frame, Tint = new Vector4(0f, 0f, 0f, 1f) })
             .ToEntity();
     }
 
