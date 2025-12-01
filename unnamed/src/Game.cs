@@ -55,6 +55,10 @@ public class Game : GameWindow
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
 
+    // Health
+    private readonly HealthHudSyncSystem healthSyncSystem;
+    private readonly HealthHudLayoutSystem healthLayoutSystem;
+
     private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
         NonDirectionalActionDatabase.CreateDefault();
 
@@ -103,6 +107,8 @@ public class Game : GameWindow
         this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
         this.playerEnemyCollisionSystem = new PlayerEnemyCollisionSystem(this.world, this.assetStore);
         this.handleCollisionSystem = new HandleCollisionSystem(this.world);
+        this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
+        this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
     }
 
     protected override void OnLoad()
@@ -171,6 +177,8 @@ public class Game : GameWindow
 
         this.cameraInputSystem.Run(dt);
         this.setToMousePositionSystem.Run(this.world.Get<Camera2D>(this.camera));
+        this.healthLayoutSystem.Run(dt);
+        this.healthSyncSystem.Run(dt);
         this.playerInput.Run((dt, this.world.Get<Camera2D>(this.camera), this.ClientSize,
             this.assetStore, this.playerActionHandler));
         this.followSystem.Run(dt);

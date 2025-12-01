@@ -13,6 +13,7 @@ using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
 using unnamed.Texture;
+using unnamed.Utils.Health;
 
 namespace unnamed.systems;
 
@@ -59,7 +60,7 @@ public class HandleCollisionSystem(World world)
 
         if (handle.Has<Player>())
         {
-            stats.Hitpoints -= 1;
+            handle.AddDamage(1);
 
             if (stats.Hitpoints <= 0)
             {
