@@ -42,6 +42,16 @@ public static class PrefabFactory
             .ToEntity();
     }
 
+    public static Entity CreateHealthIndicator(World world, IAssetStore assetStore, HeartStatus heartStatus)
+    {
+        return world.Create()
+            .Add(new Position())
+            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f })
+            .Add(new Sprite { Frame = assetStore.Get(heartStatus.GetAsset()), Tint = new Vector4(0f, 0f, 0f, 1f) })
+            .Add(new Ui())
+            .ToEntity();
+    }
+
     public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats, Entity target,
         IAssetStore assetStore)
     {
