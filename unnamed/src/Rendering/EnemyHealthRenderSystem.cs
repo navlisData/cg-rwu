@@ -1,0 +1,172 @@
+using Engine.Ecs;
+using Engine.Ecs.Systems;
+
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
+
+using unnamed.Components.General;
+using unnamed.Components.Physics;
+using unnamed.Components.Rendering;
+using unnamed.Components.Tags;
+using unnamed.Utils;
+
+namespace unnamed.Rendering;
+
+public sealed class EnemyHealthRenderSystem(World world)
+    : ExtendedEntitySetSystem<int, Camera2D>(world, world.Query()
+        .With<Enemy>()
+        .With<Sprite>()
+        .With<Position>()
+        .With<Velocity>()
+        .With<Transform>()
+        .With<EntityStats>()
+        .Without<Sleeping>()
+        .Build())
+{
+    private int elementBuffer;
+    private int vertexArray;
+    private int vertexBuffer;
+
+    private readonly float[] vertexScratch = new float[16];
+
+    private int mvpUniformLocation = -1;
+    private int colorUniformLocation = -1;
+
+    private bool isInitialized;
+
+    /// <summary>
+    ///     Initializes VertexArray/VertexBuffer/ElementBuffer -object and caches uniform
+    ///     locations for the given healthbar shader program.
+    ///     Must be called with a current OpenGL context (e.g. from Game.OnLoad).
+    /// </summary>
+    /// <param name="healthbarProgram">Shader program handle (sprite.vert + healthbar.frag).</param>
+    public void Initialize(int healthbarProgram)
+    {
+        if (this.isInitialized)
+        {
+            return;
+        }
+
+        this.vertexArray = GL.GenVertexArray();
+        this.vertexBuffer = GL.GenBuffer();
+        this.elementBuffer = GL.GenBuffer();
+
+        GL.BindVertexArray(this.vertexArray);
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
+        GL.BufferData(BufferTarget.ArrayBuffer, this.vertexScratch.Length * sizeof(float), IntPtr.Zero,
+            BufferUsageHint.DynamicDraw);
+
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, GraphicsUtils.QuadIndices.Length * sizeof(uint),
+            GraphicsUtils.QuadIndices, BufferUsageHint.StaticDraw);
+
+        // sprite.vert: 0 = aPosition, 1 = aTexCoord
+        GL.EnableVertexAttribArray(0);
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
+
+        GL.EnableVertexAttribArray(1);
+        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 2 * sizeof(float));
+
+        this.mvpUniformLocation = GL.GetUniformLocation(healthbarProgram, "uMVP");
+        this.colorUniformLocation = GL.GetUniformLocation(healthbarProgram, "uColor");
+
+        if (this.mvpUniformLocation < 0 || this.colorUniformLocation < 0)
+        {
+            throw new InvalidOperationException("Healthbar shader is missing required uniforms (uMVP/uColor).");
+        }
+
+        this.isInitialized = true;
+    }
+
+    /// <summary>
+    ///     Binds the correct program/VertexArrayObject and ensures
+    ///     the correct VBO is bound for per-entity vertex uploads.
+    /// </summary>
+    /// <param name="shader">Healthbar shader program handle.</param>
+    protected override void BeforeUpdate(int shader)
+    {
+        if (!this.isInitialized)
+        {
+            throw new InvalidOperationException("Initialize(program) must be called before rendering.");
+        }
+
+        GL.UseProgram(shader);
+        GL.BindVertexArray(this.vertexArray);
+
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+    }
+
+    /// <summary>
+    ///     Renders background + filled foreground healthbar above the enemy.
+    /// </summary>
+    protected override void Update(Camera2D camera, in Entity e)
+    {
+        EntityHandle handle = this.world.Handle(e);
+
+        ref Sprite sprite = ref handle.Get<Sprite>();
+        ref Transform transform = ref handle.Get<Transform>();
+        Vector2 position = handle.Get<Position>().ToWorldPosition();
+        ref EntityStats stats = ref handle.Get<EntityStats>();
+
+        int maxHealth = Math.Max(0, stats.MaxHealthUnits);
+        if (maxHealth <= 0)
+        {
+            return;
+        }
+
+        int currentHealth = Math.Clamp(stats.Hitpoints, 0, maxHealth);
+        float ratio = Math.Clamp(currentHealth / (float)maxHealth, 0f, 1f);
+
+        Vector2 spriteWorldSize = GraphicsUtils.ComputeSpriteWorldSize(transform.Size, sprite.Frame.RectPx);
+
+        float barWidth = spriteWorldSize.X * 0.9f;
+        float barHeight = MathF.Max(0.04f, spriteWorldSize.Y * 0.08f);
+
+        float yMargin = barHeight * 0.6f;
+
+        float xLeft = position.X - (barWidth * 0.5f);
+        float yBottom = position.Y + spriteWorldSize.Y + yMargin;
+
+        Matrix4 model = Matrix4.CreateTranslation(xLeft, yBottom, 0f);
+        Matrix4 mvp = model * camera.ViewProjection;
+        GL.UniformMatrix4(this.mvpUniformLocation, false, ref mvp);
+
+        // Background
+        GraphicsUtils.FillSolidQuadGeometry(new Vector2(barWidth, barHeight), this.vertexScratch, false, false);
+        GraphicsUtils.UploadQuadVertices(this.vertexBuffer, this.vertexScratch);
+        GraphicsUtils.DrawColoredQuad(this.colorUniformLocation, new Vector4(0f, 0f, 0f, 0.55f));
+
+        // Foreground
+        float fillWidth = barWidth * ratio;
+        if (fillWidth > 0.0001f)
+        {
+            GraphicsUtils.FillSolidQuadGeometry(new Vector2(fillWidth, barHeight), this.vertexScratch, false, false);
+            GraphicsUtils.UploadQuadVertices(this.vertexBuffer, this.vertexScratch);
+
+            Vector4 fg = ratio switch
+            {
+                > 0.6f => new Vector4(0.20f, 0.85f, 0.25f, 0.95f),
+                > 0.3f => new Vector4(0.95f, 0.85f, 0.15f, 0.95f),
+                _ => new Vector4(0.90f, 0.20f, 0.20f, 0.95f)
+            };
+
+            GraphicsUtils.DrawColoredQuad(this.colorUniformLocation, fg);
+        }
+    }
+
+    public void OnUnload()
+    {
+        if (this.vertexArray != 0) { GL.DeleteVertexArray(this.vertexArray); }
+
+        if (this.vertexBuffer != 0) { GL.DeleteBuffer(this.vertexBuffer); }
+
+        if (this.elementBuffer != 0) { GL.DeleteBuffer(this.elementBuffer); }
+
+        this.vertexArray = 0;
+        this.vertexBuffer = 0;
+        this.elementBuffer = 0;
+        this.isInitialized = false;
+    }
+}

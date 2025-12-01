@@ -12,40 +12,23 @@ public static class GraphicsUtils
     public static readonly uint[] QuadIndices = [0, 1, 2, 2, 1, 3];
 
     /// <summary>
-    ///     Builds quad vertices and indices for a sprite on a texture atlas.
+    ///     Builds an interleaved quad for a sprite on a texture atlas.
     ///     Assumes the texture was loaded with vertical flip enabled (v=0 at bottom).
     /// </summary>
-    /// <param name="objectSize">Quad dimensions in object space.</param>
+    /// <param name="objectSize">Requested quad size in object/world units.</param>
     /// <param name="spriteRect">Sprite bounds in pixels (top-left origin).</param>
     /// <param name="texture">Atlas texture (for normalization).</param>
-    /// <param name="vertices">Vertex array: required to have a length >= 16</param>
-    /// <param name="horizontallyCentered">The x-axis is centered around 0</param>
-    /// <param name="verticallyCentered">The y-axis is centered around 0</param>
-    /// <returns>Quad geometry with interleaved vertices and indices.</returns>
+    /// <param name="vertices">Target array; must have length >= 16.</param>
+    /// <param name="horizontallyCentered">If true, x is centered around 0.</param>
+    /// <param name="verticallyCentered">If true, y is centered around 0.</param>
     public static void FillSpriteQuadGeometry(
         in Vector2 objectSize,
-        in RectangleF spriteRect, in Texture2D texture,
-        in float[] vertices, bool horizontallyCentered, bool verticallyCentered)
+        in RectangleF spriteRect,
+        in Texture2D texture,
+        in float[] vertices,
+        bool horizontallyCentered,
+        bool verticallyCentered)
     {
-        if (vertices.Length < 16)
-        {
-            throw new ArgumentException("vertices length must be >= 16");
-        }
-
-        // Normalize helpers
-        float invW = 1f / texture.Width;
-        float invH = 1f / texture.Height;
-
-        // Horizontal UVs (left/right)
-        float u0 = spriteRect.Left * invW;
-        float u1 = spriteRect.Right * invW;
-
-        // With stb flip ON (stbi_set_flip_vertically_on_load(1)):
-        // RectangleF uses a top-left origin, but OpenGL UVs are bottom-left.
-        // Conversion required: pixel Y to UV by v = 1 - (y / height).
-        float vTop = 1f - (spriteRect.Top * invH);
-        float vBottom = 1f - (spriteRect.Bottom * invH);
-
         float width = objectSize.X;
         float height = objectSize.Y;
 
@@ -55,35 +38,37 @@ public static class GraphicsUtils
             width = height * spriteAspect;
         }
 
-        float x0 = horizontallyCentered ? -0.5f * width : 0f;
-        float x1 = horizontallyCentered ? 0.5f * width : width;
-        float y0 = verticallyCentered ? -0.5f * height : 0f;
-        float y1 = verticallyCentered ? 0.5f * height : height;
+        (float x0, float x1, float y0, float y1) =
+            ComputeQuadBounds(new Vector2(width, height), horizontallyCentered, verticallyCentered);
 
-        // Interleaved vertex buffer: position(x,y), texcoord(u,v)
-        // Bottom-Left
-        vertices[0] = x0;
-        vertices[1] = y0;
-        vertices[2] = u0;
-        vertices[3] = vBottom;
+        float invW = 1f / texture.Width;
+        float invH = 1f / texture.Height;
 
-        // Bottom-Right
-        vertices[4] = x1;
-        vertices[5] = y0;
-        vertices[6] = u1;
-        vertices[7] = vBottom;
+        float u0 = spriteRect.Left * invW;
+        float u1 = spriteRect.Right * invW;
 
-        // Top-Left
-        vertices[8] = x0;
-        vertices[9] = y1;
-        vertices[10] = u0;
-        vertices[11] = vTop;
+        float vTop = 1f - (spriteRect.Top * invH);
+        float vBottom = 1f - (spriteRect.Bottom * invH);
 
-        // Top-Right
-        vertices[12] = x1;
-        vertices[13] = y1;
-        vertices[14] = u1;
-        vertices[15] = vTop;
+        FillQuadInterleavedXYUV(vertices, x0, x1, y0, y1, u0, u1, vBottom, vTop);
+    }
+
+    /// <summary>
+    ///     Fills an interleaved position/uv quad for solid-color rendering.
+    ///     UVs are set to the full [0..1] range.
+    /// </summary>
+    /// <param name="size">Quad size in object/world units.</param>
+    /// <param name="vertices">Target array; must have length >= 16.</param>
+    /// <param name="horizontallyCentered">If true, x is centered around 0.</param>
+    /// <param name="verticallyCentered">If true, y is centered around 0.</param>
+    public static void FillSolidQuadGeometry(
+        in Vector2 size,
+        float[] vertices,
+        bool horizontallyCentered,
+        bool verticallyCentered)
+    {
+        (float x0, float x1, float y0, float y1) = ComputeQuadBounds(size, horizontallyCentered, verticallyCentered);
+        FillQuadInterleavedXYUV(vertices, x0, x1, y0, y1, u0: 0f, u1: 1f, v0: 0f, v1: 1f);
     }
 
     public static void RenderSpriteQuad(int textureHandle, int mvpLocation, in float[] vertexScratch, ref Matrix4 mvp)
@@ -99,5 +84,115 @@ public static class GraphicsUtils
 
         GL.UniformMatrix4(mvpLocation, false, ref mvp);
         GL.DrawElements(PrimitiveType.Triangles, QuadIndices.Length, DrawElementsType.UnsignedInt, 0);
+    }
+
+    /// <summary>
+    ///     Writes an interleaved quad into the provided vertex array.
+    ///     Vertex layout: (x, y, u, v) for 4 vertices (total 16 floats).
+    /// </summary>
+    /// <param name="vertices">Target array; must have length >= 16.</param>
+    /// <param name="x0">Left x in object/world space.</param>
+    /// <param name="x1">Right x in object/world space.</param>
+    /// <param name="y0">Bottom y in object/world space.</param>
+    /// <param name="y1">Top y in object/world space.</param>
+    /// <param name="u0">Left u texture coordinate.</param>
+    /// <param name="u1">Right u texture coordinate.</param>
+    /// <param name="v0">Bottom v texture coordinate.</param>
+    /// <param name="v1">Top v texture coordinate.</param>
+    private static void FillQuadInterleavedXYUV(
+        float[] vertices,
+        float x0, float x1,
+        float y0, float y1,
+        float u0, float u1,
+        float v0, float v1)
+    {
+        if (vertices.Length < 16)
+        {
+            throw new ArgumentException("vertices length must be >= 16");
+        }
+
+        // Bottom-Left
+        vertices[0] = x0;
+        vertices[1] = y0;
+        vertices[2] = u0;
+        vertices[3] = v0;
+        // Bottom-Right
+        vertices[4] = x1;
+        vertices[5] = y0;
+        vertices[6] = u1;
+        vertices[7] = v0;
+        // Top-Left
+        vertices[8] = x0;
+        vertices[9] = y1;
+        vertices[10] = u0;
+        vertices[11] = v1;
+        // Top-Right
+        vertices[12] = x1;
+        vertices[13] = y1;
+        vertices[14] = u1;
+        vertices[15] = v1;
+    }
+
+    /// <summary>
+    ///     Computes quad bounds in object/world space based on size and centering flags.
+    /// </summary>
+    /// <param name="size">Quad size in object/world units.</param>
+    /// <param name="horizontallyCentered">If true, x is centered around 0.</param>
+    /// <param name="verticallyCentered">If true, y is centered around 0.</param>
+    /// <returns>Tuple of (x0, x1, y0, y1).</returns>
+    private static (float x0, float x1, float y0, float y1) ComputeQuadBounds(
+        in Vector2 size,
+        bool horizontallyCentered,
+        bool verticallyCentered)
+    {
+        float x0 = horizontallyCentered ? -0.5f * size.X : 0f;
+        float x1 = horizontallyCentered ? 0.5f * size.X : size.X;
+        float y0 = verticallyCentered ? -0.5f * size.Y : 0f;
+        float y1 = verticallyCentered ? 0.5f * size.Y : size.Y;
+
+        return (x0, x1, y0, y1);
+    }
+
+    /// <summary>
+    ///     Uploads interleaved quad vertex data into the given VBO.
+    ///     Expects VAO with vertex attributes already configured.
+    /// </summary>
+    /// <param name="vertexBuffer">VBO handle to upload into.</param>
+    /// <param name="vertexScratch">Interleaved vertex data (length >= 16).</param>
+    public static void UploadQuadVertices(int vertexBuffer, in float[] vertexScratch)
+    {
+        GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
+        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, vertexScratch.Length * sizeof(float), vertexScratch);
+    }
+
+    /// <summary>
+    ///     Sets the uniform color and draws the currently bound quad (VAO/EBO must be bound).
+    /// </summary>
+    /// <param name="colorLocation">Uniform location for uColor.</param>
+    /// <param name="color">RGBA color.</param>
+    public static void DrawColoredQuad(int colorLocation, in Vector4 color)
+    {
+        GL.Uniform4(colorLocation, color);
+        GL.DrawElements(PrimitiveType.Triangles, QuadIndices.Length, DrawElementsType.UnsignedInt, 0);
+    }
+
+    /// <summary>
+    ///     Computes the final world-space size of a sprite quad using the same aspect logic as FillSpriteQuadGeometry.
+    /// </summary>
+    /// <param name="objectSize">Requested object size in world units.</param>
+    /// <param name="spriteRect">Sprite bounds in pixels.</param>
+    /// <returns>World-space quad size with aspect correction applied.</returns>
+    public static Vector2 ComputeSpriteWorldSize(in Vector2 objectSize, in RectangleF spriteRect)
+    {
+        float width = objectSize.X;
+        float height = objectSize.Y;
+
+        if (spriteRect.Height > 0f)
+        {
+            float aspect = spriteRect.Width / spriteRect.Height;
+            width = height * aspect;
+        }
+
+        return new Vector2(width, height);
     }
 }
