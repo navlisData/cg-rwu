@@ -7,6 +7,7 @@ using engine.TextureProcessing;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
@@ -152,7 +153,9 @@ public class Game : GameWindow
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
 
-        this.CursorState = CursorState.Hidden;
+        this.CursorState = CursorState.Confined;
+        this.Cursor = MouseCursor.Empty;
+
         PrefabFactory.CreateCrossHair(this.world, this.assetStore);
     }
 
