@@ -226,4 +226,18 @@ public static class GameAssets
         public static readonly AssetRef<StaticSprite> Simple =
             AssetRef<StaticSprite>.FromPath(Prefix + "simple");
     }
+
+    public static class Hearts
+    {
+        private const string Prefix = "hearts/";
+
+        public static readonly AssetRef<StaticSprite> Empty =
+            AssetRef<StaticSprite>.FromPath(Prefix + "empty");
+
+        public static readonly AssetRef<StaticSprite> Half =
+            AssetRef<StaticSprite>.FromPath(Prefix + "half");
+
+        public static readonly AssetRef<StaticSprite> Full =
+            AssetRef<StaticSprite>.FromPath(Prefix + "full");
+    }
 }
