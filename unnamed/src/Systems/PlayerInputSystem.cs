@@ -16,6 +16,7 @@ using unnamed.Enums;
 using unnamed.Prefabs;
 using unnamed.Texture;
 using unnamed.Utils;
+using unnamed.Utils.Health;
 
 namespace unnamed.systems;
 
@@ -54,6 +55,24 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
 
         alignedCharacter.CharacterDirection =
             mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
+
+        if (handle.Has<Player>())
+        {
+            if (keyboardState.IsKeyPressed(Keys.D1))
+            {
+                handle.AddDamage(2);
+            }
+
+            if (keyboardState.IsKeyPressed(Keys.D2))
+            {
+                handle.AddHealth(2);
+            }
+
+            if (keyboardState.IsKeyPressed(Keys.D3))
+            {
+                handle.SetMaxHealthUnits(15);
+            }
+        }
 
         PlayerAction currentState;
         Vector2 direction = Vector2.Zero;
