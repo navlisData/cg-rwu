@@ -108,7 +108,8 @@ public class Game : GameWindow
         this.destroyEntitySystem = new DestroyEntitySystem(this.world);
         this.enemyControlSystem = new EnemyControlSystem(this.world);
         this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
-        this.playerEnemyCollisionSystem = new PlayerEnemyCollisionSystem(this.world, this.assetStore);
+        this.playerEnemyCollisionSystem =
+            new PlayerEnemyCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
         this.handleCollisionSystem = new HandleCollisionSystem(this.world);
         this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
         this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
@@ -194,7 +195,7 @@ public class Game : GameWindow
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera));
         this.entityCollisionDetectSystem.Run(dt);
-        this.playerEnemyCollisionSystem.Run((this.player, dt), this.player);
+        this.playerEnemyCollisionSystem.Run(this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
         this.destroyEntitySystem.Run(dt);
     }

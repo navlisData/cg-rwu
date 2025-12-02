@@ -31,6 +31,7 @@ public class HandleCollisionSystem(World world)
         EntityHandle handle = this.world.Handle(e);
 
         ref EntityStats stats = ref handle.Get<EntityStats>();
+        ref Collided collided = ref handle.Get<Collided>();
 
         if (handle.Has<Enemy>())
         {
@@ -60,15 +61,17 @@ public class HandleCollisionSystem(World world)
 
         if (handle.Has<Player>())
         {
+            EntityHandle collidedEntityHandle = this.world.Handle(collided.CollidedWith);
+            if (!collidedEntityHandle.Has<DoAttack>())
+            {
+                return;
+            }
+
             handle.AddDamage(1);
 
             if (stats.Hitpoints <= 0)
             {
                 // TODO: End game?
-            }
-            else
-            {
-                handle.Add(new Invincible { RemainingTime = 1f });
             }
         }
 
