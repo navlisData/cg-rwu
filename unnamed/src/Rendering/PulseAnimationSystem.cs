@@ -1,6 +1,8 @@
 using Engine.Ecs;
 using Engine.Ecs.Systems;
 
+using OpenTK.Mathematics;
+
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 
@@ -54,24 +56,12 @@ public sealed class PulseAnimationSystem(World world) : EntitySetSystem<float>(w
         float meanMultiplier,
         float amplitudeMultiplier)
     {
-        const float twoPi = 2f * MathF.PI;
-
-        float clampedAmplitude = Clamp(amplitudeMultiplier, 0f, 0.95f);
+        float clampedAmplitude = Math.Clamp(amplitudeMultiplier, 0f, 0.95f);
         float safeMean = meanMultiplier <= 0f ? 1f : meanMultiplier;
 
-        float angularFrequency = twoPi * MathF.Max(0f, frequencyHz);
+        float angularFrequency = MathHelper.TwoPi * MathF.Max(0f, frequencyHz);
         float sine = MathF.Sin(timeSeconds * angularFrequency + phaseRadians);
 
-        return Clamp(safeMean + clampedAmplitude * sine, 0.001f, 1000f);
-    }
-
-    /// <summary>
-    ///     Clamps a float value between the given bounds.
-    /// </summary>
-    private static float Clamp(float value, float min, float max)
-    {
-        if (value < min) return min;
-        if (value > max) return max;
-        return value;
+        return Math.Clamp(safeMean + clampedAmplitude * sine, 0.001f, 1000f);
     }
 }
