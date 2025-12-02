@@ -105,7 +105,7 @@ public static class PrefabFactory
             .Add(velocity)
             .Add(new Projectile
             {
-                Damage = 10,
+                Damage = 8,
                 Lifetime = Lifetime.DestroyOnSleep,
                 ExplosionAnimation = GameAssets.Explosion.BulletExplosion,
                 ExplosionRadius = 1
