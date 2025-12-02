@@ -62,15 +62,9 @@ public class HandleCollisionSystem(World world)
         if (handle.Has<Player>())
         {
             EntityHandle collidedEntityHandle = this.world.Handle(collided.CollidedWith);
-            if (collidedEntityHandle.Has<DoAttack>())
+            if (!collidedEntityHandle.Has<DoAttack>())
             {
-                ref DoAttack attack = ref collidedEntityHandle.Get<DoAttack>();
-                attack.DamageIn -= args.dt;
-
-                if (attack.DamageIn > 0f)
-                {
-                    return;
-                }
+                return;
             }
 
             handle.AddDamage(1);

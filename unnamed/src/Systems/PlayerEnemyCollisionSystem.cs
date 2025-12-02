@@ -77,12 +77,19 @@ public class PlayerEnemyCollisionSystem(
             ref enemyState.RemainingTime,
             EnemyAction.Attack,
             clip.AnimationDuration(),
-            out bool _
+            out bool success
         );
-        handle.Add(new DoAttack { DamageIn = clip.AnimationDuration() });
-        handle.Add(new MarkedToDestroy { RemainingLifetime = clip.AnimationDuration() });
-        handle.Remove<Follows>();
-        handle.Remove<Velocity>();
+
+        if (success)
+        {
+            ref Transform transform = ref handle.Get<Transform>();
+            transform.Scale *= 1.3f;
+            
+            handle.Add(new DoAttack());
+            handle.Add(new MarkedToDestroy { RemainingLifetime = clip.AnimationDuration() });
+            handle.Remove<Follows>();
+            handle.Remove<Velocity>();
+        }
 
         nonDirectionalCharacter.ActionIndex = (byte)currentState;
         this.doUpdate = false;
