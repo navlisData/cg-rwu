@@ -32,26 +32,19 @@ public sealed class EnemyHealthRenderSystem(World world)
     private int mvpUniformLocation = -1;
     private int colorUniformLocation = -1;
 
-    private bool isInitialized;
-
     /// <summary>
-    ///     Initializes VertexArray/VertexBuffer/ElementBuffer -object and caches uniform
-    ///     locations for the given healthbar shader program.
-    ///     Must be called with a current OpenGL context (e.g. from Game.OnLoad).
+    ///     Binds the correct program/VertexArrayObject and ensures
+    ///     the correct VBO is bound for per-entity vertex uploads.
     /// </summary>
-    /// <param name="healthbarProgram">Shader program handle (sprite.vert + healthbar.frag).</param>
-    public void Initialize(int healthbarProgram)
+    /// <param name="shader">Healthbar shader program handle.</param>
+    protected override void BeforeUpdate(int shader)
     {
-        if (this.isInitialized)
-        {
-            return;
-        }
+        GL.UseProgram(shader);
+        GL.BindVertexArray(this.vertexArray);
 
         this.vertexArray = GL.GenVertexArray();
         this.vertexBuffer = GL.GenBuffer();
         this.elementBuffer = GL.GenBuffer();
-
-        GL.BindVertexArray(this.vertexArray);
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
         GL.BufferData(BufferTarget.ArrayBuffer, this.vertexScratch.Length * sizeof(float), IntPtr.Zero,
@@ -68,34 +61,8 @@ public sealed class EnemyHealthRenderSystem(World world)
         GL.EnableVertexAttribArray(1);
         GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 2 * sizeof(float));
 
-        this.mvpUniformLocation = GL.GetUniformLocation(healthbarProgram, "uMVP");
-        this.colorUniformLocation = GL.GetUniformLocation(healthbarProgram, "uColor");
-
-        if (this.mvpUniformLocation < 0 || this.colorUniformLocation < 0)
-        {
-            throw new InvalidOperationException("Healthbar shader is missing required uniforms (uMVP/uColor).");
-        }
-
-        this.isInitialized = true;
-    }
-
-    /// <summary>
-    ///     Binds the correct program/VertexArrayObject and ensures
-    ///     the correct VBO is bound for per-entity vertex uploads.
-    /// </summary>
-    /// <param name="shader">Healthbar shader program handle.</param>
-    protected override void BeforeUpdate(int shader)
-    {
-        if (!this.isInitialized)
-        {
-            throw new InvalidOperationException("Initialize(program) must be called before rendering.");
-        }
-
-        GL.UseProgram(shader);
-        GL.BindVertexArray(this.vertexArray);
-
-        GL.Enable(EnableCap.Blend);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        this.mvpUniformLocation = GL.GetUniformLocation(shader, "uMVP");
+        this.colorUniformLocation = GL.GetUniformLocation(shader, "uColor");
     }
 
     /// <summary>
@@ -116,7 +83,7 @@ public sealed class EnemyHealthRenderSystem(World world)
             return;
         }
 
-        int currentHealth = Math.Clamp(stats.Hitpoints, 0, maxHealth);
+        int currentHealth = stats.Hitpoints;
         float ratio = Math.Clamp(currentHealth / (float)maxHealth, 0f, 1f);
 
         Vector2 spriteWorldSize = GraphicsUtils.ComputeSpriteWorldSize(transform.Size, sprite.Frame.RectPx);
@@ -135,7 +102,7 @@ public sealed class EnemyHealthRenderSystem(World world)
 
         // Background
         GraphicsUtils.FillSolidQuadGeometry(new Vector2(barWidth, barHeight), this.vertexScratch, false, false);
-        GraphicsUtils.UploadQuadVertices(this.vertexBuffer, this.vertexScratch);
+        GraphicsUtils.UploadQuadVertices(this.vertexScratch);
         GraphicsUtils.DrawColoredQuad(this.colorUniformLocation, new Vector4(0f, 0f, 0f, 0.55f));
 
         // Foreground
@@ -143,7 +110,7 @@ public sealed class EnemyHealthRenderSystem(World world)
         if (fillWidth > 0.0001f)
         {
             GraphicsUtils.FillSolidQuadGeometry(new Vector2(fillWidth, barHeight), this.vertexScratch, false, false);
-            GraphicsUtils.UploadQuadVertices(this.vertexBuffer, this.vertexScratch);
+            GraphicsUtils.UploadQuadVertices(this.vertexScratch);
 
             Vector4 fg = ratio switch
             {
@@ -158,15 +125,8 @@ public sealed class EnemyHealthRenderSystem(World world)
 
     public void OnUnload()
     {
-        if (this.vertexArray != 0) { GL.DeleteVertexArray(this.vertexArray); }
-
-        if (this.vertexBuffer != 0) { GL.DeleteBuffer(this.vertexBuffer); }
-
-        if (this.elementBuffer != 0) { GL.DeleteBuffer(this.elementBuffer); }
-
         this.vertexArray = 0;
         this.vertexBuffer = 0;
         this.elementBuffer = 0;
-        this.isInitialized = false;
     }
 }

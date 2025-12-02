@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 
 using engine.TextureProcessing;
@@ -29,17 +30,9 @@ public static class GraphicsUtils
         bool horizontallyCentered,
         bool verticallyCentered)
     {
-        float width = objectSize.X;
-        float height = objectSize.Y;
-
-        if (spriteRect.Height > 0f)
-        {
-            float spriteAspect = spriteRect.Width / spriteRect.Height;
-            width = height * spriteAspect;
-        }
-
+        Vector2 size = ComputeSpriteWorldSize(objectSize, spriteRect);
         (float x0, float x1, float y0, float y1) =
-            ComputeQuadBounds(new Vector2(width, height), horizontallyCentered, verticallyCentered);
+            ComputeQuadBounds(size, horizontallyCentered, verticallyCentered);
 
         float invW = 1f / texture.Width;
         float invH = 1f / texture.Height;
@@ -157,12 +150,11 @@ public static class GraphicsUtils
     ///     Uploads interleaved quad vertex data into the given VBO.
     ///     Expects VAO with vertex attributes already configured.
     /// </summary>
-    /// <param name="vertexBuffer">VBO handle to upload into.</param>
     /// <param name="vertexScratch">Interleaved vertex data (length >= 16).</param>
-    public static void UploadQuadVertices(int vertexBuffer, in float[] vertexScratch)
+    public static void UploadQuadVertices(in float[] vertexScratch)
     {
-        GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, vertexScratch.Length * sizeof(float), vertexScratch);
+        int sizeInBytes = vertexScratch.Length * sizeof(float);
+        GL.BufferData(BufferTarget.ArrayBuffer, sizeInBytes, vertexScratch, BufferUsageHint.StreamDraw);
     }
 
     /// <summary>
@@ -184,15 +176,9 @@ public static class GraphicsUtils
     /// <returns>World-space quad size with aspect correction applied.</returns>
     public static Vector2 ComputeSpriteWorldSize(in Vector2 objectSize, in RectangleF spriteRect)
     {
-        float width = objectSize.X;
-        float height = objectSize.Y;
+        Debug.Assert(spriteRect.Height > 0f);
 
-        if (spriteRect.Height > 0f)
-        {
-            float aspect = spriteRect.Width / spriteRect.Height;
-            width = height * aspect;
-        }
-
-        return new Vector2(width, height);
+        float aspect = spriteRect.Width / spriteRect.Height;
+        return new Vector2(objectSize.Y * aspect, objectSize.Y);
     }
 }

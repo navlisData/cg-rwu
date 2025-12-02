@@ -126,8 +126,6 @@ public class Game : GameWindow
         this.shadowProgram = Shader.Setup("sprite.vert", "shadow.frag");
         this.healthbarProgram = Shader.Setup("sprite.vert", "healthbar.frag");
 
-        this.enemyHealthRenderSystem.Initialize(this.healthbarProgram);
-
         GameSprites.Init(this.assetStore);
 
         this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
