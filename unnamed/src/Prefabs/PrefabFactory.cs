@@ -139,7 +139,7 @@ public static class PrefabFactory
             .Add(new VisibleEntity())
             .Add(position)
             .Add(dropType)
-            .Add(new PulseAnimation(transform, 1.35f, 1.8f, 0.8f))
+            .Add(new PulseAnimation(transform, 1.45f, 1.65f, 0.8f))
             .Add(new CanCollideWithPlayer { Range = 0.5f })
             .Add(new Follows { Target = player, Speed = 8f, FollowRadius = 8, Type = FollowType.Linear })
             .Add(transform)
