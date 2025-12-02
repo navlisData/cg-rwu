@@ -40,7 +40,7 @@ public static class PrefabFactory
             .Add(new Player())
             .Add(new HasShadow())
             .Add(new PlayerActionState())
-            .Add(new EntityStats { Hitpoints = 10, MaxHealthUnits = 10 })
+            .Add(new EntityStats(10, 16))
             .Add(new HudHearts { hearts = [] })
             .Add(new HealthHudLayoutDirty())
             .ToEntity();
@@ -129,12 +129,15 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateDrop(World world, DropType dropType, IAssetStore assetStore, Position position, Entity player)
+    public static Entity CreateDrop(World world, DropType dropType, IAssetStore assetStore, Position position,
+        Entity player)
     {
         StaticSprite frame = assetStore.Get(dropType.GetAsset());
         EntityHandle dropHandle = world.Create()
             .Add(new VisibleEntity())
             .Add(position)
+            .Add(dropType)
+            .Add(new CanCollideWithPlayer { Range = 0.5f })
             .Add(new Follows { Target = player, Speed = 8f, FollowRadius = 8, Type = FollowType.Linear })
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1.5f, Height = frame.RectPx.Height })
             .Add(new Sprite { Frame = frame, Tint = new Vector4(0f, 0f, 0f, 1f) });

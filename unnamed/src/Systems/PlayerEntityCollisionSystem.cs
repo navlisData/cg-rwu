@@ -23,7 +23,6 @@ public class PlayerEntityCollisionSystem(
         world.Query()
             .With<CanCollideWithPlayer>()
             .With<Position>()
-            .With<EntityStats>()
             .Without<MarkedToDestroy>()
             .Without<Sleeping>()
             .Build()

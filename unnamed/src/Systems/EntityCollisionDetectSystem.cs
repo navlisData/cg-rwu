@@ -8,6 +8,7 @@ using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Tags;
 using unnamed.Prefabs;
+using unnamed.Utils.Health;
 using unnamed.Utils.Loot;
 
 namespace unnamed.systems;
@@ -46,7 +47,6 @@ public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : 
             EntityHandle enemyHandle = this.world.Handle(enemy);
 
             ref Position enemyPos = ref enemyHandle.Get<Position>();
-            ref EntityStats enemyStats = ref enemyHandle.Get<EntityStats>();
             Position distance = enemyPos - projectilePos;
             if (distance.LengthFast() <= 1f)
             {
@@ -67,7 +67,7 @@ public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : 
                 }
 
                 enemyHandle.Add(new Collided());
-                enemyStats.Hitpoints -= projectile.Damage;
+                enemyHandle.AddDamage(projectile.Damage);
             }
         }
     }

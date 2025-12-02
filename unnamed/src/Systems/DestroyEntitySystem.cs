@@ -12,11 +12,12 @@ using unnamed.Utils.Loot;
 
 namespace unnamed.systems;
 
-public sealed class DestroyEntitySystem(World world, IAssetStore assetStore) : EntitySetSystem<(float dt, Entity player)>(world,
-    world.Query()
-        .With<MarkedToDestroy>()
-        .Build()
-)
+public sealed class DestroyEntitySystem(World world, IAssetStore assetStore)
+    : EntitySetSystem<(float dt, Entity player)>(world,
+        world.Query()
+            .With<MarkedToDestroy>()
+            .Build()
+    )
 {
     protected override void Update((float dt, Entity player) args, in Entity e)
     {

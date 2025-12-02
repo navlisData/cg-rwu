@@ -7,6 +7,7 @@ using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
 
+using unnamed.Components.Drops;
 using unnamed.Components.General;
 using unnamed.Components.Map;
 using unnamed.Components.Rendering;
@@ -30,51 +31,91 @@ public class HandleCollisionSystem(World world)
     {
         EntityHandle handle = this.world.Handle(e);
 
-        ref EntityStats stats = ref handle.Get<EntityStats>();
-        ref Collided collided = ref handle.Get<Collided>();
-
-        if (handle.Has<Enemy>())
+        try
         {
-            Debug.Assert(handle.Has<EnemyActionState>());
-            Debug.Assert(handle.Has<NonDirectionalCharacter>());
+            ref var stats = ref handle.Get<EntityStats>();
+            ref var collided = ref handle.Get<Collided>();
 
-            ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
-            ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
-
-            if (stats.Hitpoints <= 0)
+            if (handle.Has<Enemy>())
             {
-                handle.Add(new MarkedToDestroy());
+                Debug.Assert(handle.Has<EnemyActionState>());
+                Debug.Assert(handle.Has<NonDirectionalCharacter>());
+
+                ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
+                ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
+
+                if (stats.Hitpoints <= 0)
+                {
+                    handle.Add(new MarkedToDestroy());
+                }
+                else
+                {
+                    AnimationClip clip = args.assetStore.Get(GameAssets.Enemy.Slime1.Damage);
+                    EnemyAction currentState = args.actionHandler.TryUpdateAction(
+                        ref enemyState.CurrentAction,
+                        ref enemyState.RemainingTime,
+                        EnemyAction.Damage,
+                        clip.AnimationDuration(),
+                        out bool _
+                    );
+                    nonDirectionalCharacter.ActionIndex = (byte)currentState;
+                }
             }
-            else
+
+            if (handle.Has<Player>())
             {
-                AnimationClip clip = args.assetStore.Get(GameAssets.Enemy.Slime1.Damage);
-                EnemyAction currentState = args.actionHandler.TryUpdateAction(
-                    ref enemyState.CurrentAction,
-                    ref enemyState.RemainingTime,
-                    EnemyAction.Damage,
-                    clip.AnimationDuration(),
-                    out bool _
-                );
-                nonDirectionalCharacter.ActionIndex = (byte)currentState;
+                if (!this.world.IsAlive(collided.CollidedWith))
+                {
+                    handle.Remove<Collided>();
+                    return;
+                }
+
+                EntityHandle collidedEntityHandle = this.world.Handle(collided.CollidedWith);
+                if (collidedEntityHandle.Has<DoAttack>())
+                {
+                    this.HandleAttack(handle, ref stats);
+                    return;
+                }
+
+                if (collidedEntityHandle.Has<DropType>())
+                {
+                    this.HandleDropPickup(handle, collidedEntityHandle);
+                    return;
+                }
             }
         }
-
-        if (handle.Has<Player>())
+        finally
         {
-            EntityHandle collidedEntityHandle = this.world.Handle(collided.CollidedWith);
-            if (!collidedEntityHandle.Has<DoAttack>())
-            {
-                return;
-            }
+            handle.Remove<Collided>();
+        }
+    }
 
-            handle.AddDamage(1);
+    private void HandleAttack(EntityHandle playerHandle, ref EntityStats stats)
+    {
+        playerHandle.AddDamage(1);
 
-            if (stats.Hitpoints <= 0)
-            {
-                // TODO: End game?
-            }
+        if (stats.Hitpoints <= 0)
+        {
+            // TODO: End game?
+        }
+    }
+
+    private void HandleDropPickup(EntityHandle playerHandle, EntityHandle collidedEntityHandle)
+    {
+        ref DropType type = ref collidedEntityHandle.Get<DropType>();
+
+        switch (type)
+        {
+            case DropType.MaxHealthDrop:
+                int deltaMaxUnits = collidedEntityHandle.Get<MaxHealthDrop>().MaxHealthDeltaUnits;
+                playerHandle.AddMaxHealthUnits(deltaMaxUnits);
+                break;
+            case DropType.UpdateHealthDrop:
+                int deltaUnits = collidedEntityHandle.Get<UpdateHealthDrop>().HealthDeltaUnits;
+                playerHandle.AddHealthUnits(deltaUnits);
+                break;
         }
 
-        handle.Remove<Collided>();
+        collidedEntityHandle.Add(new MarkedToDestroy());
     }
 }
