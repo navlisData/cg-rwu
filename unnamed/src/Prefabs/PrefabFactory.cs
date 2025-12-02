@@ -71,6 +71,7 @@ public static class PrefabFactory
             })
             .Add(new NonDirectionalCharacter { CharacterType = CharacterType.Enemy })
             .Add(new Character())
+            .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new Enemy())
             .Add(new Follows { Target = target, Type = FollowType.Linear, FollowRadius = 15, Speed = 2f })
             .Add(new HasShadow())

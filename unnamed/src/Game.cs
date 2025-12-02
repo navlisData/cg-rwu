@@ -64,7 +64,7 @@ public class Game : GameWindow
         NonDirectionalActionDatabase.CreateDefault();
 
     private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
-    private readonly PlayerEnemyCollisionSystem playerEnemyCollisionSystem;
+    private readonly PlayerEntityCollisionSystem playerEntityCollisionSystem;
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
 
@@ -108,8 +108,8 @@ public class Game : GameWindow
         this.destroyEntitySystem = new DestroyEntitySystem(this.world);
         this.enemyControlSystem = new EnemyControlSystem(this.world);
         this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
-        this.playerEnemyCollisionSystem =
-            new PlayerEnemyCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
+        this.playerEntityCollisionSystem =
+            new PlayerEntityCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
         this.handleCollisionSystem = new HandleCollisionSystem(this.world);
         this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
         this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
@@ -155,7 +155,7 @@ public class Game : GameWindow
                     if (rng.Next(0, 10) == 0)
                     {
                         PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
-                            new EntityStats { Hitpoints = 20, MaxHealthUnits = 20, AttackRange = 2f }, this.player,
+                            new EntityStats { Hitpoints = 20, MaxHealthUnits = 20 }, this.player,
                             this.assetStore);
                     }
                 }
@@ -195,7 +195,7 @@ public class Game : GameWindow
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera));
         this.entityCollisionDetectSystem.Run(dt);
-        this.playerEnemyCollisionSystem.Run(this.player);
+        this.playerEntityCollisionSystem.Run(this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
         this.destroyEntitySystem.Run(dt);
     }
