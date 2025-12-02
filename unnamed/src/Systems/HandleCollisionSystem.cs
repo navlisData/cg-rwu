@@ -33,8 +33,8 @@ public class HandleCollisionSystem(World world)
 
         try
         {
-            ref var stats = ref handle.Get<EntityStats>();
-            ref var collided = ref handle.Get<Collided>();
+            ref EntityStats stats = ref handle.Get<EntityStats>();
+            ref Collided collided = ref handle.Get<Collided>();
 
             if (handle.Has<Enemy>())
             {
@@ -83,10 +83,26 @@ public class HandleCollisionSystem(World world)
                     return;
                 }
             }
+
+            if (handle.Has<TriggerStageEnd>())
+            {
+                this.HandleWinCountdown(handle, args.dt);
+            }
         }
         finally
         {
             handle.Remove<Collided>();
+        }
+    }
+
+    private void HandleWinCountdown(EntityHandle handle, float dt)
+    {
+        ref TriggerStageEnd stageEnd = ref handle.Get<TriggerStageEnd>();
+
+        stageEnd.TimeRemaining -= dt;
+        if (stageEnd.TimeRemaining <= 0)
+        {
+            Console.WriteLine("You win!");
         }
     }
 

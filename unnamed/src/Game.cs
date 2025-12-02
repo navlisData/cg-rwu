@@ -40,25 +40,25 @@ public class Game : GameWindow
     private readonly IAssetStore assetStore = new AssetStore();
     private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
-    private readonly EntityRenderSystem entityRenderSystem;
     private readonly CharacterVisualSystem characterVisualSystem;
     private readonly DestroyEntitySystem destroyEntitySystem;
 
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly ActionControlHandler<EnemyAction> enemyActionHandler = new(EnemyActionExtensions.Priority);
     private readonly EnemyControlSystem enemyControlSystem;
+    private readonly EnemyHealthRenderSystem enemyHealthRenderSystem;
     private readonly EntityCollisionDetectSystem entityCollisionDetectSystem;
+    private readonly EntityRenderSystem entityRenderSystem;
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
     private readonly HandleCollisionSystem handleCollisionSystem;
-    private readonly MapLoadingSystem mapLoadingSystem;
-    private readonly MapRenderSystem mapRenderSystem;
-    private readonly MoveSystem move;
+    private readonly HealthHudLayoutSystem healthLayoutSystem;
 
     // Health
     private readonly HealthHudSyncSystem healthSyncSystem;
-    private readonly HealthHudLayoutSystem healthLayoutSystem;
-    private readonly EnemyHealthRenderSystem enemyHealthRenderSystem;
+    private readonly MapLoadingSystem mapLoadingSystem;
+    private readonly MapRenderSystem mapRenderSystem;
+    private readonly MoveSystem move;
 
     private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
         NonDirectionalActionDatabase.CreateDefault();
@@ -76,10 +76,10 @@ public class Game : GameWindow
     private readonly World world = new();
 
     private Entity camera;
+    private int healthbarProgram;
     private Entity player;
     private int shaderProgram;
     private int shadowProgram;
-    private int healthbarProgram;
 
     public Game() : base(NativeSettings, Settings)
     {
@@ -133,6 +133,12 @@ public class Game : GameWindow
         this.gameMap.GenerateMap(
             new Vector2i(-2, -2),
             new Vector2i(2, 2));
+
+        this.gameMap.NextValidPosition(out Position portalPosition);
+        PrefabFactory.CreatePortal(
+            this.world,
+            portalPosition,
+            this.assetStore);
 
         this.gameMap.NextValidPosition(out Position playerStartPosition);
         this.player = PrefabFactory.CreatePlayer(
