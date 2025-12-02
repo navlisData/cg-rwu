@@ -133,13 +133,16 @@ public static class PrefabFactory
         Entity player)
     {
         StaticSprite frame = assetStore.Get(dropType.GetAsset());
+        Transform transform = new() { Size = new Vector2(1f, 1f), Scale = 1.5f, Height = frame.RectPx.Height };
+
         EntityHandle dropHandle = world.Create()
             .Add(new VisibleEntity())
             .Add(position)
             .Add(dropType)
+            .Add(new PulseAnimation(transform, 1.45f, 1.65f, 0.8f))
             .Add(new CanCollideWithPlayer { Range = 0.5f })
             .Add(new Follows { Target = player, Speed = 8f, FollowRadius = 8, Type = FollowType.Linear })
-            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1.5f, Height = frame.RectPx.Height })
+            .Add(transform)
             .Add(new Sprite { Frame = frame, Tint = new Vector4(0f, 0f, 0f, 1f) });
 
         dropHandle.AddDefaultDropComponent(dropType);
