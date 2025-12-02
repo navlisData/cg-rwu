@@ -15,9 +15,9 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class CharacterRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
+public class EntityRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
     world, world.Query()
-        .With<Character>()
+        .With<VisibleEntity>()
         .With<Sprite>()
         .With<Position>()
         .With<Transform>()
