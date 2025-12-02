@@ -35,6 +35,7 @@ public static class PrefabFactory
             {
                 CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
             })
+            .Add(new VisibleEntity())
             .Add(new Character())
             .Add(new Player())
             .Add(new HasShadow())
@@ -70,7 +71,9 @@ public static class PrefabFactory
                 Layer = 0
             })
             .Add(new NonDirectionalCharacter { CharacterType = CharacterType.Enemy })
+            .Add(new VisibleEntity())
             .Add(new Character())
+            .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new Enemy())
             .Add(new Follows { Target = target, Type = FollowType.Linear, FollowRadius = 15, Speed = 2f })
             .Add(new HasShadow())
@@ -124,6 +127,19 @@ public static class PrefabFactory
             .Add(new UiAlignment(true, true))
             .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = new Vector4(0f, 0f, 0f, 1f) })
             .ToEntity();
+    }
+
+    public static Entity CreateDrop(World world, DropType dropType, IAssetStore assetStore, Position position)
+    {
+        StaticSprite frame = assetStore.Get(dropType.GetAsset());
+        EntityHandle dropHandle = world.Create()
+            .Add(new VisibleEntity())
+            .Add(position)
+            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1.5f, Height = frame.RectPx.Height })
+            .Add(new Sprite { Frame = frame, Tint = new Vector4(0f, 0f, 0f, 1f) });
+
+        dropHandle.AddDefaultDropComponent(dropType);
+        return dropHandle.ToEntity();
     }
 
     public static Entity CreateExplosion(World world, IAssetStore assetStore, Position position, float height,

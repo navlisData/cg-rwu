@@ -15,13 +15,13 @@ using unnamed.Texture;
 
 namespace unnamed.systems;
 
-public class PlayerEnemyCollisionSystem(
+public class PlayerEntityCollisionSystem(
     World world,
     IAssetStore assetStore,
     ActionControlHandler<EnemyAction> actionHandler)
     : EntitySetSystem<Entity>(world,
         world.Query()
-            .With<Enemy>()
+            .With<CanCollideWithPlayer>()
             .With<Position>()
             .With<EntityStats>()
             .Without<MarkedToDestroy>()
@@ -35,19 +35,27 @@ public class PlayerEnemyCollisionSystem(
         EntityHandle playerHandle = this.world.Handle(player);
 
         ref Position playerPos = ref playerHandle.Get<Position>();
-        ref Position enemyPos = ref handle.Get<Position>();
-        ref EntityStats enemyStats = ref handle.Get<EntityStats>();
-        ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
-        ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
+        ref Position entityPos = ref handle.Get<Position>();
 
-        Position distance = playerPos - enemyPos;
-
-        if (distance.LengthFast() > enemyStats.AttackRange)
+        Position distance = playerPos - entityPos;
+        float collisionRange = handle.Get<CanCollideWithPlayer>().Range;
+        if (distance.LengthFast() > collisionRange)
         {
             return;
         }
 
         playerHandle.Add(new Collided { CollidedWith = e });
+
+        if (handle.Has<Enemy>())
+        {
+            EnemyCollision(handle);
+        }
+    }
+
+    private void EnemyCollision(EntityHandle enemyHandle)
+    {
+        ref EnemyActionState enemyState = ref enemyHandle.Get<EnemyActionState>();
+        ref NonDirectionalCharacter nonDirectionalCharacter = ref enemyHandle.Get<NonDirectionalCharacter>();
 
         AnimationClip clip = assetStore.Get(GameAssets.Enemy.Slime1.Attack);
         EnemyAction currentState = actionHandler.TryUpdateAction(
@@ -60,13 +68,13 @@ public class PlayerEnemyCollisionSystem(
 
         if (success)
         {
-            ref Transform transform = ref handle.Get<Transform>();
+            ref Transform transform = ref enemyHandle.Get<Transform>();
             transform.Scale *= 1.3f;
-            
-            handle.Add(new DoAttack());
-            handle.Add(new MarkedToDestroy { RemainingLifetime = clip.AnimationDuration() });
-            handle.Remove<Follows>();
-            handle.Remove<Velocity>();
+
+            enemyHandle.Add(new DoAttack());
+            enemyHandle.Add(new MarkedToDestroy { RemainingLifetime = clip.AnimationDuration() });
+            enemyHandle.Remove<Follows>();
+            enemyHandle.Remove<Velocity>();
         }
 
         nonDirectionalCharacter.ActionIndex = (byte)currentState;

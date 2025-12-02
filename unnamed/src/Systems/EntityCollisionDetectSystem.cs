@@ -8,6 +8,7 @@ using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Tags;
 using unnamed.Prefabs;
+using unnamed.Utils.Loot;
 
 namespace unnamed.systems;
 
@@ -58,6 +59,7 @@ public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : 
                 if (collisionBehavior.DestroySelf())
                 {
                     handle.Add(new MarkedToDestroy());
+                    enemyHandle.Add(LootTableProvider.SlimeLootTable);
                 }
                 else
                 {

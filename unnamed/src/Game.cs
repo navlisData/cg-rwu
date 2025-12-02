@@ -40,7 +40,7 @@ public class Game : GameWindow
     private readonly IAssetStore assetStore = new AssetStore();
     private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
-    private readonly CharacterRenderSystem characterRenderSystem;
+    private readonly EntityRenderSystem entityRenderSystem;
     private readonly CharacterVisualSystem characterVisualSystem;
     private readonly DestroyEntitySystem destroyEntitySystem;
 
@@ -64,7 +64,7 @@ public class Game : GameWindow
         NonDirectionalActionDatabase.CreateDefault();
 
     private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
-    private readonly PlayerEnemyCollisionSystem playerEnemyCollisionSystem;
+    private readonly PlayerEntityCollisionSystem playerEntityCollisionSystem;
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
 
@@ -87,7 +87,7 @@ public class Game : GameWindow
 
         // Rendering systems
         this.cameraSystem = new CameraSystem(this.world);
-        this.characterRenderSystem = new CharacterRenderSystem(this.world, this.assetStore);
+        this.entityRenderSystem = new EntityRenderSystem(this.world, this.assetStore);
         this.followSystem = new FollowingSystem(this.world);
         this.mapRenderSystem = new MapRenderSystem(this.world, this.assetStore);
         this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assetStore);
@@ -105,11 +105,11 @@ public class Game : GameWindow
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
         this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
         this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
-        this.destroyEntitySystem = new DestroyEntitySystem(this.world);
+        this.destroyEntitySystem = new DestroyEntitySystem(this.world, this.assetStore);
         this.enemyControlSystem = new EnemyControlSystem(this.world);
         this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
-        this.playerEnemyCollisionSystem =
-            new PlayerEnemyCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
+        this.playerEntityCollisionSystem =
+            new PlayerEntityCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
         this.handleCollisionSystem = new HandleCollisionSystem(this.world);
         this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
         this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
@@ -155,7 +155,7 @@ public class Game : GameWindow
                     if (rng.Next(0, 10) == 0)
                     {
                         PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
-                            new EntityStats { Hitpoints = 20, MaxHealthUnits = 20, AttackRange = 2f }, this.player,
+                            new EntityStats { Hitpoints = 20, MaxHealthUnits = 20 }, this.player,
                             this.assetStore);
                     }
                 }
@@ -195,7 +195,7 @@ public class Game : GameWindow
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera));
         this.entityCollisionDetectSystem.Run(dt);
-        this.playerEnemyCollisionSystem.Run(this.player);
+        this.playerEntityCollisionSystem.Run(this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
         this.destroyEntitySystem.Run(dt);
     }
@@ -210,7 +210,7 @@ public class Game : GameWindow
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 0));
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
-        this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.entityRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.enemyHealthRenderSystem.Run(this.healthbarProgram, cameraPosition);
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
         this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize);
@@ -233,7 +233,7 @@ public class Game : GameWindow
         this.mapRenderSystem.OnUnload();
         this.shadowRenderSystem.OnUnload();
         this.projectileRenderSystem.OnUnload();
-        this.characterRenderSystem.OnUnload();
+        this.entityRenderSystem.OnUnload();
         this.enemyHealthRenderSystem.OnUnload();
         this.uiRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);

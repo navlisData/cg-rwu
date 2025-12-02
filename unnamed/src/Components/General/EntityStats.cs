@@ -4,5 +4,4 @@ public struct EntityStats
 {
     public int Hitpoints;
     public int MaxHealthUnits;
-    public float AttackRange;
 }
