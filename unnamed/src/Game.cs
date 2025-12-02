@@ -40,7 +40,7 @@ public class Game : GameWindow
     private readonly IAssetStore assetStore = new AssetStore();
     private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
-    private readonly CharacterRenderSystem characterRenderSystem;
+    private readonly EntityRenderSystem entityRenderSystem;
     private readonly CharacterVisualSystem characterVisualSystem;
     private readonly DestroyEntitySystem destroyEntitySystem;
 
@@ -87,7 +87,7 @@ public class Game : GameWindow
 
         // Rendering systems
         this.cameraSystem = new CameraSystem(this.world);
-        this.characterRenderSystem = new CharacterRenderSystem(this.world, this.assetStore);
+        this.entityRenderSystem = new EntityRenderSystem(this.world, this.assetStore);
         this.followSystem = new FollowingSystem(this.world);
         this.mapRenderSystem = new MapRenderSystem(this.world, this.assetStore);
         this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assetStore);
@@ -105,7 +105,7 @@ public class Game : GameWindow
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
         this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
         this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
-        this.destroyEntitySystem = new DestroyEntitySystem(this.world);
+        this.destroyEntitySystem = new DestroyEntitySystem(this.world, this.assetStore);
         this.enemyControlSystem = new EnemyControlSystem(this.world);
         this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
         this.playerEntityCollisionSystem =
@@ -210,7 +210,7 @@ public class Game : GameWindow
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 0));
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
-        this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.entityRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.enemyHealthRenderSystem.Run(this.healthbarProgram, cameraPosition);
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
         this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize);
@@ -233,7 +233,7 @@ public class Game : GameWindow
         this.mapRenderSystem.OnUnload();
         this.shadowRenderSystem.OnUnload();
         this.projectileRenderSystem.OnUnload();
-        this.characterRenderSystem.OnUnload();
+        this.entityRenderSystem.OnUnload();
         this.enemyHealthRenderSystem.OnUnload();
         this.uiRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);

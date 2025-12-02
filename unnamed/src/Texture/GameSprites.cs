@@ -228,11 +228,11 @@ public static class GameSprites
 
         assetStore.Register(GameAssets.Drops.RedHeart,
             SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 2, 14, 13)));
-        
+
         assetStore.Register(GameAssets.Drops.BlueHeart,
             SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 34, 14, 13)));
     }
-    
+
     private static void InitPlayerHearts(IAssetStore assetStore)
     {
         SpriteSheet heartSpritesheet =

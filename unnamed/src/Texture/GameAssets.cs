@@ -247,7 +247,7 @@ public static class GameAssets
 
         public static readonly AssetRef<StaticSprite> RedHeart =
             AssetRef<StaticSprite>.FromPath(Prefix + "red-heart");
-        
+
         public static readonly AssetRef<StaticSprite> BlueHeart =
             AssetRef<StaticSprite>.FromPath(Prefix + "blue-heart");
     }
