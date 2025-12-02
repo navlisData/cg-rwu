@@ -54,6 +54,7 @@ public class Game : GameWindow
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
+    private readonly PulseAnimationSystem pulseAnimationSystem;
 
     // Health
     private readonly HealthHudSyncSystem healthSyncSystem;
@@ -113,6 +114,7 @@ public class Game : GameWindow
         this.handleCollisionSystem = new HandleCollisionSystem(this.world);
         this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
         this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
+        this.pulseAnimationSystem = new PulseAnimationSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -197,6 +199,7 @@ public class Game : GameWindow
         this.entityCollisionDetectSystem.Run(dt);
         this.playerEntityCollisionSystem.Run(this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
+        this.pulseAnimationSystem.Run(dt);
         this.destroyEntitySystem.Run((dt, this.player));
     }
 
