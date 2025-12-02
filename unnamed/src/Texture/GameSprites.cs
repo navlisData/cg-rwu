@@ -19,6 +19,7 @@ public static class GameSprites
         InitCrosshair(assetStore);
         InitPlayerHearts(assetStore);
         InitDrops(assetStore);
+        InitProps(assetStore);
     }
 
     private static void InitPlayerSprites(IAssetStore assetStore)
@@ -110,17 +111,17 @@ public static class GameSprites
             SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyMoveTextureGrid, 7, 5f);
         assetStore.Register(GameAssets.Enemy.Slime1.Move, moveAnimation);
 
-        TextureGrid enemyAttackTextureGrid = new(18, 19, 0, 20, GapX: 2);
+        TextureGrid enemyAttackTextureGrid = new(18, 19, 0, 20, 2);
         AnimationClip attackAnimation =
             SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyAttackTextureGrid, 7, 12f, loop: false);
         assetStore.Register(GameAssets.Enemy.Slime1.Attack, attackAnimation);
 
-        TextureGrid enemyIdleTextureGrid = new(16, 14, 0, 40, GapX: 4);
+        TextureGrid enemyIdleTextureGrid = new(16, 14, 0, 40, 4);
         AnimationClip idleAnimation =
             SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyIdleTextureGrid, 6, 5f);
         assetStore.Register(GameAssets.Enemy.Slime1.Idle, idleAnimation);
 
-        TextureGrid enemyDamageTextureGrid = new(14, 16, 0, 55, GapX: 1);
+        TextureGrid enemyDamageTextureGrid = new(14, 16, 0, 55, 1);
         AnimationClip damageAnimation =
             SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyDamageTextureGrid, 4, 15f, loop: false);
         assetStore.Register(GameAssets.Enemy.Slime1.Damage, damageAnimation);
@@ -246,5 +247,14 @@ public static class GameSprites
 
         assetStore.Register(GameAssets.Hearts.Empty,
             SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(44, 0, 19, 18)));
+    }
+
+    private static void InitProps(IAssetStore assetStore)
+    {
+        SpriteSheet propsSpritesheet =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "props.png"));
+
+        assetStore.Register(GameAssets.Props.Portal,
+            SpriteSlicer.FromRect(propsSpritesheet, new Rectangle(353, 269, 94, 72)));
     }
 }

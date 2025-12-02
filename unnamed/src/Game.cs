@@ -136,6 +136,12 @@ public class Game : GameWindow
             new Vector2i(-2, -2),
             new Vector2i(2, 2));
 
+        this.gameMap.NextValidPosition(out Position portalPosition);
+        PrefabFactory.CreatePortal(
+            this.world,
+            portalPosition,
+            this.assetStore);
+
         this.gameMap.NextValidPosition(out Position playerStartPosition);
         this.player = PrefabFactory.CreatePlayer(
             this.world,
