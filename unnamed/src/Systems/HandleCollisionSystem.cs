@@ -15,6 +15,7 @@ using unnamed.Components.Tags;
 using unnamed.Enums;
 using unnamed.Texture;
 using unnamed.Utils.Health;
+using unnamed.Utils.Loot;
 
 namespace unnamed.systems;
 
@@ -47,6 +48,7 @@ public class HandleCollisionSystem(World world)
                 if (stats.Hitpoints <= 0)
                 {
                     handle.Add(new MarkedToDestroy());
+                    handle.Add(LootTableProvider.SlimeLootTable);
                 }
                 else
                 {
