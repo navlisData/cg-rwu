@@ -32,10 +32,7 @@ public static class LootApi
         if (dropsToPick <= 0)
             return 0;
 
-        Span<int> pickedIndices = dropsToPick <= 64
-            ? stackalloc int[dropsToPick]
-            : new int[dropsToPick];
-
+        Span<int> pickedIndices = stackalloc int[dropsToPick];
         var picked = 0;
 
         for (var pick = 0; pick < dropsToPick; pick++)
