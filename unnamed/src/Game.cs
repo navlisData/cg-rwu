@@ -58,6 +58,7 @@ public class Game : GameWindow
     // Health
     private readonly HealthHudSyncSystem healthSyncSystem;
     private readonly HealthHudLayoutSystem healthLayoutSystem;
+    private readonly EnemyHealthRenderSystem enemyHealthRenderSystem;
 
     private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
         NonDirectionalActionDatabase.CreateDefault();
@@ -78,6 +79,7 @@ public class Game : GameWindow
     private Entity player;
     private int shaderProgram;
     private int shadowProgram;
+    private int healthbarProgram;
 
     public Game() : base(NativeSettings, Settings)
     {
@@ -92,6 +94,7 @@ public class Game : GameWindow
         this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assetStore);
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
         this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
+        this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
 
         // General systems
         this.characterVisualSystem =
@@ -122,6 +125,7 @@ public class Game : GameWindow
 
         this.shaderProgram = Shader.Setup("sprite.vert", "sprite.frag");
         this.shadowProgram = Shader.Setup("sprite.vert", "shadow.frag");
+        this.healthbarProgram = Shader.Setup("sprite.vert", "healthbar.frag");
 
         GameSprites.Init(this.assetStore);
 
@@ -151,7 +155,8 @@ public class Game : GameWindow
                     if (rng.Next(0, 10) == 0)
                     {
                         PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
-                            new EntityStats { Hitpoints = 20, AttackRange = 2f }, this.player, this.assetStore);
+                            new EntityStats { Hitpoints = 20, MaxHealthUnits = 20, AttackRange = 2f }, this.player,
+                            this.assetStore);
                     }
                 }
             }
@@ -206,6 +211,7 @@ public class Game : GameWindow
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.characterRenderSystem.Run(this.shaderProgram, cameraPosition);
+        this.enemyHealthRenderSystem.Run(this.healthbarProgram, cameraPosition);
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
         this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize);
 
@@ -228,6 +234,7 @@ public class Game : GameWindow
         this.shadowRenderSystem.OnUnload();
         this.projectileRenderSystem.OnUnload();
         this.characterRenderSystem.OnUnload();
+        this.enemyHealthRenderSystem.OnUnload();
         this.uiRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);
     }
