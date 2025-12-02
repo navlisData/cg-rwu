@@ -12,14 +12,16 @@ using unnamed.Utils.Loot;
 
 namespace unnamed.systems;
 
-public sealed class DestroyEntitySystem(World world, IAssetStore assetStore) : EntitySetSystem<float>(world,
-    world.Query()
-        .With<MarkedToDestroy>()
-        .Build()
-)
+public sealed class DestroyEntitySystem(World world, IAssetStore assetStore)
+    : EntitySetSystem<(float dt, Entity player)>(world,
+        world.Query()
+            .With<MarkedToDestroy>()
+            .Build()
+    )
 {
-    protected override void Update(float dt, in Entity e)
+    protected override void Update((float dt, Entity player) args, in Entity e)
     {
+        (float dt, Entity player) = args;
         EntityHandle handle = this.world.Handle(e);
 
         ref MarkedToDestroy mtd = ref handle.Get<MarkedToDestroy>();
@@ -28,14 +30,14 @@ public sealed class DestroyEntitySystem(World world, IAssetStore assetStore) : E
         {
             if (handle.Has<LootTable>())
             {
-                DropLoot(handle);
+                DropLoot(handle, player);
             }
 
             this.world.DestroyEntity(e);
         }
     }
 
-    private void DropLoot(EntityHandle handle)
+    private void DropLoot(EntityHandle handle, Entity player)
     {
         ref LootTable lootTable = ref handle.Get<LootTable>();
         ref Position position = ref handle.Get<Position>();
@@ -46,7 +48,7 @@ public sealed class DestroyEntitySystem(World world, IAssetStore assetStore) : E
         for (var i = 0; i < count; i++)
         {
             Console.WriteLine("Loot dropped: " + drops[i]);
-            PrefabFactory.CreateDrop(this.world, drops[i], assetStore, position);
+            PrefabFactory.CreateDrop(this.world, drops[i], assetStore, position, player);
         }
 
         if (count == 0)

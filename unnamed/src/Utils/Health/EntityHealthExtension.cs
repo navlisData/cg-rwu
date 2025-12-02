@@ -28,7 +28,7 @@ public static class EntityHealthExtension
             return false;
         }
 
-        entityStats.Hitpoints = clamped;
+        entityStats.SetHitpoints(clamped);
         MarkHudVisualDirty(in handle);
         return true;
     }
@@ -42,7 +42,7 @@ public static class EntityHealthExtension
     /// <returns><c>true</c> if the value changed; otherwise <c>false</c>.</returns>
     public static bool AddHealthUnits(this in EntityHandle handle, int deltaHealthUnits)
     {
-        ref int healthUnits = ref handle.Get<EntityStats>().Hitpoints;
+        int healthUnits = handle.Get<EntityStats>().Hitpoints;
         return handle.SetHealthUnits(healthUnits + deltaHealthUnits);
     }
 
@@ -71,28 +71,44 @@ public static class EntityHealthExtension
     }
 
     /// <summary>
-    ///     Sets the maximum hitpoints and optionally clamps current hitpoints to the new maximum.
-    ///     Marks both HUD layout and visuals as dirty when relevant values change.
+    ///     Adds a delta to the entity's maximum hitpoints (negative = reduce max, positive = increase max),
+    ///     clamps the maximum to [0, AbsoluteMaxHealthUnits], and optionally clamps current hitpoints to the new maximum.
+    ///     Marks HUD layout and visuals as dirty when values change.
     /// </summary>
     /// <param name="handle">Handle providing world context and entity identity.</param>
-    /// <param name="newMaxHealthUnits">New maximum hitpoints value.</param>
+    /// <param name="deltaMaxHealthUnits">Delta to apply to maximum hitpoints.</param>
+    /// <param name="clampCurrent">If <c>true</c>, clamps current hitpoints to the new maximum.</param>
+    /// <returns><c>true</c> if max hitpoints (or clamped current hitpoints) changed; otherwise <c>false</c>.</returns>
+    public static bool AddMaxHealthUnits(this in EntityHandle handle, int deltaMaxHealthUnits, bool clampCurrent = true)
+    {
+        ref var entityStats = ref handle.Get<EntityStats>();
+        return handle.SetMaxHealthUnits(entityStats.MaxHealthUnits + deltaMaxHealthUnits, clampCurrent);
+    }
+
+    /// <summary>
+    ///     Sets the maximum hitpoints, clamps it to [0, AbsoluteMaxHealthUnits], and optionally clamps
+    ///     current hitpoints to the new maximum. Marks HUD layout and visuals as dirty when relevant values change.
+    /// </summary>
+    /// <param name="handle">Handle providing world context and entity identity.</param>
+    /// <param name="newMaxHealthUnits">New maximum hitpoints value (pre-clamp).</param>
     /// <param name="clampCurrent">If <c>true</c>, clamps current hitpoints to the new maximum.</param>
     /// <returns><c>true</c> if max hitpoints (or clamped current hitpoints) changed; otherwise <c>false</c>.</returns>
     public static bool SetMaxHealthUnits(this in EntityHandle handle, int newMaxHealthUnits, bool clampCurrent = true)
     {
         ref EntityStats entityStats = ref handle.Get<EntityStats>();
 
-        int max = Math.Max(0, newMaxHealthUnits);
-        bool changed = entityStats.MaxHealthUnits != max;
+        int absoluteMax = Math.Max(0, entityStats.AbsoluteMaxHealthUnits);
+        int max = Math.Clamp(newMaxHealthUnits, 0, absoluteMax);
 
-        entityStats.MaxHealthUnits = max;
+        bool changed = entityStats.MaxHealthUnits != max;
+        entityStats.SetMaxHealthUnits(max);
 
         if (clampCurrent)
         {
             int clampedCurrent = Math.Clamp(entityStats.Hitpoints, 0, entityStats.MaxHealthUnits);
             if (clampedCurrent != entityStats.Hitpoints)
             {
-                entityStats.Hitpoints = clampedCurrent;
+                entityStats.SetHitpoints(clampedCurrent);
                 changed = true;
             }
         }

@@ -155,7 +155,7 @@ public class Game : GameWindow
                     if (rng.Next(0, 10) == 0)
                     {
                         PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
-                            new EntityStats { Hitpoints = 20, MaxHealthUnits = 20 }, this.player,
+                            new EntityStats(20, 20), this.player,
                             this.assetStore);
                     }
                 }
@@ -197,7 +197,7 @@ public class Game : GameWindow
         this.entityCollisionDetectSystem.Run(dt);
         this.playerEntityCollisionSystem.Run(this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
-        this.destroyEntitySystem.Run(dt);
+        this.destroyEntitySystem.Run((dt, this.player));
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
