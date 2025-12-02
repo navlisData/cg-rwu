@@ -195,7 +195,7 @@ public class Game : GameWindow
         this.move.Run(dt);
         this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera));
         this.entityCollisionDetectSystem.Run(dt);
-        this.playerEnemyCollisionSystem.Run((this.player, dt), this.player);
+        this.playerEnemyCollisionSystem.Run(this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
         this.destroyEntitySystem.Run(dt);
     }

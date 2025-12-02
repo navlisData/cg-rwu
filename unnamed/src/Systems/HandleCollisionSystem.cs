@@ -73,10 +73,6 @@ public class HandleCollisionSystem(World world)
             {
                 // TODO: End game?
             }
-            else
-            {
-                handle.Add(new Invincible { RemainingTime = 1f });
-            }
         }
 
         handle.Remove<Collided>();

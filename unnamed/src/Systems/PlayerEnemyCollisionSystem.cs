@@ -19,7 +19,7 @@ public class PlayerEnemyCollisionSystem(
     World world,
     IAssetStore assetStore,
     ActionControlHandler<EnemyAction> actionHandler)
-    : ExtendedEntitySetSystem<(Entity player, float dt), Entity>(world,
+    : EntitySetSystem<Entity>(world,
         world.Query()
             .With<Enemy>()
             .With<Position>()
@@ -29,28 +29,6 @@ public class PlayerEnemyCollisionSystem(
             .Build()
     )
 {
-    protected override void BeforeUpdate((Entity player, float dt) args)
-    {
-        EntityHandle playerHandle = this.world.Handle(args.player);
-        float dt = args.dt;
-
-        if (!playerHandle.Has<Invincible>())
-        {
-            return;
-        }
-
-        playerHandle.Get<Invincible>().RemainingTime -= dt;
-
-        if (playerHandle.Get<Invincible>().RemainingTime <= 0f)
-        {
-            playerHandle.Remove<Invincible>();
-        }
-        else
-        {
-            this.doUpdate = false;
-        }
-    }
-
     protected override void Update(Entity player, in Entity e)
     {
         EntityHandle handle = this.world.Handle(e);
@@ -92,6 +70,5 @@ public class PlayerEnemyCollisionSystem(
         }
 
         nonDirectionalCharacter.ActionIndex = (byte)currentState;
-        this.doUpdate = false;
     }
 }
