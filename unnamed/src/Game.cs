@@ -197,7 +197,7 @@ public class Game : GameWindow
         this.entityCollisionDetectSystem.Run(dt);
         this.playerEntityCollisionSystem.Run(this.player);
         this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
-        this.destroyEntitySystem.Run(dt);
+        this.destroyEntitySystem.Run((dt, this.player));
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)

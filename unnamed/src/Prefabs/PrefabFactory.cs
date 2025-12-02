@@ -129,12 +129,13 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateDrop(World world, DropType dropType, IAssetStore assetStore, Position position)
+    public static Entity CreateDrop(World world, DropType dropType, IAssetStore assetStore, Position position, Entity player)
     {
         StaticSprite frame = assetStore.Get(dropType.GetAsset());
         EntityHandle dropHandle = world.Create()
             .Add(new VisibleEntity())
             .Add(position)
+            .Add(new Follows { Target = player, Speed = 8f, FollowRadius = 8, Type = FollowType.Linear })
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1.5f, Height = frame.RectPx.Height })
             .Add(new Sprite { Frame = frame, Tint = new Vector4(0f, 0f, 0f, 1f) });
 
