@@ -18,6 +18,7 @@ public static class GameSprites
         InitWallTiles(assetStore);
         InitCrosshair(assetStore);
         InitPlayerHearts(assetStore);
+        InitDrops(assetStore);
     }
 
     private static void InitPlayerSprites(IAssetStore assetStore)
@@ -220,6 +221,18 @@ public static class GameSprites
             SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64)));
     }
 
+    private static void InitDrops(IAssetStore assetStore)
+    {
+        SpriteSheet dropsSpritesheet =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "drops.png"));
+
+        assetStore.Register(GameAssets.Drops.RedHeart,
+            SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 2, 14, 13)));
+        
+        assetStore.Register(GameAssets.Drops.BlueHeart,
+            SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 34, 14, 13)));
+    }
+    
     private static void InitPlayerHearts(IAssetStore assetStore)
     {
         SpriteSheet heartSpritesheet =
