@@ -56,7 +56,7 @@ public class PlayerEntityCollisionSystem(
     {
         ref EnemyActionState enemyState = ref enemyHandle.Get<EnemyActionState>();
         ref NonDirectionalCharacter nonDirectionalCharacter = ref enemyHandle.Get<NonDirectionalCharacter>();
-        
+
         AnimationClip clip = assetStore.Get(GameAssets.Enemy.Slime1.Attack);
         EnemyAction currentState = actionHandler.TryUpdateAction(
             ref enemyState.CurrentAction,
@@ -70,7 +70,7 @@ public class PlayerEntityCollisionSystem(
         {
             ref Transform transform = ref enemyHandle.Get<Transform>();
             transform.Scale *= 1.3f;
-            
+
             enemyHandle.Add(new DoAttack());
             enemyHandle.Add(new MarkedToDestroy { RemainingLifetime = clip.AnimationDuration() });
             enemyHandle.Remove<Follows>();

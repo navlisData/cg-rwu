@@ -17,6 +17,7 @@ public sealed class CharacterVisualSystem(
     IAssetStore assetStore,
     DirectedActionDatabase directedActionDatabase,
     NonDirectionalActionDatabase nonDirectionalActionDatabase) : EntitySetSystem<float>(world, world.Query()
+    .With<VisibleEntity>()
     .With<Character>()
     .Without<Sleeping>()
     .Build()
