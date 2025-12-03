@@ -23,7 +23,6 @@ public class HandleCollisionSystem(World world)
     : EntitySetSystem<(float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore)>(world,
         world.Query()
             .With<Collided>()
-            .With<EntityStats>()
             .Build()
     )
 {
@@ -34,14 +33,15 @@ public class HandleCollisionSystem(World world)
 
         try
         {
-            ref var stats = ref handle.Get<EntityStats>();
-            ref var collided = ref handle.Get<Collided>();
+            ref Collided collided = ref handle.Get<Collided>();
 
             if (handle.Has<Enemy>())
             {
                 Debug.Assert(handle.Has<EnemyActionState>());
                 Debug.Assert(handle.Has<NonDirectionalCharacter>());
+                Debug.Assert(handle.Has<EntityStats>());
 
+                ref EntityStats stats = ref handle.Get<EntityStats>();
                 ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
                 ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
 
@@ -66,6 +66,9 @@ public class HandleCollisionSystem(World world)
 
             if (handle.Has<Player>())
             {
+                Debug.Assert(handle.Has<EntityStats>());
+                ref EntityStats stats = ref handle.Get<EntityStats>();
+
                 if (!this.world.IsAlive(collided.CollidedWith))
                 {
                     handle.Remove<Collided>();
@@ -85,10 +88,27 @@ public class HandleCollisionSystem(World world)
                     return;
                 }
             }
+
+            if (handle.Has<TriggerStageEnd>())
+            {
+                this.HandleWinCountdown(handle, args.dt);
+            }
         }
         finally
         {
             handle.Remove<Collided>();
+        }
+    }
+
+    private void HandleWinCountdown(EntityHandle handle, float dt)
+    {
+        ref TriggerStageEnd stageEnd = ref handle.Get<TriggerStageEnd>();
+        ref Collided collided = ref handle.Get<Collided>();
+
+        stageEnd.TimeRemaining -= dt;
+        if (stageEnd.TimeRemaining <= 0)
+        {
+            this.world.Remove<VisibleEntity>(collided.CollidedWith);
         }
     }
 

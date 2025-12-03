@@ -15,21 +15,17 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
-    world.Query()
+public class MapPropsRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
+    world, world.Query()
+        .With<Prop>()
         .With<Sprite>()
         .With<Position>()
         .With<Transform>()
-        .With<HasShadow>()
-        .With<VisibleEntity>()
         .Without<Sleeping>()
         .Build())
 {
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
-    private readonly Color4 shadowColor = new(0f, 0f, 0f, 0.35f);
-    private readonly Matrix4 shearMatrix = new(Vector4.UnitX, new Vector4(1.6f, 1, 0, 0), Vector4.UnitZ, Vector4.UnitW);
-
     private readonly int vertexArray = GL.GenVertexArray();
     private readonly int vertexBuffer = GL.GenBuffer();
     private readonly float[] vertexScratch = new float[16];
@@ -40,7 +36,6 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
     protected override void BeforeUpdate(int shader)
     {
         GL.UseProgram(shader);
-        GL.Uniform4(GL.GetUniformLocation(shader, "shadowColor"), this.shadowColor);
 
         GL.BindVertexArray(this.vertexArray);
         GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
@@ -73,17 +68,12 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
         Texture2D texture = assets.GetTextureById(frame.SpriteSheetId);
         RectangleF rect = frame.RectPx;
 
-        Matrix4 shadowModel =
-            Matrix4.CreateRotationZ(transform.Rotation) *
-            Matrix4.CreateScale(transform.Scale * 0.5f) *
-            Matrix4.CreateTranslation(0f, transform.Height, 0f) *
-            this.shearMatrix *
-            Matrix4.CreateTranslation(position.X, position.Y, 0f);
-        Matrix4 mvpSquare = shadowModel * camera.ViewProjection;
+        Matrix4 modelSquare = Matrix4.CreateTranslation(position.X, position.Y, 0f);
+        Matrix4 mvpSquare = modelSquare * camera.ViewProjection;
 
-        GraphicsUtils.FillSpriteQuadGeometry(
-            in transform.Size,
-            in rect, in texture, in this.vertexScratch, true, handle.Has<Projectile>());
+        Vector2 scaledSize = transform.Size * transform.Scale;
+        GraphicsUtils.FillSpriteQuadGeometry(in scaledSize, in rect, in texture, in this.vertexScratch, true,
+            true);
 
         GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
             ref mvpSquare);

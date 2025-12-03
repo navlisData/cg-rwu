@@ -217,6 +217,9 @@ public static class GameAssets
 
         public static readonly AssetRef<StaticSprite> Chest =
             AssetRef<StaticSprite>.FromPath(Prefix + "chest");
+
+        public static readonly AssetRef<StaticSprite> Portal =
+            AssetRef<StaticSprite>.FromPath(Prefix + "portal");
     }
 
     public static class Crosshair

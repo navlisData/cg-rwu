@@ -52,6 +52,7 @@ public class Game : GameWindow
     private readonly Map gameMap;
     private readonly HandleCollisionSystem handleCollisionSystem;
     private readonly MapLoadingSystem mapLoadingSystem;
+    private readonly MapPropsRenderSystem mapPropsRenderingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
     private readonly PulseAnimationSystem pulseAnimationSystem;
@@ -96,6 +97,7 @@ public class Game : GameWindow
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
         this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
         this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
+        this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world, this.assetStore);
 
         // General systems
         this.characterVisualSystem =
@@ -135,6 +137,12 @@ public class Game : GameWindow
         this.gameMap.GenerateMap(
             new Vector2i(-2, -2),
             new Vector2i(2, 2));
+
+        this.gameMap.NextValidPosition(out Position portalPosition);
+        PrefabFactory.CreatePortal(
+            this.world,
+            portalPosition,
+            this.assetStore);
 
         this.gameMap.NextValidPosition(out Position playerStartPosition);
         this.player = PrefabFactory.CreatePlayer(
@@ -211,6 +219,7 @@ public class Game : GameWindow
         ref Camera2D cameraPosition = ref this.world.Get<Camera2D>(this.camera);
 
         this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 0));
+        this.mapPropsRenderingSystem.Run(cameraPosition);
         this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
         this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
         this.entityRenderSystem.Run(this.shaderProgram, cameraPosition);
