@@ -169,7 +169,6 @@ public static class PrefabFactory
         return world.Create()
             .Add(pos)
             .Add(new Transform { Size = new Vector2(1.3f, 1f), Scale = 8 })
-            .Add(new ReceivesPlayerInput())
             .Add(new Sprite
             {
                 Frame = assetStore.Get(GameAssets.Props.Portal), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
