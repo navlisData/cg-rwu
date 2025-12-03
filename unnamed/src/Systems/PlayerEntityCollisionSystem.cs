@@ -47,7 +47,11 @@ public class PlayerEntityCollisionSystem(
 
         if (handle.Has<Enemy>())
         {
-            EnemyCollision(handle);
+            this.EnemyCollision(handle);
+        }
+        else
+        {
+            handle.Add(new Collided { CollidedWith = player });
         }
     }
 

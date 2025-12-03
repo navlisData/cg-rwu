@@ -174,8 +174,7 @@ public static class PrefabFactory
             {
                 Frame = assetStore.Get(GameAssets.Props.Portal), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
             })
-            .Add(new VisibleEntity())
-            .Add(new HealthHudLayoutDirty())
+            .Add(new Prop())
             .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new TriggerStageEnd())
             .ToEntity();
