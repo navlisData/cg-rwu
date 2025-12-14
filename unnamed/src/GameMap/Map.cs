@@ -29,7 +29,7 @@ public sealed class Map
     /// </summary>
     public const float TileSize = 4;
 
-    private readonly Dictionary<Vector2i, Entity> chunks = new();
+    private readonly Dictionary<Vector3i, Entity> chunks = new();
     private readonly List<Position> validPositions;
 
     private readonly World world;
@@ -47,12 +47,11 @@ public sealed class Map
     /// <summary>
     ///     Returns the chunk entity for a position in chunk-space, creating one if necessary.
     /// </summary>
-    public Entity GetOrCreateChunk(Vector2i chunkPos)
+    public Entity GetOrCreateChunk(Vector3i chunkPos)
     {
         if (!this.chunks.TryGetValue(chunkPos, out Entity chunk))
         {
             chunk = this.world.CreateEntity();
-            this.world.Add(chunk, new GridPosition(chunkPos));
             this.world.Add(chunk, new GridPosition(chunkPos));
             this.world.Add(chunk, new TileGrid { Tiles = new Tile[ChunkSize * ChunkSize] });
             this.chunks.Add(chunkPos, chunk);
@@ -64,7 +63,7 @@ public sealed class Map
     /// <summary>
     ///     Returns the chunk entity for the given chunk position if it exists.
     /// </summary>
-    public Entity? GetChunk(Vector2i chunkPos)
+    public Entity? GetChunk(Vector3i chunkPos)
     {
         if (this.chunks.TryGetValue(chunkPos, out Entity chunk))
         {
@@ -77,7 +76,7 @@ public sealed class Map
     /// <summary>
     ///     Destroys a chunk and its ECS entity, freeing its resources.
     /// </summary>
-    public void RemoveChunk(Vector2i chunkPos)
+    public void RemoveChunk(Vector3i chunkPos)
     {
         if (this.chunks.Remove(chunkPos, out Entity chunk))
         {
@@ -88,9 +87,9 @@ public sealed class Map
     /// <summary>
     ///     Retrieves a tile using an entity's Position component.
     /// </summary>
-    public Tile? GetTileAt(in Position pos)
+    public Tile? GetTileAt(in Position pos, int layer = 0)
     {
-        if (!this.chunks.TryGetValue(pos.Chunk, out Entity chunk))
+        if (!this.chunks.TryGetValue(new Vector3i(pos.Chunk, layer), out Entity chunk))
         {
             return null;
         }
@@ -103,24 +102,22 @@ public sealed class Map
     /// <summary>
     ///     Returns <c>true</c> if the tile at the position is a wall else <c>false</c>.
     ///     <remarks>
-    ///         Returns <c>true</c> for tiles outside the current map
+    ///         Returns <c>true</c> for tiles that are empty or outside the current map
     ///     </remarks>
     /// </summary>
     public bool IsWallAt(in Position pos)
     {
         Tile? tile = this.GetTileAt(in pos);
 
-        if (tile == null) { return true; }
-
-        return tile.Flags.IsWall();
+        return !tile.HasValue || tile.Value.Flags.IsWall();
     }
 
     /// <summary>
     ///     Sets a tile type at a world-space tile coordinate, creating the chunk if needed.
     /// </summary>
-    public void SetTile(Position position, Tile tile)
+    public void SetTile(Position position, Tile tile, int layer)
     {
-        Entity chunk = this.GetOrCreateChunk(position.Chunk);
+        Entity chunk = this.GetOrCreateChunk(new Vector3i(position.Chunk, layer));
         ref TileGrid grid = ref this.world.Get<TileGrid>(chunk);
 
         Vector2i tilePos = position.Tile;
@@ -143,16 +140,19 @@ public sealed class Map
         TileFlags[,] map = new TileFlags[widthTiles, heightTiles];
 
         this.validPositions.Clear();
-        List<Vector2i> validPositions = this.MapGenerator.GenerateMap(map);
-        this.validPositions.AddRange(validPositions.Select(p =>
+        List<Vector2i> rooms = this.MapGenerator.GenerateMap(map);
+        this.validPositions.AddRange(rooms.Select(p =>
             bottomLeftCorner + new Position(Vector2i.Zero, p, Vector2i.Zero)));
 
         for (int cy = minChunk.Y, my = 0; cy <= maxChunk.Y; cy += 1, my += 1)
         for (int cx = minChunk.X, mx = 0; cx <= maxChunk.X; cx += 1, mx += 1)
         {
             Vector2i chunkPos = new(cx, cy);
-            Entity chunk = this.GetOrCreateChunk(chunkPos);
-            ref TileGrid grid = ref this.world.Get<TileGrid>(chunk);
+            Entity chunk0 = this.GetOrCreateChunk(new Vector3i(chunkPos, 0));
+            Entity chunk1 = this.GetOrCreateChunk(new Vector3i(chunkPos, 1));
+            TileGrid[] tileGrids = { this.world.Get<TileGrid>(chunk0), this.world.Get<TileGrid>(chunk1) };
+
+            //TODO: Fix issue where you cant walk under overhang walls
 
             for (int ty = 0; ty < ChunkSize; ty += 1)
             for (int tx = 0; tx < ChunkSize; tx += 1)
@@ -162,11 +162,7 @@ public sealed class Map
                 TileFlags flags = map[x, y];
 
                 (StaticSprite sprite, StaticSprite? overlay, ushort layer) = this.SpriteMapper.MapToSprite(x, y, map);
-
-                grid.Tiles[tx + (ty * ChunkSize)] = new Tile
-                {
-                    Flags = flags, Sprite = sprite, OverlaySprite = overlay, layer = layer
-                };
+                tileGrids[layer].Tiles[tx + (ty * ChunkSize)] = Tile.Filled(flags, sprite, overlay);
             }
         }
     }

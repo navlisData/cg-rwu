@@ -61,7 +61,15 @@ public class MapRenderSystem(World world, IAssetStore assets)
         EntityHandle handle = this.world.Handle(e);
 
         (Camera2D camera, int layer) = context;
-        Vector2i chunkPosition = handle.Get<GridPosition>().ToVector2I();
+
+        ref GridPosition gridPosition = ref handle.Get<GridPosition>();
+
+        if (gridPosition.Z != layer)
+        {
+            return;
+        }
+
+        Vector3i chunkPosition = handle.Get<GridPosition>();
         ref Tile[] tiles = ref handle.Get<TileGrid>().Tiles;
 
         for (int y = 0; y < Map.ChunkSize; y++)
@@ -69,7 +77,11 @@ public class MapRenderSystem(World world, IAssetStore assets)
             for (int x = 0; x < Map.ChunkSize; x++)
             {
                 Tile tile = tiles[x + (y * Map.ChunkSize)];
-                if (tile.layer != layer) { continue; }
+
+                if (tile.Kind == TileKind.Empty)
+                {
+                    continue;
+                }
 
                 Matrix4 modelSquare = Matrix4.CreateTranslation(
                     ((chunkPosition.X * Map.ChunkSize) + x) * Map.TileSize,
