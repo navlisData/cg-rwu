@@ -28,7 +28,7 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
     private readonly int elementBuffer = GL.GenBuffer();
     private readonly uint[] quadIndices = GraphicsUtils.QuadIndices;
     private readonly Color4 shadowColor = new(0f, 0f, 0f, 0.35f);
-    private readonly Matrix4 shearMatrix = new(Vector4.UnitX, new Vector4(1.6f, 1, 0, 0), Vector4.UnitZ, Vector4.UnitW);
+    private readonly Matrix4 shearMatrix = new(Vector4.UnitX, new Vector4(0.6f, 1, 0, 0), Vector4.UnitZ, Vector4.UnitW);
 
     private readonly int vertexArray = GL.GenVertexArray();
     private readonly int vertexBuffer = GL.GenBuffer();
@@ -75,7 +75,7 @@ public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntit
 
         Matrix4 shadowModel =
             Matrix4.CreateRotationZ(transform.Rotation) *
-            Matrix4.CreateScale(transform.Scale * 0.5f) *
+            Matrix4.CreateScale(transform.Scale * 0.75f) *
             Matrix4.CreateTranslation(0f, transform.Height, 0f) *
             this.shearMatrix *
             Matrix4.CreateTranslation(position.X, position.Y, 0f);
