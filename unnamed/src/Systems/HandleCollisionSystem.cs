@@ -3,6 +3,7 @@ using System.Diagnostics;
 using engine.Control;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -10,6 +11,7 @@ using engine.TextureProcessing;
 using unnamed.Components.Drops;
 using unnamed.Components.General;
 using unnamed.Components.Map;
+using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
@@ -61,6 +63,20 @@ public class HandleCollisionSystem(World world)
                         out bool _
                     );
                     nonDirectionalCharacter.ActionIndex = (byte)currentState;
+
+                    if (handle.Has<Follows>() && !handle.Has<Velocity>())
+                    {
+                        ref Follows follows = ref handle.Get<Follows>();
+                        EntityEnumerator playerQuery =
+                            this.world.Query().With<Player>().Build().AsEnumerator(this.world);
+
+                        if (playerQuery.MoveNext())
+                        {
+                            Entity player = playerQuery.Current;
+                            ref Position playerPos = ref this.world.Get<Position>(player);
+                            follows.FollowRadius = (playerPos - handle.Get<Position>()).LengthFast();
+                        }
+                    }
                 }
             }
 
