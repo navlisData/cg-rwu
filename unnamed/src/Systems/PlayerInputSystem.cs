@@ -168,12 +168,14 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                     2,
                     args.assets);
 
-                entityStats.AttackCooldown = GameData.PlayerAttackCooldown;
-            }
+                entityStats.AttackCooldown = entityStats.MaxAttackCooldown;
+
+
 #if DEBUG
             Console.WriteLine(
                 $"Clicked at {mousePositionWorld} (Global Coords)");
 #endif
+            }
         }
 
         alignedCharacter.ActionIndex = (byte)currentState;
