@@ -14,3 +14,8 @@ public static class Controls
 
     public const MouseButton PlayerShoot = MouseButton.Left;
 }
+
+public static class GameData
+{
+    public const float PlayerAttackCooldown = 1f;
+}

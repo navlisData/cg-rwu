@@ -12,6 +12,7 @@ using unnamed.Components.Tags;
 using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.Texture;
+using unnamed.Utils;
 
 namespace unnamed.Prefabs;
 
@@ -40,7 +41,7 @@ public static class PrefabFactory
             .Add(new Player())
             .Add(new HasShadow())
             .Add(new PlayerActionState())
-            .Add(new EntityStats(10, 16))
+            .Add(new EntityStats(10, 16) { AttackCooldown = GameData.PlayerAttackCooldown })
             .Add(new HudHearts { hearts = [] })
             .Add(new HealthHudLayoutDirty())
             .ToEntity();

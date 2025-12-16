@@ -136,19 +136,13 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
             velocity.Speed = maxSpeed;
         }
 
-        if (mouseState.IsButtonReleased(Controls.PlayerShoot))
+
+        ref EntityStats entityStats = ref handle.Get<EntityStats>();
+        entityStats.AttackCooldown -= args.dt;
+
+        if (mouseState.IsButtonPressed(Controls.PlayerShoot))
         {
-            Vector2 mousePositionWorld =
-                Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport,
-                    camera2D.ViewProjection);
-
-            Vector2 bulletDirection =
-                -Vector2.NormalizeFast(playerPosition.ToWorldPosition() -
-                                       new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
-
-            PrefabFactory.CreateBullet(this.world, playerPosition,
-                new Velocity(bulletDirection, 7.5f), (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X), 2,
-                args.assets);
+            if (entityStats.AttackCooldown > 0f) return;
 
             AnimationClip clip = args.assets.Get(GameAssets.Player.Attack.East);
             currentState = args.actionHandler.TryUpdateAction(
@@ -156,8 +150,26 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 ref playerState.RemainingTime,
                 PlayerAction.Shoot,
                 clip.AnimationDuration(),
-                out bool _
+                out bool success
             );
+
+            if (success)
+            {
+                Vector2 mousePositionWorld =
+                    Projection.ScreenToWorldCoordinates(mouseState.Position, camera2D.Viewport,
+                        camera2D.ViewProjection);
+
+                Vector2 bulletDirection =
+                    -Vector2.NormalizeFast(playerPosition.ToWorldPosition() -
+                                           new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
+
+                PrefabFactory.CreateBullet(this.world, playerPosition,
+                    new Velocity(bulletDirection, 7.5f), (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X),
+                    2,
+                    args.assets);
+
+                entityStats.AttackCooldown = GameData.PlayerAttackCooldown;
+            }
 #if DEBUG
             Console.WriteLine(
                 $"Clicked at {mousePositionWorld} (Global Coords)");

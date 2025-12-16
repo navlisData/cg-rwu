@@ -5,6 +5,7 @@ public struct EntityStats
     public int Hitpoints { get; private set; }
     public int MaxHealthUnits { get; private set; }
     public int AbsoluteMaxHealthUnits { get; private set; }
+    public float AttackCooldown { get; set; }
 
     /// <summary>
     ///     Creates entity stats with consistent initial values.
