@@ -40,7 +40,7 @@ public static class PrefabFactory
             .Add(new Player())
             .Add(new HasShadow())
             .Add(new PlayerActionState())
-            .Add(new EntityStats(10, 16))
+            .Add(new EntityStats(10, 16) { MaxAttackCooldown = 1f })
             .Add(new HudHearts { hearts = [] })
             .Add(new HealthHudLayoutDirty())
             .ToEntity();
