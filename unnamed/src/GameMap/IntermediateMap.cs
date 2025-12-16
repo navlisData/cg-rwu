@@ -23,7 +23,17 @@ public readonly struct IntermediateMap(TileFlags[,] map)
 
     public TileFlags this[int x, int y]
     {
-        get => this.map[x, y];
+        get
+        {
+            try
+            {
+                return this.map[x, y];
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return TileFlags.None;
+            }
+        }
         set => this.map[x, y] = value;
     }
 

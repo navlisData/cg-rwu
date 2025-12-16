@@ -30,11 +30,13 @@ public sealed class Map
     public const float TileSize = 4;
 
     private readonly Dictionary<Vector2i, Entity> chunks = new();
+    private readonly Random rng = Random.Shared;
     private readonly List<Position> validPositions;
 
     private readonly World world;
     public IMapGenerator MapGenerator;
     public SpriteMapper? SpriteMapper;
+
     private int validPositionsIndex;
 
     public Map(World world, IMapGenerator? mapGenerator = null)
@@ -126,7 +128,8 @@ public sealed class Map
     }
 
     /// <summary>
-    ///     Generates a rectangular region of chunks using the current <see cref="MapGenerator" />.
+    ///     Generates a rectangular region of chunks using the current <see cref="MapGenerator" />
+    ///     surrounded by a one chunk border of walls.
     /// </summary>
     public void GenerateMap(Vector2i minChunk, Vector2i maxChunk)
     {
@@ -141,11 +144,13 @@ public sealed class Map
 
         this.validPositions.Clear();
         List<Vector2i> rooms = this.MapGenerator.GenerateMap(map);
-        this.validPositions.AddRange(rooms.Select(p =>
-            bottomLeftCorner + new Position(Vector2i.Zero, p, Vector2i.Zero)));
+        this.validPositions
+            .AddRange(rooms.Select(p =>
+                    bottomLeftCorner + new Position(Vector2i.Zero, p, Vector2i.Zero))
+                .OrderBy(_ => this.rng.Next()));
 
-        for (int cy = minChunk.Y, my = 0; cy <= maxChunk.Y; cy += 1, my += 1)
-        for (int cx = minChunk.X, mx = 0; cx <= maxChunk.X; cx += 1, mx += 1)
+        for (int cy = minChunk.Y - 1, my = -1; cy <= maxChunk.Y + 1; cy += 1, my += 1)
+        for (int cx = minChunk.X - 1, mx = -1; cx <= maxChunk.X + 1; cx += 1, mx += 1)
         {
             Vector2i chunkPos = new(cx, cy);
             Entity chunk = this.GetOrCreateChunk(chunkPos);
@@ -156,6 +161,7 @@ public sealed class Map
             {
                 int x = (mx * ChunkSize) + tx;
                 int y = (my * ChunkSize) + ty;
+
                 TileFlags flags = map[x, y];
 
                 (StaticSprite sprite, StaticSprite? overlay, ushort layer) =
@@ -166,10 +172,12 @@ public sealed class Map
     }
 
     /// <summary>
-    ///     Retrieves the next available valid position, if one exists.
+    ///     Retrieves the next available valid position, if one exists. Valid Positions are initially randomized, and the exact
+    ///     specifics of the Position (e.g. if they are rooms) depend on the <see cref="MapGenerator" /> used to generate the
+    ///     Map
     /// </summary>
     /// <param name="validPosition">
-    ///     When the method returns, contains the next valid position if available; otherwise the default value.
+    ///     When the method returns, contains the next valid position if available.
     /// </param>
     /// <returns>
     ///     <c>true</c> if a valid position was retrieved; otherwise <c>false</c>.
