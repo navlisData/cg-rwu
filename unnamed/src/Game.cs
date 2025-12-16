@@ -83,6 +83,9 @@ public class Game : GameWindow
     private int shadowProgram;
     private int healthbarProgram;
 
+    private float scaleFactorX = 1.0f;
+    private float scaleFactorY = 1.0f;
+
     public Game() : base(NativeSettings, Settings)
     {
         this.gameMap = new Map(this.world, new GraphBasedGenerator());
@@ -121,6 +124,8 @@ public class Game : GameWindow
 
     protected override void OnLoad()
     {
+        this.TryGetCurrentMonitorScale(out this.scaleFactorX, out this.scaleFactorY);
+
         base.OnLoad();
         GL.ClearColor(Color4.Black);
 
@@ -233,7 +238,7 @@ public class Game : GameWindow
     protected override void OnResize(ResizeEventArgs e)
     {
         base.OnResize(e);
-        GL.Viewport(0, 0, this.ClientSize.X, this.ClientSize.Y);
+        GL.Viewport(0, 0, (int)(this.ClientSize.X * this.scaleFactorX), (int)(this.ClientSize.Y * this.scaleFactorY));
         this.world.Get<Camera2D>(this.camera).Viewport = this.ClientSize;
     }
 
