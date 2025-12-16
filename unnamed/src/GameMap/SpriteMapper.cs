@@ -11,7 +11,8 @@ public class SpriteMapper(IAssetStore assetStore)
 {
     private readonly Random rng = Random.Shared;
 
-    internal (StaticSprite, StaticSprite?, ushort) MapToSprite(int x, int y, in IntermediateMap map)
+    internal (StaticSprite sprite, StaticSprite? overlay, ushort layer) MapToSprite(int x, int y,
+        in IntermediateMap map)
     {
         TileFlags tile = map[x, y];
         StaticSprite sprite;

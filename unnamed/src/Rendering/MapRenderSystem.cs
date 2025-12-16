@@ -62,14 +62,7 @@ public class MapRenderSystem(World world, IAssetStore assets)
 
         (Camera2D camera, int layer) = context;
 
-        ref GridPosition gridPosition = ref handle.Get<GridPosition>();
-
-        if (gridPosition.Z != layer)
-        {
-            return;
-        }
-
-        Vector3i chunkPosition = handle.Get<GridPosition>();
+        Vector2i chunkPosition = handle.Get<GridPosition>();
         ref Tile[] tiles = ref handle.Get<TileGrid>().Tiles;
 
         for (int y = 0; y < Map.ChunkSize; y++)
@@ -77,8 +70,7 @@ public class MapRenderSystem(World world, IAssetStore assets)
             for (int x = 0; x < Map.ChunkSize; x++)
             {
                 Tile tile = tiles[x + (y * Map.ChunkSize)];
-
-                if (tile.Kind == TileKind.Empty)
+                if (tile.SpriteLayer != layer || tile.Kind == TileKind.Empty)
                 {
                     continue;
                 }
