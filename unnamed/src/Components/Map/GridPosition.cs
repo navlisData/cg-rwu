@@ -1,22 +1,22 @@
-using System.Runtime.CompilerServices;
-
 using OpenTK.Mathematics;
 
 namespace unnamed.Components.Map;
 
-public struct GridPosition(int x, int y)
+public readonly struct GridPosition(int x, int y)
 {
-    public int X = x;
+    public readonly int X = x;
 
-    public int Y = y;
-
-    public GridPosition(int value) : this(value, value) { }
+    public readonly int Y = y;
 
     public GridPosition(Vector2i position) : this(position.X, position.Y) { }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector2i ToVector2I()
+    public static implicit operator GridPosition(Vector2i other)
     {
-        return new Vector2i(this.X, this.Y);
+        return new GridPosition(other);
+    }
+
+    public static implicit operator Vector2i(GridPosition self)
+    {
+        return new Vector2i(self.X, self.Y);
     }
 }

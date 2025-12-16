@@ -127,22 +127,22 @@ public class GraphBasedGenerator : IMapGenerator
 
     private static bool EraseIllegalWalls(in IntermediateMap map)
     {
-        bool changed = false;
-
         for (int y = 0; y < map.Height; y += 1)
         for (int x = 0; x < map.Width; x += 1)
         {
             if (map[x, y].IsWalkable()) { continue; }
 
             if ((!map.IsWallLeftOf(x, y) && !map.IsWallRightOf(x, y)) ||
-                (!map.IsWallTopCenterOf(x, y) && !map.IsWallBottomCenterOf(x, y)))
+                (!map.IsWallTopCenterOf(x, y) && !map.IsWallBottomCenterOf(x, y)) ||
+                (!map.IsWallRightOf(x, y) && map.IsWallTopRightOf(x, y) && !map.IsWallBottomCenterOf(x, y)) ||
+                (!map.IsWallLeftOf(x, y) && map.IsWallTopLeftOf(x, y) && !map.IsWallBottomCenterOf(x, y)))
             {
-                changed = true;
                 map[x, y] = TileFlags.Walkable;
+                return true;
             }
         }
 
-        return changed;
+        return false;
     }
 
     private class Rect(int x, int y, int w, int h)
