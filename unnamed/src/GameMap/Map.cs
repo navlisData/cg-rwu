@@ -36,7 +36,6 @@ public sealed class Map
     private readonly World world;
     public IMapGenerator MapGenerator;
     public SpriteMapper? SpriteMapper;
-
     private int validPositionsIndex;
 
     public Map(World world, IMapGenerator? mapGenerator = null)
@@ -45,6 +44,30 @@ public sealed class Map
         this.MapGenerator = mapGenerator ?? new RandomTileGenerator();
         this.validPositions = new List<Position>();
     }
+
+    /// <summary>
+    ///     Defines the current extents of the currently generated world in chunk coordinates.
+    /// </summary>
+    /// <remarks>
+    ///     The bounds are inclusive and expressed in a Cartesian coordinate system.
+    ///     <para>
+    ///         Horizontal extent:
+    ///         <list type="bullet">
+    ///             <item>
+    ///                 <description><c>Left</c> ≤ X ≤ <c>Right</c></description>
+    ///             </item>
+    ///         </list>
+    ///         Vertical extent:
+    ///         <list type="bullet">
+    ///             <item>
+    ///                 <description><c>Down</c> ≤ Y ≤ <c>Up</c></description>
+    ///             </item>
+    ///         </list>
+    ///         Note that <c>Up</c> is greater than <c>Down</c>, unlike screen-space
+    ///         coordinate systems where Y typically increases downward.
+    ///     </para>
+    /// </remarks>
+    public (int Left, int Right, int Up, int Down) CurrentWorldBounds { get; private set; }
 
     /// <summary>
     ///     Returns the chunk entity for a position in chunk-space, creating one if necessary.
@@ -136,6 +159,8 @@ public sealed class Map
         Debug.Assert(this.SpriteMapper != null);
         Debug.Assert(minChunk.X <= maxChunk.X && minChunk.Y <= maxChunk.Y);
 
+        this.CurrentWorldBounds = (minChunk.X, maxChunk.X, maxChunk.Y, minChunk.Y);
+
         int widthTiles = (Math.Abs(minChunk.X - maxChunk.X) + 1) * ChunkSize;
         int heightTiles = (Math.Abs(minChunk.Y - maxChunk.Y) + 1) * ChunkSize;
         Position bottomLeftCorner = new(minChunk, Vector2i.Zero, Vector2i.Zero);
@@ -197,21 +222,46 @@ public sealed class Map
         }
     }
 
-    public void SpawnEntitiesRandomlyOnMap(int spawnChanceOneOver, Func<Position, Entity> spawnEntity)
+    /// <summary>
+    ///     Iterates over all chunks within the current world bounds and attempts to
+    ///     spawn entities at random non-wall tile positions.
+    /// </summary>
+    /// <param name="spawnOdds">
+    ///     The inverse probability of spawning an entity at a given tile. A value of N
+    ///     means a 1-in-N chance per eligible tile.
+    /// </param>
+    /// <param name="spawnEntity">
+    ///     A factory function that creates an <see cref="Entity" /> for the given
+    ///     <see cref="Position" />.
+    /// </param>
+    /// <remarks>
+    ///     Only tiles that are not walls are considered for spawning. Each tile is
+    ///     evaluated independently and there is no upper limit on the total number
+    ///     of entities spawned.
+    ///     <para>
+    ///         The provided <see cref="Position" /> represents the center of the tile.
+    ///         The factory function may offset the position by up to ±<c>TileSize</c>
+    ///         to place the entity within the tile bounds.
+    ///     </para>
+    /// </remarks>
+    public void SpawnEntitiesRandomlyOnMap(int spawnOdds, Func<Position, Entity> spawnEntity)
     {
-        for (int mcY = -2; mcY <= 2; mcY += 1)
-        for (int mcX = -2; mcX <= 2; mcX += 1)
+        for (int mcY = this.CurrentWorldBounds.Down; mcY <= this.CurrentWorldBounds.Up; mcY++)
+        for (int mcX = this.CurrentWorldBounds.Left; mcX <= this.CurrentWorldBounds.Right; mcX++)
         {
-            for (int mtY = 0; mtY < ChunkSize; mtY += 1)
-            for (int mtX = 0; mtX < ChunkSize; mtX += 1)
+            for (int mtY = 0; mtY < ChunkSize; mtY++)
+            for (int mtX = 0; mtX < ChunkSize; mtX++)
             {
                 Position pos = new(mcX, mcY, mtX, mtY, 2, 2);
-                if (!this.IsWallAt(pos))
+
+                if (this.IsWallAt(pos))
                 {
-                    if (this.rng.Next(0, spawnChanceOneOver) == 0)
-                    {
-                        spawnEntity(pos);
-                    }
+                    continue;
+                }
+
+                if (this.rng.Next(spawnOdds) == 0)
+                {
+                    spawnEntity(pos);
                 }
             }
         }
