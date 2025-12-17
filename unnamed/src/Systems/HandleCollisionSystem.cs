@@ -23,7 +23,7 @@ namespace unnamed.systems;
 
 public class HandleCollisionSystem(World world)
     : EntitySetSystem<(float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore)>(world,
-        world.Query()
+        new QueryBuilder()
             .With<Collided>()
             .Build()
     )
@@ -68,7 +68,7 @@ public class HandleCollisionSystem(World world)
                     {
                         ref Follows follows = ref handle.Get<Follows>();
                         EntityEnumerator playerQuery =
-                            this.world.Query().With<Player>().Build().AsEnumerator(this.world);
+                            new QueryBuilder().With<Player>().Build().AsEnumerator(this.world);
 
                         if (playerQuery.MoveNext())
                         {

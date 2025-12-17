@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -13,7 +14,7 @@ using unnamed.Utils.Health;
 namespace unnamed.systems;
 
 public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : EntitySetSystem<float>(world,
-    world.Query()
+    new QueryBuilder()
         .With<Projectile>()
         .With<EntityCollisionBehavior>()
         .With<Position>()
@@ -41,7 +42,7 @@ public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : 
             }
         }
 
-        foreach (Entity enemy in this.world.Query().With<Enemy>().With<EntityStats>().Build().AsEnumerator(this.world))
+        foreach (Entity enemy in new QueryBuilder().With<Enemy>().With<EntityStats>().Build().AsEnumerator(this.world))
         {
             EntityHandle enemyHandle = this.world.Handle(enemy);
 

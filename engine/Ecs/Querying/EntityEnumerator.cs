@@ -19,6 +19,11 @@ public ref struct EntityEnumerator
     private readonly Type[] with;
     private readonly Type[] without;
     private readonly ReadOnlySpan<int> anchorDense;
+    private readonly Comparison<Entity>? compare;
+
+    private Span<int> sortedIds;
+    private int sortedCount;
+    private bool initialized;
 
     private int i;
 
@@ -33,12 +38,16 @@ public ref struct EntityEnumerator
     /// <param name="world">The ECS world.</param>
     /// <param name="with">Component types that must be present on the entity.</param>
     /// <param name="without">Component types that must be absent on the entity.</param>
-    /// <exception cref="InvalidOperationException">Thrown if no required component types are provided.</exception>
-    public EntityEnumerator(World world, Type[] with, Type[] without)
+    /// <param name="compare">Comparison function to sort entities before enumeration
+    ///     <c>Beware that this allocates an extra id list on the heap that is used for sorting</c>
+    /// </param>
+    /// <exception cref="InvalidOperationException">Thrown if an empty <see cref="with"/> parameter is provided.</exception>
+    public EntityEnumerator(World world, Type[] with, Type[] without, Comparison<Entity>? compare)
     {
-        this.world = world ?? throw new ArgumentNullException(nameof(world));
-        this.with = with ?? throw new ArgumentNullException(nameof(with));
-        this.without = without ?? throw new ArgumentNullException(nameof(without));
+        this.world = world;
+        this.with = with;
+        this.without = without;
+        this.compare = compare;
 
         if (with.Length == 0)
         {
@@ -80,6 +89,92 @@ public ref struct EntityEnumerator
     /// </summary>
     /// <returns><c>true</c> if a matching entity was found; otherwise <c>false</c>.</returns>
     public bool MoveNext()
+    {
+        // Fast path: no sorting
+        if (this.compare == null)
+        {
+            return this.MoveNextUnsorted();
+        }
+
+        // Sorted path (lazy init)
+        if (!this.initialized)
+        {
+            this.BuildAndSort();
+            this.initialized = true;
+            this.i = -1;
+        }
+
+        if (++this.i < this.sortedCount)
+        {
+            int id = this.sortedIds[this.i];
+            this.world.TryGetEntityVersion(id, out int version);
+            this.Current = new Entity(id, version);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool Matches(int id)
+    {
+        foreach (Type t in this.with)
+        {
+            if (!this.world.GetPool(t).Has(id))
+            {
+                return false;
+            }
+        }
+
+        foreach (Type t in this.without)
+        {
+            if (this.world.GetPool(t).Has(id))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void BuildAndSort()
+    {
+        int max = this.anchorDense.Length;
+
+        // Allocates enough space for the largest possible set to fit
+        // Stackalloc might be better for smaller sets but not possible here due to lifetime limitations
+        Span<int> buffer = new int[max];
+
+        int count = 0;
+
+        foreach (int id in this.anchorDense)
+        {
+            if (!this.Matches(id))
+            {
+                continue;
+            }
+
+            if (!this.world.TryGetEntityVersion(id, out _))
+            {
+                continue;
+            }
+
+            buffer[count++] = id;
+        }
+
+        Comparison<Entity>? cmp = this.compare!;
+        World? localWorld = this.world;
+        buffer[..count].Sort((a, b) =>
+        {
+            localWorld.TryGetEntityVersion(a, out int va);
+            localWorld.TryGetEntityVersion(b, out int vb);
+            return cmp(new Entity(a, va), new Entity(b, vb));
+        });
+
+        this.sortedIds = buffer;
+        this.sortedCount = count;
+    }
+
+    private bool MoveNextUnsorted()
     {
         while (++this.i < this.anchorDense.Length)
         {

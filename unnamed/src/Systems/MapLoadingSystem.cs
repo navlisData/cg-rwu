@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using unnamed.Components.Map;
@@ -8,7 +9,7 @@ using unnamed.Components.Tags;
 namespace unnamed.systems;
 
 public class MapLoadingSystem(World world) : EntitySetSystem<Position>(world,
-    world.Query()
+    new QueryBuilder()
         .With<TileGrid>()
         .Build())
 {

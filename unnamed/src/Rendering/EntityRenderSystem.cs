@@ -1,6 +1,7 @@
 using System.Drawing;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -16,12 +17,13 @@ using unnamed.Utils;
 namespace unnamed.Rendering;
 
 public class EntityRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
-    world, world.Query()
+    world, new QueryBuilder()
         .With<VisibleEntity>()
         .With<Sprite>()
         .With<Position>()
         .With<Transform>()
         .Without<Sleeping>()
+        .OrderWith((a, b) => SortByY(a, b, world))
         .Build())
 {
     private readonly int elementBuffer = GL.GenBuffer();
@@ -77,6 +79,19 @@ public class EntityRenderSystem(World world, IAssetStore assets) : ExtendedEntit
 
         GraphicsUtils.RenderSpriteQuad(texture.Handle, this.mvpUniformLocation, in this.vertexScratch,
             ref mvpSquare);
+    }
+
+    private static int SortByY(Entity a, Entity b, World world)
+    {
+        float aPos = world.Get<Position>(a).ToWorldPosition().Y;
+        float bPos = world.Get<Position>(b).ToWorldPosition().Y;
+
+        if (aPos == bPos)
+        {
+            return 0;
+        }
+
+        return aPos < bPos ? 1 : -1;
     }
 
     public void OnUnload()

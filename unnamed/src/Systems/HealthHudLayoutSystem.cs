@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -14,7 +15,7 @@ using unnamed.Utils.Health;
 namespace unnamed.systems;
 
 public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
-    : EntitySetSystem<float>(world, world.Query()
+    : EntitySetSystem<float>(world, new QueryBuilder()
         .With<EntityStats>()
         .With<Player>()
         .With<HealthHudLayoutDirty>()
@@ -30,7 +31,7 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
 
         int requiredSlots = HeartStatusUtil.RequiredSlots(stats.MaxHealthUnits);
 
-        EnsureExactSlotCount(ref hud, requiredSlots);
+        this.EnsureExactSlotCount(ref hud, requiredSlots);
 
         const int gap = 8;
         const int offset = 10;
@@ -43,7 +44,7 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
 
             ref AbsolutePosition pos = ref heartHandle.Get<AbsolutePosition>();
             ref AbsoluteSize absSize = ref heartHandle.Get<AbsoluteSize>();
-            float x = i * (absSize.Width + gap) + offset;
+            float x = (i * (absSize.Width + gap)) + offset;
             float y = absSize.Height + offset;
             pos = new AbsolutePosition(x, y);
         }
@@ -53,7 +54,7 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
     }
 
     /// <summary>
-    ///     Ensures <paramref name="hud"/> has exactly <paramref name="requiredSlots"/> references.
+    ///     Ensures <paramref name="hud" /> has exactly <paramref name="requiredSlots" /> references.
     ///     Grows by creating new heart entities initialized as Empty, shrinks by destroying trailing entities.
     /// </summary>
     /// <param name="hud">HUD binding component.</param>

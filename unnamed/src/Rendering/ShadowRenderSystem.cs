@@ -1,6 +1,7 @@
 using System.Drawing;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -16,7 +17,7 @@ using unnamed.Utils;
 namespace unnamed.Rendering;
 
 public class ShadowRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(world,
-    world.Query()
+    new QueryBuilder()
         .With<Sprite>()
         .With<Position>()
         .With<Transform>()

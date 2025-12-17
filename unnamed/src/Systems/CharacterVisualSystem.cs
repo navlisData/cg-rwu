@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -16,7 +17,7 @@ public sealed class CharacterVisualSystem(
     World world,
     IAssetStore assetStore,
     DirectedActionDatabase directedActionDatabase,
-    NonDirectionalActionDatabase nonDirectionalActionDatabase) : EntitySetSystem<float>(world, world.Query()
+    NonDirectionalActionDatabase nonDirectionalActionDatabase) : EntitySetSystem<float>(world, new QueryBuilder()
     .With<VisibleEntity>()
     .With<Character>()
     .Without<Sleeping>()
@@ -36,13 +37,14 @@ public sealed class CharacterVisualSystem(
         if (handle.Has<AlignedCharacter>())
         {
             ref AlignedCharacter alignedCharacter = ref handle.Get<AlignedCharacter>();
-            var directedActionByChar = directedActionDatabase.GetByCharacterType(alignedCharacter.CharacterType);
+            IDirectedSpriteResolver directedActionByChar =
+                directedActionDatabase.GetByCharacterType(alignedCharacter.CharacterType);
             resolvedType = directedActionByChar.Get(alignedCharacter.ActionIndex, alignedCharacter.CharacterDirection);
         }
         else
         {
             ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
-            var nonDirectionalResolver =
+            INonDirectionalSpriteResolver nonDirectionalResolver =
                 nonDirectionalActionDatabase.GetByCharacterType(nonDirectionalCharacter.CharacterType);
             resolvedType = nonDirectionalResolver.Get(nonDirectionalCharacter.ActionIndex);
         }
@@ -52,13 +54,19 @@ public sealed class CharacterVisualSystem(
             case VisualType.StaticSpriteKey staticSprite:
                 StaticSprite spriteById = assetStore.Get(staticSprite.Key);
                 if (!handle.Has<Sprite>())
+                {
                     handle.Add(new Sprite { Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
+                }
+
                 handle.Get<Sprite>().Frame = spriteById;
                 break;
             case VisualType.AnimationSpriteKey animationSprite:
                 AnimationClip clipById = assetStore.Get(animationSprite.Key);
                 if (!handle.Has<AnimatedSprite>())
+                {
                     handle.Add(new AnimatedSprite { CurrentFrameIndex = 0, TimeInFrame = 0 });
+                }
+
                 handle.Get<AnimatedSprite>().RequestedAnimation = clipById;
                 break;
         }

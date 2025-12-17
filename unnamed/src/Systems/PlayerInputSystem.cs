@@ -1,6 +1,7 @@
 using engine.Control;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -23,7 +24,7 @@ namespace unnamed.systems;
 public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
     : EntitySetSystem<(float dt, Camera2D camera, Vector2i windowSize, IAssetStore assets,
         ActionControlHandler<PlayerAction> actionHandler)>(world,
-        world.Query()
+        new QueryBuilder()
             .With<ReceivesPlayerInput>()
             .With<AlignedCharacter>()
             .With<Position>()
@@ -142,7 +143,10 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
 
         if (mouseState.IsButtonPressed(Controls.PlayerShoot))
         {
-            if (entityStats.AttackCooldown > 0f) return;
+            if (entityStats.AttackCooldown > 0f)
+            {
+                return;
+            }
 
             AnimationClip clip = args.assets.Get(GameAssets.Player.Attack.East);
             currentState = args.actionHandler.TryUpdateAction(

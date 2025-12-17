@@ -7,23 +7,12 @@ namespace Engine.Ecs.Querying;
 /// <remarks>
 ///     - Not thread-safe.
 ///     - Intended to be short-lived. Build once and discard the builder.
-///     - The provided <see cref="World" /> is kept for potential future world-scoped
-///     extensions; it is not used by the current implementation.
 /// </remarks>
 public sealed class QueryBuilder
 {
     private readonly List<Type> with = new();
     private readonly List<Type> without = new();
-
-    /// <summary>
-    ///     Creates a new builder bound to the given world.
-    /// </summary>
-    /// <param name="world">ECS world that will be queried.</param>
-    internal QueryBuilder(World world)
-    {
-        World world1 = world ?? throw new ArgumentNullException(nameof(world));
-        _ = world1; // currently unused; reserved for future world-scoped features
-    }
+    private Comparison<Entity>? compare;
 
     /// <summary>
     ///     Adds a required component type constraint. Entities must have <typeparamref name="T" />.
@@ -47,6 +36,12 @@ public sealed class QueryBuilder
         return this;
     }
 
+    public QueryBuilder OrderWith(Comparison<Entity> order)
+    {
+        this.compare = order;
+        return this;
+    }
+
     /// <summary>
     ///     Builds an immutable <see cref="Query" /> snapshot from the current constraints.
     ///     Subsequent mutations of this builder will not affect the returned query.
@@ -54,6 +49,6 @@ public sealed class QueryBuilder
     /// <returns>A <see cref="Query" /> capturing the current With/Without sets.</returns>
     public Query Build()
     {
-        return new Query(this.with.ToArray(), this.without.ToArray());
+        return new Query(this.with.ToArray(), this.without.ToArray(), this.compare);
     }
 }

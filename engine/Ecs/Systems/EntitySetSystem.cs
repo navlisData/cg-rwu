@@ -44,6 +44,7 @@ public abstract class EntitySetSystem<T>
     public void Run(T context)
     {
         EntityEnumerator it = this.query.AsEnumerator(this.world);
+
         foreach (Entity e in it)
         {
             this.Update(context, in e);

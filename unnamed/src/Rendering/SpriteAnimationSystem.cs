@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -11,7 +12,7 @@ using unnamed.Components.Tags;
 namespace unnamed.Rendering;
 
 public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(world,
-    world.Query()
+    new QueryBuilder()
         .With<AnimatedSprite>()
         .Without<Sleeping>()
         .Build()

@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 
 using Engine.Ecs.Pools;
-using Engine.Ecs.Querying;
 
 namespace Engine.Ecs;
 
@@ -47,7 +46,10 @@ public sealed class World
     /// </summary>
     /// <param name="e">Entity identity.</param>
     /// <returns>A stack-only handle bound to this world.</returns>
-    public EntityHandle Handle(in Entity e) => new(this, in e);
+    public EntityHandle Handle(in Entity e)
+    {
+        return new EntityHandle(this, in e);
+    }
 
     /// <summary>
     ///     Returns whether the given entity identity refers to a currently live entity in this world.
@@ -55,7 +57,10 @@ public sealed class World
     /// <param name="e">Entity identity.</param>
     /// <returns><c>true</c> if alive and version matches; otherwise <c>false</c>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsAlive(in Entity e) => this.IsAlive(e.Id, e.Version);
+    public bool IsAlive(in Entity e)
+    {
+        return this.IsAlive(e.Id, e.Version);
+    }
 
     /// <summary>
     ///     Throws if the entity identity is not valid in this world at this time.
@@ -256,13 +261,5 @@ public sealed class World
         {
             pool.EnsureEntityCapacity(newCap);
         }
-    }
-
-    /// <summary>
-    ///     Starts a fluent query builder scoped to this world.
-    /// </summary>
-    public QueryBuilder Query()
-    {
-        return new QueryBuilder(this);
     }
 }

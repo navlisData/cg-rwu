@@ -1,6 +1,7 @@
 using System.Drawing;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -15,8 +16,8 @@ using unnamed.Utils;
 namespace unnamed.Rendering;
 
 public class UiRenderSystem(World world, IAssetStore assets)
-    : ExtendedEntitySetSystem<(int shader, Vector2i windowSize), Vector2i>(
-        world, world.Query()
+    : ExtendedEntitySetSystem<(int shader, Vector2i windowSize), Vector2i>(world,
+        new QueryBuilder()
             .With<AbsolutePosition>()
             .With<AbsoluteSize>()
             .With<UiAlignment>()

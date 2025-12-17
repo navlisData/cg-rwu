@@ -47,6 +47,7 @@ public abstract class ExtendedEntitySetSystem<TSetup, TUpdate>(World world, Quer
         this.BeforeUpdate(setupContext);
 
         EntityEnumerator it = this.query.AsEnumerator(this.world);
+
         foreach (Entity e in it)
         {
             if (!this.doUpdate) { return; }

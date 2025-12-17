@@ -1,6 +1,7 @@
 using engine.Control;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -20,7 +21,7 @@ public class PlayerEntityCollisionSystem(
     IAssetStore assetStore,
     ActionControlHandler<EnemyAction> actionHandler)
     : EntitySetSystem<Entity>(world,
-        world.Query()
+        new QueryBuilder()
             .With<CanCollideWithPlayer>()
             .With<Position>()
             .Without<MarkedToDestroy>()

@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using OpenTK.Graphics.OpenGL;
@@ -16,7 +17,7 @@ public sealed class EllipsisRenderSystem : EntitySetSystem<(int shader, Camera2D
     private readonly int vertexBuffer = GL.GenBuffer();
     private int ellipseVertexCount;
 
-    public EllipsisRenderSystem(World world) : base(world, world.Query()
+    public EllipsisRenderSystem(World world) : base(world, new QueryBuilder()
         .With<Position>()
         .With<Circle>()
         .With<Transform>()
