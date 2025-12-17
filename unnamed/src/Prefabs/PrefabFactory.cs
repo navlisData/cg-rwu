@@ -178,4 +178,14 @@ public static class PrefabFactory
             .Add(new TriggerStageEnd())
             .ToEntity();
     }
+
+    public static Entity CreateMapDeco(World world, Position pos, Vector2 size, StaticSprite asset)
+    {
+        return world.Create()
+            .Add(pos)
+            .Add(new Transform { Size = size, Scale = 1 })
+            .Add(new Sprite { Frame = asset, Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 })
+            .Add(new Prop())
+            .ToEntity();
+    }
 }

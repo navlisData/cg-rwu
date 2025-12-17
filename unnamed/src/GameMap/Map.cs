@@ -196,4 +196,24 @@ public sealed class Map
             return false;
         }
     }
+
+    public void SpawnEntitiesRandomlyOnMap(int spawnChanceOneOver, Func<Position, Entity> spawnEntity)
+    {
+        for (int mcY = -2; mcY <= 2; mcY += 1)
+        for (int mcX = -2; mcX <= 2; mcX += 1)
+        {
+            for (int mtY = 0; mtY < ChunkSize; mtY += 1)
+            for (int mtX = 0; mtX < ChunkSize; mtX += 1)
+            {
+                Position pos = new(mcX, mcY, mtX, mtY, 2, 2);
+                if (!this.IsWallAt(pos))
+                {
+                    if (this.rng.Next(0, spawnChanceOneOver) == 0)
+                    {
+                        spawnEntity(pos);
+                    }
+                }
+            }
+        }
+    }
 }
