@@ -12,7 +12,7 @@ public sealed class QueryBuilder
 {
     private readonly List<Type> with = new();
     private readonly List<Type> without = new();
-    private Comparison<Entity>? compare;
+    private EntityEnumeratorComparison? compare;
 
     /// <summary>
     ///     Adds a required component type constraint. Entities must have <typeparamref name="T" />.
@@ -36,7 +36,7 @@ public sealed class QueryBuilder
         return this;
     }
 
-    public QueryBuilder OrderWith(Comparison<Entity> order)
+    public QueryBuilder OrderWith(EntityEnumeratorComparison order)
     {
         this.compare = order;
         return this;
