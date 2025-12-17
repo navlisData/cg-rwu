@@ -1,6 +1,7 @@
 using System.Diagnostics;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using unnamed.Components.Physics;
@@ -8,7 +9,7 @@ using unnamed.Components.Tags;
 
 namespace unnamed.Rendering;
 
-public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world, world.Query()
+public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world, new QueryBuilder()
     .With<Follows>()
     .With<Position>()
     .Without<Sleeping>()

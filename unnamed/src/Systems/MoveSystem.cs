@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -14,7 +15,7 @@ using unnamed.Prefabs;
 namespace unnamed.systems;
 
 public sealed class MoveSystem(World world, Map map, IAssetStore assetStore) : EntitySetSystem<float>(world,
-    world.Query()
+    new QueryBuilder()
         .With<Position>()
         .With<Transform>()
         .With<Velocity>()

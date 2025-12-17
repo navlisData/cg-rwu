@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using OpenTK.Mathematics;
@@ -8,7 +9,7 @@ using unnamed.Components.Rendering;
 
 namespace unnamed.Rendering;
 
-public sealed class PulseAnimationSystem(World world) : EntitySetSystem<float>(world, world.Query()
+public sealed class PulseAnimationSystem(World world) : EntitySetSystem<float>(world, new QueryBuilder()
     .With<PulseAnimation>()
     .With<Sprite>()
     .With<Transform>()
@@ -60,8 +61,8 @@ public sealed class PulseAnimationSystem(World world) : EntitySetSystem<float>(w
         float safeMean = meanMultiplier <= 0f ? 1f : meanMultiplier;
 
         float angularFrequency = MathHelper.TwoPi * MathF.Max(0f, frequencyHz);
-        float sine = MathF.Sin(timeSeconds * angularFrequency + phaseRadians);
+        float sine = MathF.Sin((timeSeconds * angularFrequency) + phaseRadians);
 
-        return Math.Clamp(safeMean + clampedAmplitude * sine, 0.001f, 1000f);
+        return Math.Clamp(safeMean + (clampedAmplitude * sine), 0.001f, 1000f);
     }
 }

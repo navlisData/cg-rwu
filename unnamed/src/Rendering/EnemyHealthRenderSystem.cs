@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using OpenTK.Graphics.OpenGL;
@@ -13,7 +14,7 @@ using unnamed.Utils;
 namespace unnamed.Rendering;
 
 public sealed class EnemyHealthRenderSystem(World world)
-    : ExtendedEntitySetSystem<int, Camera2D>(world, world.Query()
+    : ExtendedEntitySetSystem<int, Camera2D>(world, new QueryBuilder()
         .With<Enemy>()
         .With<Sprite>()
         .With<Position>()
@@ -23,14 +24,13 @@ public sealed class EnemyHealthRenderSystem(World world)
         .Without<Sleeping>()
         .Build())
 {
-    private int elementBuffer;
-    private int vertexArray;
-    private int vertexBuffer;
-
     private readonly float[] vertexScratch = new float[16];
+    private int colorUniformLocation = -1;
+    private int elementBuffer;
 
     private int mvpUniformLocation = -1;
-    private int colorUniformLocation = -1;
+    private int vertexArray;
+    private int vertexBuffer;
 
     /// <summary>
     ///     Binds the correct program/VertexArrayObject and ensures

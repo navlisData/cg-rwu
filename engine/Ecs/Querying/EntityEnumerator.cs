@@ -38,8 +38,10 @@ public ref struct EntityEnumerator
     /// <param name="world">The ECS world.</param>
     /// <param name="with">Component types that must be present on the entity.</param>
     /// <param name="without">Component types that must be absent on the entity.</param>
-    /// <param name="compare">TODO: write</param>
-    /// <exception cref="InvalidOperationException">Thrown if no required component types are provided.</exception>
+    /// <param name="compare">Comparison function to sort entities before enumeration
+    ///     <c>Beware that this allocates an extra id list on the heap that is used for sorting</c>
+    /// </param>
+    /// <exception cref="InvalidOperationException">Thrown if an empty <see cref="with"/> parameter is provided.</exception>
     public EntityEnumerator(World world, Type[] with, Type[] without, Comparison<Entity>? compare)
     {
         this.world = world;

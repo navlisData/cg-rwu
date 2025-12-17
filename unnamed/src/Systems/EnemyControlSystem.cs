@@ -1,6 +1,7 @@
 using engine.Control;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using unnamed.Components.General;
@@ -13,7 +14,7 @@ namespace unnamed.systems;
 
 public sealed class EnemyControlSystem(World world)
     : EntitySetSystem<(float dt, ActionControlHandler<EnemyAction> actionHandler)>(world,
-        world.Query()
+        new QueryBuilder()
             .With<Enemy>()
             .With<NonDirectionalCharacter>()
             .With<EnemyActionState>()
@@ -34,7 +35,7 @@ public sealed class EnemyControlSystem(World world)
         EnemyAction currentState = args.actionHandler.TryUpdateAction(
             ref enemyState.CurrentAction,
             ref enemyState.RemainingTime,
-            desiredAction: action,
+            action,
             out bool _
         );
 

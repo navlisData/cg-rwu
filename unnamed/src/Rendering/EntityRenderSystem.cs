@@ -1,6 +1,7 @@
 using System.Drawing;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -16,7 +17,7 @@ using unnamed.Utils;
 namespace unnamed.Rendering;
 
 public class EntityRenderSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
-    world, world.Query()
+    world, new QueryBuilder()
         .With<VisibleEntity>()
         .With<Sprite>()
         .With<Position>()
@@ -85,9 +86,12 @@ public class EntityRenderSystem(World world, IAssetStore assets) : ExtendedEntit
         float aPos = world.Get<Position>(a).ToWorldPosition().Y;
         float bPos = world.Get<Position>(b).ToWorldPosition().Y;
 
-        if (aPos == bPos) return 0;
+        if (aPos == bPos)
+        {
+            return 0;
+        }
 
-        return (aPos < bPos) ? 1 : -1;
+        return aPos < bPos ? 1 : -1;
     }
 
     public void OnUnload()

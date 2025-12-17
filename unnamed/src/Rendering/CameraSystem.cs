@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using OpenTK.Mathematics;
@@ -8,7 +9,7 @@ using unnamed.Components.Rendering;
 
 namespace unnamed.Rendering;
 
-public sealed class CameraSystem(World world) : EntitySetSystem<float>(world, world.Query()
+public sealed class CameraSystem(World world) : EntitySetSystem<float>(world, new QueryBuilder()
     .With<Camera2D>()
     .With<Position>()
     .Build()

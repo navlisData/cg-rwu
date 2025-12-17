@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -10,7 +11,7 @@ using unnamed.Components.UI;
 namespace unnamed.systems;
 
 public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouseProvider) : EntitySetSystem<Camera2D>(
-    world, world.Query()
+    world, new QueryBuilder()
         .With<SetPositionToMouse>()
         .With<AbsolutePosition>()
         .Build()

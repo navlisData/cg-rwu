@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -14,7 +15,7 @@ namespace unnamed.systems;
 
 public sealed class DestroyEntitySystem(World world, IAssetStore assetStore)
     : EntitySetSystem<(float dt, Entity player)>(world,
-        world.Query()
+        new QueryBuilder()
             .With<MarkedToDestroy>()
             .Build()
     )
@@ -30,7 +31,7 @@ public sealed class DestroyEntitySystem(World world, IAssetStore assetStore)
         {
             if (handle.Has<LootTable>())
             {
-                DropLoot(handle, player);
+                this.DropLoot(handle, player);
             }
 
             this.world.DestroyEntity(e);
@@ -44,8 +45,8 @@ public sealed class DestroyEntitySystem(World world, IAssetStore assetStore)
 
         Span<DropType> drops = stackalloc DropType[lootTable.DropCount];
         Random rng = new();
-        var count = LootApi.Roll(lootTable, rng, drops);
-        for (var i = 0; i < count; i++)
+        int count = LootApi.Roll(lootTable, rng, drops);
+        for (int i = 0; i < count; i++)
         {
             Console.WriteLine("Loot dropped: " + drops[i]);
             PrefabFactory.CreateDrop(this.world, drops[i], assetStore, position, player);

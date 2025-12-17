@@ -1,6 +1,7 @@
 using System.Drawing;
 
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -17,7 +18,7 @@ namespace unnamed.Rendering;
 
 public class ProjectileRenderingSystem(World world, IAssetStore assets) : ExtendedEntitySetSystem<int, Camera2D>(
     world,
-    world.Query()
+    new QueryBuilder()
         .With<Projectile>()
         .With<Sprite>()
         .With<Position>()

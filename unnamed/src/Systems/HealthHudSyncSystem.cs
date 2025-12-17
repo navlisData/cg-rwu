@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -12,7 +13,7 @@ using unnamed.Utils.Health;
 namespace unnamed.systems;
 
 public sealed class HealthHudSyncSystem(World world, IAssetStore assets)
-    : EntitySetSystem<float>(world, world.Query()
+    : EntitySetSystem<float>(world, new QueryBuilder()
         .With<EntityStats>()
         .With<HudHearts>()
         .With<HealthHudVisualDirty>()
@@ -43,7 +44,11 @@ public sealed class HealthHudSyncSystem(World world, IAssetStore assets)
 
             if (!heartHandle.IsAlive())
             {
-                if (!handle.Has<HealthHudLayoutDirty>()) handle.Add<HealthHudLayoutDirty>();
+                if (!handle.Has<HealthHudLayoutDirty>())
+                {
+                    handle.Add<HealthHudLayoutDirty>();
+                }
+
                 return;
             }
 

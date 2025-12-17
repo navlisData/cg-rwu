@@ -1,4 +1,5 @@
 using Engine.Ecs;
+using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -10,19 +11,19 @@ using unnamed.Utils;
 namespace unnamed.systems;
 
 public sealed class CameraInputSystem(World world, Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
-    : EntitySetSystem<float>(world, world.Query()
+    : EntitySetSystem<float>(world, new QueryBuilder()
         .With<ReceivesCameraControl>()
         .With<Camera2D>()
         .Build()
     )
 {
-    private bool rotationLocked;
-
     private readonly Func<KeyboardState> keyboardStateProvider =
         keyboardProvider ?? throw new ArgumentNullException(nameof(keyboardProvider));
 
     private readonly Func<MouseState> mouseStateProvider =
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
+
+    private bool rotationLocked;
 
     protected override void Update(float dt, in Entity e)
     {

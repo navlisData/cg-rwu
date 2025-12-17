@@ -19,7 +19,7 @@ public sealed class Query
     /// </summary>
     /// <param name="with">Component types that must be present on an entity.</param>
     /// <param name="without">Component types that must be absent on an entity.</param>
-    /// <param name="compareCallback">TODO: write</param>
+    /// <param name="compareCallback">Comparison function to sort entities before enumeration</param>
     internal Query(Type[] with, Type[] without, Comparison<Entity>? compareCallback)
     {
         this.with = with;
