@@ -48,27 +48,6 @@ public abstract class ExtendedEntitySetSystem<TSetup, TUpdate>(World world, Quer
 
         EntityEnumerator it = this.query.AsEnumerator(this.world);
 
-        if (this.query.Compare is not null)
-        {
-            List<Entity> list = new();
-
-            foreach (Entity entity in it)
-            {
-                list.Add(entity);
-            }
-
-            list.Sort(query.Compare);
-
-            foreach (Entity e in list)
-            {
-                if (!this.doUpdate) { return; }
-
-                this.Update(updateContext, in e);
-            }
-
-            return;
-        }
-
         foreach (Entity e in it)
         {
             if (!this.doUpdate) { return; }

@@ -10,20 +10,21 @@ namespace Engine.Ecs.Querying;
 /// </remarks>
 public sealed class Query
 {
+    private readonly Comparison<Entity>? compare;
     private readonly Type[] with;
     private readonly Type[] without;
-    public Comparison<Entity>? Compare { get; }
 
     /// <summary>
     ///     Creates a new query.
     /// </summary>
     /// <param name="with">Component types that must be present on an entity.</param>
     /// <param name="without">Component types that must be absent on an entity.</param>
+    /// <param name="compareCallback">TODO: write</param>
     internal Query(Type[] with, Type[] without, Comparison<Entity>? compareCallback)
     {
         this.with = with;
         this.without = without;
-        this.Compare = compareCallback;
+        this.compare = compareCallback;
     }
 
     /// <summary>
@@ -32,6 +33,6 @@ public sealed class Query
     /// <param name="world">The ECS world to enumerate.</param>
     public EntityEnumerator AsEnumerator(World world)
     {
-        return new EntityEnumerator(world, this.with, this.without);
+        return new EntityEnumerator(world, this.with, this.without, this.compare);
     }
 }
