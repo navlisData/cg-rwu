@@ -12,16 +12,18 @@ public sealed class Query
 {
     private readonly Type[] with;
     private readonly Type[] without;
+    public Comparison<Entity>? Compare { get; }
 
     /// <summary>
     ///     Creates a new query.
     /// </summary>
     /// <param name="with">Component types that must be present on an entity.</param>
     /// <param name="without">Component types that must be absent on an entity.</param>
-    internal Query(Type[] with, Type[] without)
+    internal Query(Type[] with, Type[] without, Comparison<Entity>? compareCallback)
     {
         this.with = with;
         this.without = without;
+        this.Compare = compareCallback;
     }
 
     /// <summary>

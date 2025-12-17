@@ -44,6 +44,27 @@ public abstract class EntitySetSystem<T>
     public void Run(T context)
     {
         EntityEnumerator it = this.query.AsEnumerator(this.world);
+
+        if (this.query.Compare is not null)
+        {
+            Console.WriteLine("test");
+            List<Entity> list = new();
+
+            foreach (Entity entity in it)
+            {
+                list.Add(entity);
+            }
+
+            list.Sort(query.Compare);
+
+            foreach (Entity e in list)
+            {
+                this.Update(context, in e);
+            }
+
+            return;
+        }
+
         foreach (Entity e in it)
         {
             this.Update(context, in e);

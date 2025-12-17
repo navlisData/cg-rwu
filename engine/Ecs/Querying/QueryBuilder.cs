@@ -14,6 +14,7 @@ public sealed class QueryBuilder
 {
     private readonly List<Type> with = new();
     private readonly List<Type> without = new();
+    private Comparison<Entity>? Compare = null;
 
     /// <summary>
     ///     Creates a new builder bound to the given world.
@@ -47,6 +48,12 @@ public sealed class QueryBuilder
         return this;
     }
 
+    public QueryBuilder OrderWith(Comparison<Entity> order)
+    {
+        this.Compare = order;
+        return this;
+    }
+
     /// <summary>
     ///     Builds an immutable <see cref="Query" /> snapshot from the current constraints.
     ///     Subsequent mutations of this builder will not affect the returned query.
@@ -54,6 +61,6 @@ public sealed class QueryBuilder
     /// <returns>A <see cref="Query" /> capturing the current With/Without sets.</returns>
     public Query Build()
     {
-        return new Query(this.with.ToArray(), this.without.ToArray());
+        return new Query(this.with.ToArray(), this.without.ToArray(), this.Compare);
     }
 }
