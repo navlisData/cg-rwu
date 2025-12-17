@@ -266,7 +266,7 @@ public static class GameSprites
         SpriteSet bushTiles = SpriteSlicer.FromGrid(plantsSpritesheet, bushTextureGrid);
         assetStore.Register(GameAssets.MapDecoration.Bushes, bushTiles);
 
-        TextureGrid stoneTextureGrid = new(32, 32, 480, Columns: 2);
+        TextureGrid stoneTextureGrid = new(32, 32, 0, 480, Columns: 2);
         SpriteSet stoneTiles = SpriteSlicer.FromGrid(propsSpritesheet, stoneTextureGrid);
         assetStore.Register(GameAssets.MapDecoration.SmallStones, stoneTiles);
 
