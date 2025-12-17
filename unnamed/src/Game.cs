@@ -33,7 +33,7 @@ public class Game : GameWindow
 
     private static readonly NativeWindowSettings Settings = new()
     {
-        Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = InitialGameSize, WindowState = WindowState.Maximized
+        Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = InitialGameSize
     };
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
