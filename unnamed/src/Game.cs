@@ -164,8 +164,9 @@ public class Game : GameWindow
         // deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Grass));
         deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.SmallStones));
 
-        this.gameMap.SpawnEntitiesRandomlyOnMap(1,
-            pos => PrefabFactory.CreateMapDeco(this.world, pos, new Vector2(2f, 2f),
+        this.gameMap.SpawnEntitiesRandomlyOnMap(10,
+            pos => PrefabFactory.CreateMapDeco(this.world, pos + new Vector2(ShiftInTile(), ShiftInTile()),
+                new Vector2(2f, 2f),
                 deco[rng.Next(deco.Count)]));
 
         this.camera =
@@ -175,6 +176,12 @@ public class Game : GameWindow
         this.Cursor = MouseCursor.Empty;
 
         PrefabFactory.CreateCrossHair(this.world, this.assetStore);
+        return;
+
+        float ShiftInTile()
+        {
+            return (rng.NextSingle() * Map.TileSize) - (Map.TileSize / 2);
+        }
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
