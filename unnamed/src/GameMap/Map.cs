@@ -138,6 +138,16 @@ public sealed class Map
     }
 
     /// <summary>
+    ///     Returns <c>true</c> if the tile at the position is a path else <c>false</c>.
+    /// </summary>
+    public bool IsPathAt(in Position pos)
+    {
+        Tile? tile = this.GetTileAt(in pos);
+
+        return !tile.HasValue || tile.Value.Flags.IsPath();
+    }
+
+    /// <summary>
     ///     Sets a tile type at a world-space tile coordinate, creating the chunk if needed.
     /// </summary>
     public void SetTile(Position position, Tile tile)
@@ -244,7 +254,7 @@ public sealed class Map
     ///         to place the entity within the tile bounds.
     ///     </para>
     /// </remarks>
-    public void SpawnEntitiesRandomlyOnMap(int spawnOdds, Func<Position, Entity> spawnEntity)
+    public void SpawnEntitiesRandomlyOnMap(int spawnOdds, Func<Position, Entity> spawnEntity, bool spawnOnPaths = true)
     {
         for (int mcY = this.CurrentWorldBounds.Down; mcY <= this.CurrentWorldBounds.Up; mcY++)
         for (int mcX = this.CurrentWorldBounds.Left; mcX <= this.CurrentWorldBounds.Right; mcX++)
@@ -254,7 +264,7 @@ public sealed class Map
             {
                 Position pos = new(mcX, mcY, mtX, mtY, 2, 2);
 
-                if (this.IsWallAt(pos))
+                if (this.IsWallAt(pos) || (!spawnOnPaths && this.IsPathAt(pos)))
                 {
                     continue;
                 }

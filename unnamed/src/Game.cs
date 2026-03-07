@@ -160,14 +160,14 @@ public class Game : GameWindow
         Random rng = Random.Shared;
         List<StaticSprite> deco = [];
         deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bricks));
-        // deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bushes));
-        // deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Grass));
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bushes));
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Grass));
         deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.SmallStones));
 
         this.gameMap.SpawnEntitiesRandomlyOnMap(10,
             pos => PrefabFactory.CreateMapDeco(this.world, pos + new Vector2(ShiftInTile(), ShiftInTile()),
                 new Vector2(2f, 2f),
-                deco[rng.Next(deco.Count)]));
+                deco[rng.Next(deco.Count)]), false);
 
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
