@@ -19,6 +19,7 @@ public static class GameSprites
         InitCrosshair(assetStore);
         InitPlayerHearts(assetStore);
         InitDrops(assetStore);
+        InitMapDecoration(assetStore);
         InitProps(assetStore);
     }
 
@@ -247,6 +248,31 @@ public static class GameSprites
 
         assetStore.Register(GameAssets.Hearts.Empty,
             SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(44, 0, 19, 18)));
+    }
+
+    private static void InitMapDecoration(IAssetStore assetStore)
+    {
+        SpriteSheet plantsSpritesheet =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "plants.png"));
+
+        TextureGrid grassTextureGrid = new(32, 32, 0, 384, Rows: 4, Columns: 4);
+        SpriteSet grassTiles = SpriteSlicer.FromGrid(plantsSpritesheet, grassTextureGrid);
+        assetStore.Register(GameAssets.MapDecoration.Grass, grassTiles);
+
+        SpriteSheet propsSpritesheet =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "props.png"));
+
+        TextureGrid bushTextureGrid = new(64, 64, 14, 177, Columns: 4);
+        SpriteSet bushTiles = SpriteSlicer.FromGrid(plantsSpritesheet, bushTextureGrid);
+        assetStore.Register(GameAssets.MapDecoration.Bushes, bushTiles);
+
+        TextureGrid stoneTextureGrid = new(32, 32, 0, 480, Columns: 2);
+        SpriteSet stoneTiles = SpriteSlicer.FromGrid(propsSpritesheet, stoneTextureGrid);
+        assetStore.Register(GameAssets.MapDecoration.SmallStones, stoneTiles);
+
+        TextureGrid brickTextureGrid = new(32, 32, 224, 480, Columns: 3);
+        SpriteSet brickTiles = SpriteSlicer.FromGrid(propsSpritesheet, brickTextureGrid);
+        assetStore.Register(GameAssets.MapDecoration.Bricks, brickTiles);
     }
 
     private static void InitProps(IAssetStore assetStore)

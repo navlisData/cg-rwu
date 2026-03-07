@@ -211,12 +211,26 @@ public static class GameAssets
             AssetRef<AnimationClip>.FromPath(Prefix + "bullet-explosion");
     }
 
+    public static class MapDecoration
+    {
+        private const string BasePrefix = "map-decoration/";
+
+        public static readonly AssetRef<SpriteSet> Grass =
+            AssetRef<SpriteSet>.FromPath(BasePrefix + "grass");
+
+        public static readonly AssetRef<SpriteSet> Bushes =
+            AssetRef<SpriteSet>.FromPath(BasePrefix + "bushes");
+
+        public static readonly AssetRef<SpriteSet> SmallStones =
+            AssetRef<SpriteSet>.FromPath(BasePrefix + "small-stones");
+
+        public static readonly AssetRef<SpriteSet> Bricks =
+            AssetRef<SpriteSet>.FromPath(BasePrefix + "bricks");
+    }
+
     public static class Props
     {
         private const string Prefix = "props/";
-
-        public static readonly AssetRef<StaticSprite> Chest =
-            AssetRef<StaticSprite>.FromPath(Prefix + "chest");
 
         public static readonly AssetRef<StaticSprite> Portal =
             AssetRef<StaticSprite>.FromPath(Prefix + "portal");

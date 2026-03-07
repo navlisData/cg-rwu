@@ -40,27 +40,26 @@ public class Game : GameWindow
     private readonly IAssetStore assetStore = new AssetStore();
     private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
-    private readonly EntityRenderSystem entityRenderSystem;
     private readonly CharacterVisualSystem characterVisualSystem;
     private readonly DestroyEntitySystem destroyEntitySystem;
 
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly ActionControlHandler<EnemyAction> enemyActionHandler = new(EnemyActionExtensions.Priority);
     private readonly EnemyControlSystem enemyControlSystem;
+    private readonly EnemyHealthRenderSystem enemyHealthRenderSystem;
     private readonly EntityCollisionDetectSystem entityCollisionDetectSystem;
+    private readonly EntityRenderSystem entityRenderSystem;
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
     private readonly HandleCollisionSystem handleCollisionSystem;
+    private readonly HealthHudLayoutSystem healthLayoutSystem;
+
+    // Health
+    private readonly HealthHudSyncSystem healthSyncSystem;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapPropsRenderSystem mapPropsRenderingSystem;
     private readonly MapRenderSystem mapRenderSystem;
     private readonly MoveSystem move;
-    private readonly PulseAnimationSystem pulseAnimationSystem;
-
-    // Health
-    private readonly HealthHudSyncSystem healthSyncSystem;
-    private readonly HealthHudLayoutSystem healthLayoutSystem;
-    private readonly EnemyHealthRenderSystem enemyHealthRenderSystem;
 
     private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
         NonDirectionalActionDatabase.CreateDefault();
@@ -69,6 +68,7 @@ public class Game : GameWindow
     private readonly PlayerEntityCollisionSystem playerEntityCollisionSystem;
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
+    private readonly PulseAnimationSystem pulseAnimationSystem;
 
     private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
@@ -78,10 +78,10 @@ public class Game : GameWindow
     private readonly World world = new();
 
     private Entity camera;
+    private int healthbarProgram;
     private Entity player;
     private int shaderProgram;
     private int shadowProgram;
-    private int healthbarProgram;
 
     public Game() : base(NativeSettings, Settings)
     {
@@ -152,25 +152,22 @@ public class Game : GameWindow
             new Vector2(2, 5),
             this.assetStore);
 
-        Random rng = new();
-        for (int mc_y = -2; mc_y <= 2; mc_y += 1)
-        for (int mc_x = -2; mc_x <= 2; mc_x += 1)
-        {
-            for (int mt_y = 0; mt_y < Map.ChunkSize; mt_y += 1)
-            for (int mt_x = 0; mt_x < Map.ChunkSize; mt_x += 1)
-            {
-                Position pos = new(mc_x, mc_y, mt_x, mt_y, 2, 2);
-                if (!this.gameMap.IsWallAt(pos))
-                {
-                    if (rng.Next(0, 10) == 0)
-                    {
-                        PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
-                            new EntityStats(20, 20), this.player,
-                            this.assetStore);
-                    }
-                }
-            }
-        }
+        this.gameMap.SpawnEntitiesRandomlyOnMap(10,
+            pos => PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
+                new EntityStats(20, 20), this.player,
+                this.assetStore));
+
+        Random rng = Random.Shared;
+        List<StaticSprite> deco = [];
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bricks));
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bushes));
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Grass));
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.SmallStones));
+
+        this.gameMap.SpawnEntitiesRandomlyOnMap(10,
+            pos => PrefabFactory.CreateMapDeco(this.world, pos + new Vector2(ShiftInTile(), ShiftInTile()),
+                new Vector2(2f, 2f),
+                deco[rng.Next(deco.Count)]), false);
 
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
@@ -179,6 +176,12 @@ public class Game : GameWindow
         this.Cursor = MouseCursor.Empty;
 
         PrefabFactory.CreateCrossHair(this.world, this.assetStore);
+        return;
+
+        float ShiftInTile()
+        {
+            return (rng.NextSingle() * Map.TileSize) - (Map.TileSize / 2);
+        }
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
