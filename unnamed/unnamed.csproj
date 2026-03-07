@@ -17,8 +17,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="Assets/**/*.*;Shaders/**/*.*">
+        <None Include="Assets/**/*.*;">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <TargetPath>Assets/%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+        </None>
+        <None Include="Shaders/**/*.*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <TargetPath>Shaders/%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
         </None>
     </ItemGroup>
 
