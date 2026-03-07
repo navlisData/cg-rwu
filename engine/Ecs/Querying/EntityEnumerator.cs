@@ -19,7 +19,7 @@ public ref struct EntityEnumerator
     private readonly Type[] with;
     private readonly Type[] without;
     private readonly ReadOnlySpan<int> anchorDense;
-    private readonly Comparison<Entity>? compare;
+    private readonly EntityEnumeratorComparison? compare;
 
     private Span<int> sortedIds;
     private int sortedCount;
@@ -38,11 +38,12 @@ public ref struct EntityEnumerator
     /// <param name="world">The ECS world.</param>
     /// <param name="with">Component types that must be present on the entity.</param>
     /// <param name="without">Component types that must be absent on the entity.</param>
-    /// <param name="compare">Comparison function to sort entities before enumeration
+    /// <param name="compare">
+    ///     Comparison function to sort entities before enumeration
     ///     <c>Beware that this allocates an extra id list on the heap that is used for sorting</c>
     /// </param>
-    /// <exception cref="InvalidOperationException">Thrown if an empty <see cref="with"/> parameter is provided.</exception>
-    public EntityEnumerator(World world, Type[] with, Type[] without, Comparison<Entity>? compare)
+    /// <exception cref="InvalidOperationException">Thrown if an empty <see cref="with" /> parameter is provided.</exception>
+    public EntityEnumerator(World world, Type[] with, Type[] without, EntityEnumeratorComparison? compare)
     {
         this.world = world;
         this.with = with;
@@ -161,13 +162,13 @@ public ref struct EntityEnumerator
             buffer[count++] = id;
         }
 
-        Comparison<Entity>? cmp = this.compare!;
+        EntityEnumeratorComparison cmp = this.compare!;
         World? localWorld = this.world;
         buffer[..count].Sort((a, b) =>
         {
             localWorld.TryGetEntityVersion(a, out int va);
             localWorld.TryGetEntityVersion(b, out int vb);
-            return cmp(new Entity(a, va), new Entity(b, vb));
+            return cmp(new Entity(a, va), new Entity(b, vb), localWorld);
         });
 
         this.sortedIds = buffer;
@@ -226,3 +227,5 @@ public ref struct EntityEnumerator
         return false;
     }
 }
+
+public delegate int EntityEnumeratorComparison(Entity x, Entity y, World world);

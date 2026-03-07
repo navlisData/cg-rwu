@@ -10,7 +10,7 @@ namespace Engine.Ecs.Querying;
 /// </remarks>
 public sealed class Query
 {
-    private readonly Comparison<Entity>? compare;
+    private readonly EntityEnumeratorComparison? compare;
     private readonly Type[] with;
     private readonly Type[] without;
 
@@ -20,7 +20,7 @@ public sealed class Query
     /// <param name="with">Component types that must be present on an entity.</param>
     /// <param name="without">Component types that must be absent on an entity.</param>
     /// <param name="compareCallback">Comparison function to sort entities before enumeration</param>
-    internal Query(Type[] with, Type[] without, Comparison<Entity>? compareCallback)
+    internal Query(Type[] with, Type[] without, EntityEnumeratorComparison? compareCallback)
     {
         this.with = with;
         this.without = without;
