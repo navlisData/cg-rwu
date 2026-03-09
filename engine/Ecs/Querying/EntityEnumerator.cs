@@ -18,6 +18,7 @@ public ref struct EntityEnumerator
     private readonly World world;
     private readonly Type[] with;
     private readonly Type[] without;
+    private readonly Type[][] withAny;
     private readonly ReadOnlySpan<int> anchorDense;
     private readonly EntityEnumeratorComparison? compare;
 
@@ -43,11 +44,13 @@ public ref struct EntityEnumerator
     ///     <c>Beware that this allocates an extra id list on the heap that is used for sorting</c>
     /// </param>
     /// <exception cref="InvalidOperationException">Thrown if an empty <see cref="with" /> parameter is provided.</exception>
-    public EntityEnumerator(World world, Type[] with, Type[] without, EntityEnumeratorComparison? compare)
+    public EntityEnumerator(World world, Type[] with, Type[] without, Type[][] withAny,
+        EntityEnumeratorComparison? compare)
     {
         this.world = world;
         this.with = with;
         this.without = without;
+        this.withAny = withAny;
         this.compare = compare;
 
         if (with.Length == 0)
@@ -129,6 +132,27 @@ public ref struct EntityEnumerator
         foreach (Type t in this.without)
         {
             if (this.world.GetPool(t).Has(id))
+            {
+                return false;
+            }
+        }
+
+        foreach (Type[] group in this.withAny)
+        {
+            bool match = false;
+
+            foreach (Type t in group)
+            {
+                if (!this.world.GetPool(t).Has(id))
+                {
+                    continue;
+                }
+
+                match = true;
+                break;
+            }
+
+            if (!match)
             {
                 return false;
             }

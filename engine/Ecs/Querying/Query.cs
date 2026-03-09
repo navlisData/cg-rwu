@@ -12,6 +12,7 @@ public sealed class Query
 {
     private readonly EntityEnumeratorComparison? compare;
     private readonly Type[] with;
+    private readonly Type[][] withAny;
     private readonly Type[] without;
 
     /// <summary>
@@ -20,10 +21,11 @@ public sealed class Query
     /// <param name="with">Component types that must be present on an entity.</param>
     /// <param name="without">Component types that must be absent on an entity.</param>
     /// <param name="compareCallback">Comparison function to sort entities before enumeration</param>
-    internal Query(Type[] with, Type[] without, EntityEnumeratorComparison? compareCallback)
+    internal Query(Type[] with, Type[] without, Type[][] withAny, EntityEnumeratorComparison? compareCallback)
     {
         this.with = with;
         this.without = without;
+        this.withAny = withAny;
         this.compare = compareCallback;
     }
 
@@ -33,6 +35,6 @@ public sealed class Query
     /// <param name="world">The ECS world to enumerate.</param>
     public EntityEnumerator AsEnumerator(World world)
     {
-        return new EntityEnumerator(world, this.with, this.without, this.compare);
+        return new EntityEnumerator(world, this.with, this.without, this.withAny, this.compare);
     }
 }

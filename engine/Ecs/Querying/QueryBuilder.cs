@@ -11,6 +11,7 @@ namespace Engine.Ecs.Querying;
 public sealed class QueryBuilder
 {
     private readonly List<Type> with = new();
+    private readonly List<Type[]> withAny = new();
     private readonly List<Type> without = new();
     private EntityEnumeratorComparison? compare;
 
@@ -36,6 +37,14 @@ public sealed class QueryBuilder
         return this;
     }
 
+    public QueryBuilder WithAny<T1, T2>()
+        where T1 : struct
+        where T2 : struct
+    {
+        this.withAny.Add([typeof(T1), typeof(T2)]);
+        return this;
+    }
+
     public QueryBuilder OrderWith(EntityEnumeratorComparison order)
     {
         this.compare = order;
@@ -49,6 +58,6 @@ public sealed class QueryBuilder
     /// <returns>A <see cref="Query" /> capturing the current With/Without sets.</returns>
     public Query Build()
     {
-        return new Query(this.with.ToArray(), this.without.ToArray(), this.compare);
+        return new Query(this.with.ToArray(), this.without.ToArray(), this.withAny.ToArray(), this.compare);
     }
 }
