@@ -68,6 +68,7 @@ public class Game : GameWindow
 
     // Health
     private readonly HealthHudSyncSystem healthSyncSystem;
+    private readonly LifespanSystem lifespanSystem;
     private readonly MapLoadingSystem mapLoadingSystem;
     private readonly MapPropsRenderSystem mapPropsRenderingSystem;
     private readonly MapRenderSystem mapRenderSystem;
@@ -84,8 +85,10 @@ public class Game : GameWindow
 
     private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
+    private readonly SpawnerSystem spawnerSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
     private readonly UiRenderSystem uiRenderSystem;
+    private readonly WindSystem windSystem;
     private readonly UiTextRenderSystem uiTextRenderSystem;
 
     private readonly World world = new();
@@ -132,6 +135,9 @@ public class Game : GameWindow
         this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
         this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
         this.pulseAnimationSystem = new PulseAnimationSystem(this.world);
+        this.spawnerSystem = new SpawnerSystem(this.world);
+        this.lifespanSystem = new LifespanSystem(this.world);
+        this.windSystem = new WindSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -193,7 +199,8 @@ public class Game : GameWindow
         this.CursorState = CursorState.Confined;
         this.Cursor = MouseCursor.Empty;
 
-        PrefabFactory.CreateCrossHair(this.world, this.assetStore);
+        PrefabFactory.CreateCrossHairSpawner(this.world,
+            (w, p) => PrefabFactory.CreateCrossHair2(w, p, this.assetStore));
         return;
 
         float ShiftInTile()
@@ -263,6 +270,8 @@ public class Game : GameWindow
             .DuringGameplay(ctx => this.enemyControlSystem.Run((ctx.dt, this.enemyActionHandler)))
             .DuringGameplay(ctx => this.characterVisualSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.spriteAnimationSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.spawnerSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.windSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.move.Run(ctx.dt))
             .DuringGameplay(ctx => this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera)))
             .DuringGameplay(ctx => this.entityCollisionDetectSystem.Run(ctx.dt))
@@ -273,6 +282,7 @@ public class Game : GameWindow
                 this.assetStore,
                 UpdateGameState)))
             .DuringGameplay(ctx => this.pulseAnimationSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.lifespanSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.destroyEntitySystem.Run((ctx.dt, this.player)));
 
         this.renderScheduler

@@ -135,6 +135,28 @@ public static class PrefabFactory
             .ToEntity();
     }
 
+    public static Entity CreateCrossHairSpawner(World world, Func<World, AbsolutePosition, Entity> spawnCrosshair)
+    {
+        return world.Create()
+            .Add(new SetPositionToMouse())
+            .Add(new AbsolutePosition())
+            .Add(new UiAlignment(true, true))
+            .Add(new Spawner(0.02f, 1, 12, 7.5f, null, spawnCrosshair, null))
+            .ToEntity();
+    }
+
+    public static Entity CreateCrossHair2(World world, AbsolutePosition position, IAssetStore assetStore)
+    {
+        return world.Create()
+            .Add(position)
+            .Add(new AbsoluteSize(16, 16))
+            .Add(new UiAlignment(true, true))
+            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = new Vector4(0f, 0f, 0f, 1f) })
+            .Add(new Lifespan(0.5f))
+            .Add(new InfluencedByWind(10))
+            .ToEntity();
+    }
+
     public static Entity CreateCrossHair(World world, IAssetStore assetStore)
     {
         return world.Create()
