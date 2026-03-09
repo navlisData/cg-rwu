@@ -1,3 +1,5 @@
+using System.Diagnostics.Contracts;
+
 using OpenTK.Mathematics;
 
 using unnamed.Utils;
@@ -30,5 +32,21 @@ public struct AbsolutePosition(float x, float y)
         return new AbsolutePosition(
             MathUtils.Wrap(this.X, windowSize.X),
             MathUtils.Wrap(this.Y, windowSize.Y));
+    }
+
+    [Pure]
+    public static AbsolutePosition operator +(AbsolutePosition left, in Vector2 right)
+    {
+        left.X += right.X;
+        left.Y += right.Y;
+        return left;
+    }
+
+    [Pure]
+    public static AbsolutePosition operator -(AbsolutePosition left, in Vector2 right)
+    {
+        left.X -= right.X;
+        left.Y -= right.Y;
+        return left;
     }
 }
