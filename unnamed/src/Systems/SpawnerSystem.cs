@@ -34,7 +34,7 @@ public sealed class SpawnerSystem(World world)
 
         if (handle.Has<Position>())
         {
-            ref Position position = ref handle.Get<Position>();
+            Position position = handle.Get<Position>();
 
             if (spawner.SpawnEntity == null)
             {
@@ -55,7 +55,7 @@ public sealed class SpawnerSystem(World world)
         }
         else
         {
-            ref AbsolutePosition position = ref handle.Get<AbsolutePosition>();
+            AbsolutePosition position = handle.Get<AbsolutePosition>();
 
             if (spawner.SpawnEntityA == null)
             {
@@ -72,7 +72,7 @@ public sealed class SpawnerSystem(World world)
                 Vector2 variance = new((rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius,
                     (rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius);
                 position += variance;
-                spawner.SpawnEntityA(this.world, position);
+                spawner.SpawnEntityA(this.world, new AbsolutePosition(position.X, position.Y, false));
             }
         }
 

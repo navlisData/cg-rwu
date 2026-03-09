@@ -72,7 +72,11 @@ public class UiRenderSystem(World world, IAssetStore assets)
 
         AbsolutePosition position = handle.Get<AbsolutePosition>();
         position.Y = windowSize.Y - position.Y;
-        position = position.WrapToScreen(windowSize);
+        if (position.AllowWrapping)
+        {
+            position = position.WrapToScreen(windowSize);
+        }
+
         Vector2 size = (Vector2)handle.Get<AbsoluteSize>();
         UiAlignment alignment = handle.Get<UiAlignment>();
 

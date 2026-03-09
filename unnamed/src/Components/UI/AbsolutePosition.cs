@@ -12,10 +12,11 @@ namespace unnamed.Components.UI;
 /// </summary>
 /// <param name="x">Horizontal offset from the top-left corner.</param>
 /// <param name="y">Vertical offset from the top-left corner.</param>
-public struct AbsolutePosition(float x, float y)
+public struct AbsolutePosition(float x, float y, bool allowWrapping = true)
 {
     public float X = x;
     public float Y = y;
+    public readonly bool AllowWrapping = allowWrapping;
 
     public static explicit operator AbsolutePosition(Vector2 pos)
     {
