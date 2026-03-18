@@ -2,7 +2,7 @@ using Engine.Ecs.Systems;
 
 using unnamed.Enums;
 
-namespace unnamed;
+namespace unnamed.Systems.SystemScheduler;
 
 /// <summary>
 /// Provides game-specific scheduler extensions for common game states.
