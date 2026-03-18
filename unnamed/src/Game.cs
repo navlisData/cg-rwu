@@ -204,9 +204,18 @@ public class Game : GameWindow
 
         if (keyboard.IsKeyPressed(Keys.P))
         {
-            this.gameState = this.gameState == GameState.Paused
-                ? GameState.InGame
-                : GameState.Paused;
+            if (this.gameState.Equals(GameState.Paused))
+            {
+                this.gameState =  GameState.InGame;
+                this.CursorState = CursorState.Confined;
+                this.Cursor = MouseCursor.Empty;
+            }
+            else
+            {
+                this.gameState =  GameState.Paused;
+                this.CursorState = CursorState.Normal;
+                this.Cursor = MouseCursor.Default;
+            }
         }
 
         var context = new UpdateContext(dt, this.world.Get<Camera2D>(this.camera));
