@@ -22,14 +22,16 @@ using unnamed.Utils.Loot;
 namespace unnamed.systems;
 
 public class HandleCollisionSystem(World world)
-    : EntitySetSystem<(float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore)>(world,
+    : EntitySetSystem<(float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore,
+        Action<GameState> gameStateChanged)>(world,
         new QueryBuilder()
             .With<Collided>()
             .Build()
     )
 {
     protected override void Update(
-        (float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore) args, in Entity e)
+        (float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore, Action<GameState>
+            gameStateChanged) args, in Entity e)
     {
         EntityHandle handle = this.world.Handle(e);
 
@@ -94,7 +96,7 @@ public class HandleCollisionSystem(World world)
                 EntityHandle collidedEntityHandle = this.world.Handle(collided.CollidedWith);
                 if (collidedEntityHandle.Has<DoAttack>())
                 {
-                    this.HandleAttack(handle, ref stats);
+                    this.HandleAttack(handle, ref stats, args.gameStateChanged);
                     return;
                 }
 
@@ -107,7 +109,7 @@ public class HandleCollisionSystem(World world)
 
             if (handle.Has<TriggerStageEnd>())
             {
-                this.HandleWinCountdown(handle, args.dt);
+                this.HandleWinCountdown(handle, args.dt, args.gameStateChanged);
             }
         }
         finally
@@ -116,25 +118,27 @@ public class HandleCollisionSystem(World world)
         }
     }
 
-    private void HandleWinCountdown(EntityHandle handle, float dt)
+    private void HandleWinCountdown(EntityHandle handle, float dt, Action<GameState> gameStateChanged)
     {
         ref TriggerStageEnd stageEnd = ref handle.Get<TriggerStageEnd>();
-        ref Collided collided = ref handle.Get<Collided>();
+        ref Entity player = ref handle.Get<Collided>().CollidedWith;
 
         stageEnd.TimeRemaining -= dt;
         if (stageEnd.TimeRemaining <= 0)
         {
-            this.world.Remove<VisibleEntity>(collided.CollidedWith);
+            this.world.Remove<VisibleEntity>(player);
+            gameStateChanged(GameState.Won);
         }
     }
 
-    private void HandleAttack(EntityHandle playerHandle, ref EntityStats stats)
+    private void HandleAttack(EntityHandle playerHandle, ref EntityStats stats, Action<GameState> gameStateChanged)
     {
         playerHandle.AddDamage(1);
 
         if (stats.Hitpoints <= 0)
         {
             // TODO: End game?
+            gameStateChanged(GameState.Lost);
         }
     }
 
