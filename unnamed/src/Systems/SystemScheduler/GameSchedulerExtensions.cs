@@ -4,9 +4,6 @@ using unnamed.Enums;
 
 namespace unnamed.Systems.SystemScheduler;
 
-/// <summary>
-/// Provides game-specific scheduler extensions for common game states.
-/// </summary>
 public static class GameSchedulerExtensions
 {
     /// <summary>
@@ -27,13 +24,31 @@ public static class GameSchedulerExtensions
     }
 
     /// <summary>
-    /// Registers a system callback that runs only while the game is in the in-game state.
+    /// Registers a system callback that runs while the player is inside the game,
+    /// including active gameplay and pause mode.
     /// </summary>
     /// <typeparam name="TContext">The frame context type.</typeparam>
     /// <param name="scheduler">The scheduler to configure.</param>
     /// <param name="run">The system callback to execute.</param>
     /// <returns>The current scheduler instance.</returns>
-    public static SystemScheduler<GameState, TContext> InGame<TContext>(
+    public static SystemScheduler<GameState, TContext> DuringGame<TContext>(
+        this SystemScheduler<GameState, TContext> scheduler,
+        Action<TContext> run)
+    {
+        ArgumentNullException.ThrowIfNull(scheduler);
+        ArgumentNullException.ThrowIfNull(run);
+
+        return scheduler.Add(run, state => state is GameState.InGame or GameState.Paused);
+    }
+
+    /// <summary>
+    /// Registers a system callback that runs only while gameplay is active.
+    /// </summary>
+    /// <typeparam name="TContext">The frame context type.</typeparam>
+    /// <param name="scheduler">The scheduler to configure.</param>
+    /// <param name="run">The system callback to execute.</param>
+    /// <returns>The current scheduler instance.</returns>
+    public static SystemScheduler<GameState, TContext> DuringGameplay<TContext>(
         this SystemScheduler<GameState, TContext> scheduler,
         Action<TContext> run)
     {
@@ -50,7 +65,7 @@ public static class GameSchedulerExtensions
     /// <param name="scheduler">The scheduler to configure.</param>
     /// <param name="run">The system callback to execute.</param>
     /// <returns>The current scheduler instance.</returns>
-    public static SystemScheduler<GameState, TContext> Paused<TContext>(
+    public static SystemScheduler<GameState, TContext> WhilePaused<TContext>(
         this SystemScheduler<GameState, TContext> scheduler,
         Action<TContext> run)
     {
@@ -67,7 +82,7 @@ public static class GameSchedulerExtensions
     /// <param name="scheduler">The scheduler to configure.</param>
     /// <param name="run">The system callback to execute.</param>
     /// <returns>The current scheduler instance.</returns>
-    public static SystemScheduler<GameState, TContext> Won<TContext>(
+    public static SystemScheduler<GameState, TContext> WhenWon<TContext>(
         this SystemScheduler<GameState, TContext> scheduler,
         Action<TContext> run)
     {
@@ -84,7 +99,7 @@ public static class GameSchedulerExtensions
     /// <param name="scheduler">The scheduler to configure.</param>
     /// <param name="run">The system callback to execute.</param>
     /// <returns>The current scheduler instance.</returns>
-    public static SystemScheduler<GameState, TContext> Lost<TContext>(
+    public static SystemScheduler<GameState, TContext> WhenLost<TContext>(
         this SystemScheduler<GameState, TContext> scheduler,
         Action<TContext> run)
     {
