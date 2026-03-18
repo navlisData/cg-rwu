@@ -1,6 +1,7 @@
 using engine.Control;
 
 using Engine.Ecs;
+using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
 
@@ -20,6 +21,7 @@ using unnamed.GameMap.MapGeneration;
 using unnamed.Prefabs;
 using unnamed.Rendering;
 using unnamed.systems;
+using unnamed.Systems.SystemScheduler;
 using unnamed.Texture;
 using unnamed.Texture.DirectedAction;
 using unnamed.Texture.NonDirectionalAction;
@@ -35,6 +37,9 @@ public class Game : GameWindow
     {
         Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = InitialGameSize
     };
+
+    private readonly SystemScheduler<GameState, UpdateContext> updateScheduler = new();
+    private readonly SystemScheduler<GameState, RenderContext> renderScheduler = new();
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
@@ -76,6 +81,7 @@ public class Game : GameWindow
     private readonly UiRenderSystem uiRenderSystem;
 
     private readonly World world = new();
+    private GameState gameState = GameState.InGame;
 
     private Entity camera;
     private int healthbarProgram;
@@ -132,6 +138,7 @@ public class Game : GameWindow
         this.healthbarProgram = Shader.Setup("sprite.vert", "healthbar.frag");
 
         GameSprites.Init(this.assetStore);
+        ConfigureSchedulers();
 
         this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
         this.gameMap.GenerateMap(
@@ -188,30 +195,31 @@ public class Game : GameWindow
     {
         base.OnUpdateFrame(args);
         float dt = (float)args.Time;
+        KeyboardState keyboard = this.KeyboardState;
 
-        if (this.KeyboardState.IsKeyDown(Keys.Escape))
+        if (keyboard.IsKeyDown(Keys.Escape))
         {
             this.Close();
         }
 
-        this.cameraInputSystem.Run(dt);
-        this.setToMousePositionSystem.Run(this.world.Get<Camera2D>(this.camera));
-        this.healthLayoutSystem.Run(dt);
-        this.healthSyncSystem.Run(dt);
-        this.playerInput.Run((dt, this.world.Get<Camera2D>(this.camera), this.ClientSize,
-            this.assetStore, this.playerActionHandler));
-        this.followSystem.Run(dt);
-        this.cameraSystem.Run(dt);
-        this.enemyControlSystem.Run((dt, this.enemyActionHandler));
-        this.characterVisualSystem.Run(dt);
-        this.spriteAnimationSystem.Run(dt);
-        this.move.Run(dt);
-        this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera));
-        this.entityCollisionDetectSystem.Run(dt);
-        this.playerEntityCollisionSystem.Run(this.player);
-        this.handleCollisionSystem.Run((dt, this.enemyActionHandler, this.assetStore));
-        this.pulseAnimationSystem.Run(dt);
-        this.destroyEntitySystem.Run((dt, this.player));
+        if (keyboard.IsKeyPressed(Keys.P))
+        {
+            if (this.gameState.Equals(GameState.Paused))
+            {
+                this.gameState =  GameState.InGame;
+                this.CursorState = CursorState.Confined;
+                this.Cursor = MouseCursor.Empty;
+            }
+            else
+            {
+                this.gameState =  GameState.Paused;
+                this.CursorState = CursorState.Normal;
+                this.Cursor = MouseCursor.Default;
+            }
+        }
+
+        var context = new UpdateContext(dt, this.world.Get<Camera2D>(this.camera));
+        this.updateScheduler.Run(this.gameState, context);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
@@ -219,18 +227,51 @@ public class Game : GameWindow
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        ref Camera2D cameraPosition = ref this.world.Get<Camera2D>(this.camera);
-
-        this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 0));
-        this.mapPropsRenderingSystem.Run(cameraPosition);
-        this.shadowRenderSystem.Run(this.shadowProgram, cameraPosition);
-        this.projectileRenderSystem.Run(this.shaderProgram, cameraPosition);
-        this.entityRenderSystem.Run(this.shaderProgram, cameraPosition);
-        this.enemyHealthRenderSystem.Run(this.healthbarProgram, cameraPosition);
-        this.mapRenderSystem.Run(this.shaderProgram, (cameraPosition, 1));
-        this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize);
+        var context = new RenderContext(this.world.Get<Camera2D>(this.camera));
+        this.renderScheduler.Run(this.gameState, context);
 
         this.SwapBuffers();
+    }
+
+    private void ConfigureSchedulers()
+    {
+        this.updateScheduler
+            .DuringGameplay(ctx => this.cameraInputSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.setToMousePositionSystem.Run(ctx.Camera))
+            .DuringGameplay(ctx => this.healthLayoutSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.healthSyncSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.playerInput.Run((
+                ctx.dt,
+                ctx.Camera,
+                this.ClientSize,
+                this.assetStore,
+                this.playerActionHandler)))
+            .DuringGameplay(ctx => this.followSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.cameraSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.enemyControlSystem.Run((ctx.dt, this.enemyActionHandler)))
+            .DuringGameplay(ctx => this.characterVisualSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.spriteAnimationSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.move.Run(ctx.dt))
+            .DuringGameplay(ctx => this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera)))
+            .DuringGameplay(ctx => this.entityCollisionDetectSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.playerEntityCollisionSystem.Run(this.player))
+            .DuringGameplay(ctx => this.handleCollisionSystem.Run((
+                ctx.dt,
+                this.enemyActionHandler,
+                this.assetStore,
+                state => this.gameState = state)))
+            .DuringGameplay(ctx => this.pulseAnimationSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.destroyEntitySystem.Run((ctx.dt, this.player)));
+
+        this.renderScheduler
+            .DuringGame(ctx => this.mapRenderSystem.Run(this.shaderProgram, (ctx.Camera, 0)))
+            .DuringGame(ctx => this.mapPropsRenderingSystem.Run(ctx.Camera))
+            .DuringGame(ctx => this.shadowRenderSystem.Run(this.shadowProgram, ctx.Camera))
+            .DuringGame(ctx => this.projectileRenderSystem.Run(this.shaderProgram, ctx.Camera))
+            .DuringGame(ctx => this.entityRenderSystem.Run(this.shaderProgram, ctx.Camera))
+            .DuringGame(ctx => this.enemyHealthRenderSystem.Run(this.healthbarProgram, ctx.Camera))
+            .DuringGame(ctx => this.mapRenderSystem.Run(this.shaderProgram, (ctx.Camera, 1)))
+            .DuringGame(ctx => this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize));
     }
 
     protected override void OnResize(ResizeEventArgs e)
