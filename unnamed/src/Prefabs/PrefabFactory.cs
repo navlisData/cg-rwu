@@ -21,13 +21,13 @@ namespace unnamed.Prefabs;
 
 public static class PrefabFactory
 {
-    public static Entity CreatePlayer(World world, Position startPos, Vector2 startVel, Vector2 size,
+    public static Entity CreatePlayer(World world, Position startPos,
         IAssetStore assetStore)
     {
         return world.Create()
             .Add(startPos)
             .Add(new Velocity())
-            .Add(new Transform { Size = size, Scale = 1 })
+            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 5f })
             .Add(new ReceivesPlayerInput())
             .Add(new Sprite
             {
@@ -62,12 +62,12 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateEnemy(World world, Position startPos, Vector2 size, EntityStats stats, Entity target,
+    public static Entity CreateEnemy(World world, Position startPos, EntityStats stats, Entity target,
         IAssetStore assetStore)
     {
         return world.Create()
             .Add(startPos)
-            .Add(new Transform { Size = size, Scale = 1 })
+            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 3 })
             .Add(new Sprite
             {
                 Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle),
@@ -86,7 +86,7 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateText(World world, String text, Color color, StaticTextTextureFactory textFactory,
+    public static Entity CreateText(World world, string text, Color color, StaticTextTextureFactory textFactory,
         Vector2i windowSize, TextAlignment textAlignment = TextAlignment.Start)
     {
         Texture2D titleTexture = textFactory.CreateTexture(text, color, textAlignment);
@@ -115,7 +115,7 @@ public static class PrefabFactory
     {
         return world.Create()
             .Add(startPos)
-            .Add(new Transform { Size = new Vector2(2f, 2f), Scale = 1.2f, Rotation = rotation, Height = height })
+            .Add(new Transform { Size = new Vector2(2f, 1f), Scale = 2.4f, Rotation = rotation, Height = height })
             .Add(new AnimatedSprite
             {
                 CurrentFrameIndex = 0,
@@ -151,7 +151,10 @@ public static class PrefabFactory
             .Add(position)
             .Add(new AbsoluteSize(16, 16))
             .Add(new UiAlignment(true, true))
-            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = new Vector4(0f, 0f, 0f, 1f) })
+            .Add(new Sprite
+            {
+                Frame = assetStore.Get(GameAssets.Crosshair.ParticleCloud), Tint = new Vector4(0f, 0f, 0f, 1f)
+            })
             .Add(new Lifespan(0.5f))
             .Add(new InfluencedByWind(10))
             .ToEntity();
@@ -193,7 +196,7 @@ public static class PrefabFactory
     {
         return world.Create()
             .Add(position)
-            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 2.5f, Height = height })
+            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 5f, Height = height })
             .Add(new Projectile())
             .Add(new MarkedToDestroy { RemainingLifetime = assetStore.Get(animationClip).AnimationDuration() })
             .Add(new AnimatedSprite
@@ -207,7 +210,7 @@ public static class PrefabFactory
     {
         return world.Create()
             .Add(pos)
-            .Add(new Transform { Size = new Vector2(1.3f, 1f), Scale = 8 })
+            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 16f })
             .Add(new Sprite
             {
                 Frame = assetStore.Get(GameAssets.Props.Portal), Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0
@@ -222,7 +225,7 @@ public static class PrefabFactory
     {
         return world.Create()
             .Add(pos)
-            .Add(new Transform { Size = size, Scale = 1 })
+            .Add(new Transform { Size = size, Scale = 2f })
             .Add(new Sprite { Frame = asset, Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 })
             .Add(new Prop())
             .ToEntity();

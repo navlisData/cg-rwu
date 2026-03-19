@@ -17,10 +17,12 @@ public static class GameSprites
         InitMapTiles(assetStore);
         InitWallTiles(assetStore);
         InitCrosshair(assetStore);
+        InitCrosshair2(assetStore);
         InitPlayerHearts(assetStore);
         InitDrops(assetStore);
         InitMapDecoration(assetStore);
         InitProps(assetStore);
+        InitFallback(assetStore);
     }
 
     private static void InitPlayerSprites(IAssetStore assetStore)
@@ -223,6 +225,14 @@ public static class GameSprites
             SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64)));
     }
 
+    private static void InitCrosshair2(IAssetStore assetStore)
+    {
+        SpriteSheet crossHair =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "crosshair2.png"));
+        assetStore.Register(GameAssets.Crosshair.ParticleCloud,
+            SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64)));
+    }
+
     private static void InitDrops(IAssetStore assetStore)
     {
         SpriteSheet dropsSpritesheet =
@@ -282,5 +292,13 @@ public static class GameSprites
 
         assetStore.Register(GameAssets.Props.Portal,
             SpriteSlicer.FromRect(propsSpritesheet, new Rectangle(353, 269, 94, 72)));
+    }
+
+    private static void InitFallback(IAssetStore assetStore)
+    {
+        SpriteSheet fallback =
+            assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "fallback.png"));
+        assetStore.Register(GameAssets.FallBack.Default,
+            SpriteSlicer.FromRect(fallback, new Rectangle(0, 0, 1, 1)));
     }
 }

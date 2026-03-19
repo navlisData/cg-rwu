@@ -176,8 +176,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
 
 
 #if DEBUG
-            Console.WriteLine(
-                $"Clicked at {mousePositionWorld} (Global Coords)");
+                Console.WriteLine(
+                    $"Clicked at {mousePositionWorld} (Global Coords)");
 #endif
             }
         }

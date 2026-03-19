@@ -24,6 +24,7 @@ using unnamed.GameMap;
 using unnamed.GameMap.MapGeneration;
 using unnamed.Prefabs;
 using unnamed.Rendering;
+using unnamed.Rendering.RenderContext;
 using unnamed.systems;
 using unnamed.Systems.SystemScheduler;
 using unnamed.Texture;
@@ -82,8 +83,8 @@ public class Game : GameWindow
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpawnerSystem spawnerSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
+
     private readonly UiRenderSystem uiRenderSystem;
-    private readonly UiTextRenderSystem uiTextRenderSystem;
 
     private readonly SystemScheduler<GameState, UpdateContext> updateScheduler = new();
     private readonly WindSystem windSystem;
@@ -92,10 +93,9 @@ public class Game : GameWindow
 
     private Entity camera;
     private GameState gameState = GameState.InGame;
-    private int healthbarProgram;
     private Entity player;
-    private int shaderProgram;
-    private int shadowProgram;
+
+    private RenderContext renderContext;
 
     private StaticTextTextureFactory textFactory;
 
@@ -105,16 +105,16 @@ public class Game : GameWindow
 
         // Rendering systems
         this.cameraSystem = new CameraSystem(this.world);
-        this.entityRenderSystem = new EntityRenderSystem(this.world, this.assetStore);
+        this.entityRenderSystem = new EntityRenderSystem(this.world);
         this.followSystem = new FollowingSystem(this.world);
-        this.mapRenderSystem = new MapRenderSystem(this.world, this.assetStore);
-        this.shadowRenderSystem = new ShadowRenderSystem(this.world, this.assetStore);
-        this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assetStore);
+        this.mapRenderSystem = new MapRenderSystem(this.world);
+        this.shadowRenderSystem = new ShadowRenderSystem(this.world);
+        this.projectileRenderSystem = new ProjectileRenderingSystem(this.world);
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
         this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
-        this.uiTextRenderSystem = new UiTextRenderSystem(this.world);
+        // this.uiTextRenderSystem = new UiTextRenderSystem(this.world);
         this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
-        this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world, this.assetStore);
+        this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world);
 
         // General systems
         this.characterVisualSystem =
@@ -147,11 +147,8 @@ public class Game : GameWindow
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        this.shaderProgram = Shader.Setup("sprite.vert", "sprite.frag");
-        this.shadowProgram = Shader.Setup("sprite.vert", "shadow.frag");
-        this.healthbarProgram = Shader.Setup("sprite.vert", "healthbar.frag");
-
         GameSprites.Init(this.assetStore);
+        this.renderContext = new RenderContext(this.assetStore, Shader.Setup("sprite.vert", "sprite.frag"));
         this.ConfigureSchedulers();
 
         this.textFactory =
@@ -173,12 +170,10 @@ public class Game : GameWindow
         this.player = PrefabFactory.CreatePlayer(
             this.world,
             playerStartPosition,
-            new Vector2(0f, 0f),
-            new Vector2(2, 5),
             this.assetStore);
 
         this.gameMap.SpawnEntitiesRandomlyOnMap(10,
-            pos => PrefabFactory.CreateEnemy(this.world, pos, new Vector2(1, 3),
+            pos => PrefabFactory.CreateEnemy(this.world, pos,
                 new EntityStats(20, 20), this.player,
                 this.assetStore));
 
@@ -247,8 +242,8 @@ public class Game : GameWindow
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        RenderContext context = new(this.world.Get<Camera2D>(this.camera));
-        this.renderScheduler.Run(this.gameState, context);
+        this.renderContext.UpdateState(this.world.Get<Camera2D>(this.camera));
+        this.renderScheduler.Run(this.gameState, this.renderContext);
 
         this.SwapBuffers();
     }
@@ -286,15 +281,14 @@ public class Game : GameWindow
             .DuringGameplay(ctx => this.destroyEntitySystem.Run((ctx.dt, this.player)));
 
         this.renderScheduler
-            .DuringGame(ctx => this.mapRenderSystem.Run(this.shaderProgram, (ctx.Camera, 0)))
-            .DuringGame(ctx => this.mapPropsRenderingSystem.Run(ctx.Camera))
-            .DuringGame(ctx => this.shadowRenderSystem.Run(this.shadowProgram, ctx.Camera))
-            .DuringGame(ctx => this.projectileRenderSystem.Run(this.shaderProgram, ctx.Camera))
-            .DuringGame(ctx => this.entityRenderSystem.Run(this.shaderProgram, ctx.Camera))
-            .DuringGame(ctx => this.enemyHealthRenderSystem.Run(this.healthbarProgram, ctx.Camera))
-            .DuringGame(ctx => this.mapRenderSystem.Run(this.shaderProgram, (ctx.Camera, 1)))
-            .DuringGame(ctx => this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize))
-            .Always(ctx => this.uiTextRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize));
+            .DuringGame(ctx => this.mapRenderSystem.Run((ctx, 0)))
+            .DuringGame(ctx => this.mapPropsRenderingSystem.Run(ctx))
+            .DuringGame(ctx => this.shadowRenderSystem.Run(ctx))
+            .DuringGame(ctx => this.projectileRenderSystem.Run(ctx))
+            .DuringGame(ctx => this.entityRenderSystem.Run(ctx))
+            .DuringGame(ctx => this.enemyHealthRenderSystem.Run(ctx))
+            .DuringGame(ctx => this.mapRenderSystem.Run((ctx, 1)))
+            .Always(ctx => this.uiRenderSystem.Run(ctx));
     }
 
     private void UpdateGameState(GameState state)
@@ -330,15 +324,7 @@ public class Game : GameWindow
     protected override void OnUnload()
     {
         base.OnUnload();
-
         this.assetStore.Dispose();
-        this.mapRenderSystem.OnUnload();
-        this.shadowRenderSystem.OnUnload();
-        this.projectileRenderSystem.OnUnload();
-        this.entityRenderSystem.OnUnload();
-        this.enemyHealthRenderSystem.OnUnload();
-        this.uiRenderSystem.OnUnload();
-        this.uiTextRenderSystem.OnUnload();
-        GL.DeleteProgram(this.shaderProgram);
+        this.renderContext.OnUnload();
     }
 }
