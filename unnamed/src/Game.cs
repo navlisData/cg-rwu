@@ -14,6 +14,7 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using SixLabors.Fonts;
+using SixLabors.ImageSharp;
 
 using unnamed.Components.General;
 using unnamed.Components.Physics;
@@ -30,8 +31,6 @@ using unnamed.Texture.DirectedAction;
 using unnamed.Texture.NonDirectionalAction;
 using unnamed.Utils;
 
-using Color = SixLabors.ImageSharp.Color;
-
 namespace unnamed;
 
 public class Game : GameWindow
@@ -42,11 +41,6 @@ public class Game : GameWindow
     {
         Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = InitialGameSize
     };
-
-    private StaticTextTextureFactory textFactory;
-
-    private readonly SystemScheduler<GameState, UpdateContext> updateScheduler = new();
-    private readonly SystemScheduler<GameState, RenderContext> renderScheduler = new();
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
@@ -82,23 +76,28 @@ public class Game : GameWindow
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
     private readonly PulseAnimationSystem pulseAnimationSystem;
+    private readonly SystemScheduler<GameState, RenderContext> renderScheduler = new();
 
     private readonly SetToMousePositionSystem setToMousePositionSystem;
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpawnerSystem spawnerSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
     private readonly UiRenderSystem uiRenderSystem;
-    private readonly WindSystem windSystem;
     private readonly UiTextRenderSystem uiTextRenderSystem;
 
+    private readonly SystemScheduler<GameState, UpdateContext> updateScheduler = new();
+    private readonly WindSystem windSystem;
+
     private readonly World world = new();
-    private GameState gameState = GameState.InGame;
 
     private Entity camera;
+    private GameState gameState = GameState.InGame;
     private int healthbarProgram;
     private Entity player;
     private int shaderProgram;
     private int shadowProgram;
+
+    private StaticTextTextureFactory textFactory;
 
     public Game() : base(NativeSettings, Settings)
     {
@@ -153,9 +152,11 @@ public class Game : GameWindow
         this.healthbarProgram = Shader.Setup("sprite.vert", "healthbar.frag");
 
         GameSprites.Init(this.assetStore);
-        ConfigureSchedulers();
+        this.ConfigureSchedulers();
 
-        textFactory = new(Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "linkage-free.regular.ttf"), 48f);
+        this.textFactory =
+            new StaticTextTextureFactory(
+                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "linkage-free.regular.ttf"), 48f);
 
         this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
         this.gameMap.GenerateMap(
@@ -237,7 +238,7 @@ public class Game : GameWindow
             }
         }
 
-        var context = new UpdateContext(dt, this.world.Get<Camera2D>(this.camera));
+        UpdateContext context = new(dt, this.world.Get<Camera2D>(this.camera));
         this.updateScheduler.Run(this.gameState, context);
     }
 
@@ -246,7 +247,7 @@ public class Game : GameWindow
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        var context = new RenderContext(this.world.Get<Camera2D>(this.camera));
+        RenderContext context = new(this.world.Get<Camera2D>(this.camera));
         this.renderScheduler.Run(this.gameState, context);
 
         this.SwapBuffers();
@@ -270,7 +271,7 @@ public class Game : GameWindow
             .DuringGameplay(ctx => this.enemyControlSystem.Run((ctx.dt, this.enemyActionHandler)))
             .DuringGameplay(ctx => this.characterVisualSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.spriteAnimationSystem.Run(ctx.dt))
-            .DuringGameplay(ctx => this.spawnerSystem.Run(ctx.dt))
+            .DuringGameplay(ctx => this.spawnerSystem.Run((ctx.dt, this.gameMap)))
             .DuringGameplay(ctx => this.windSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.move.Run(ctx.dt))
             .DuringGameplay(ctx => this.mapLoadingSystem.Run(this.world.Get<Position>(this.camera)))
@@ -279,8 +280,7 @@ public class Game : GameWindow
             .DuringGameplay(ctx => this.handleCollisionSystem.Run((
                 ctx.dt,
                 this.enemyActionHandler,
-                this.assetStore,
-                UpdateGameState)))
+                this.assetStore, this.UpdateGameState)))
             .DuringGameplay(ctx => this.pulseAnimationSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.lifespanSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.destroyEntitySystem.Run((ctx.dt, this.player)));
@@ -305,14 +305,15 @@ public class Game : GameWindow
         {
             case GameState.Lost:
                 {
-                    PrefabFactory.CreateText(this.world, "You've died\n\nPress ESC to exit", Color.Red, textFactory,
+                    PrefabFactory.CreateText(this.world, "You've died\n\nPress ESC to exit", Color.Red,
+                        this.textFactory,
                         this.ClientSize, TextAlignment.Center);
                 }
                 break;
             case GameState.Won:
                 {
                     PrefabFactory.CreateText(this.world, "You've reached the end of this level.\nPress ESC to exit",
-                        Color.Green, textFactory,
+                        Color.Green, this.textFactory,
                         this.ClientSize, TextAlignment.Center);
                 }
                 break;
