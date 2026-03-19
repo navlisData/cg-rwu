@@ -5,21 +5,24 @@ using Engine.Ecs.Systems;
 using OpenTK.Mathematics;
 
 using unnamed.Components.General;
+using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.UI;
+using unnamed.GameMap;
 
 namespace unnamed.systems;
 
 public sealed class SpawnerSystem(World world)
-    : EntitySetSystem<float>(world,
+    : EntitySetSystem<(float, Map)>(world,
         new QueryBuilder()
             .With<Spawner>()
             .WithAny<Position, AbsolutePosition>()
             .Build()
     )
 {
-    protected override void Update(float dt, in Entity e)
+    protected override void Update((float, Map) args, in Entity e)
     {
+        (float dt, Map map) = args;
         EntityHandle handle = this.world.Handle(e);
 
         ref Spawner spawner = ref handle.Get<Spawner>();
@@ -48,7 +51,18 @@ public sealed class SpawnerSystem(World world)
                     continue;
                 }
 
-                //TODO: implement behaviour so RestrictSpawnLocation works correctly, currently unused
+                Vector2 variance = new((rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius,
+                    (rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius);
+                position += variance;
+
+                if (spawner.AllowedSpawnLocations.HasValue)
+                {
+                    Tile? tile = map.GetTileAt(position);
+                    if (!tile.HasValue || !((spawner.AllowedSpawnLocations & tile.Value.Flags) > 0))
+                    {
+                        continue;
+                    }
+                }
 
                 spawner.SpawnEntity(this.world, position);
             }

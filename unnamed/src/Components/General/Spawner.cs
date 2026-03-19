@@ -13,7 +13,7 @@ public struct Spawner(
     float spawnRadius,
     Func<World, Position, Entity>? spawnEntity,
     Func<World, AbsolutePosition, Entity>? spawnEntityA,
-    TileFlags? restrictSpawnLocations)
+    TileFlags? allowedSpawnLocations)
 {
     public readonly Func<World, Position, Entity>? SpawnEntity = spawnEntity;
     public readonly Func<World, AbsolutePosition, Entity>? SpawnEntityA = spawnEntityA;
@@ -21,7 +21,7 @@ public struct Spawner(
     public readonly int SpawnOdds = spawnOdds;
     public readonly int SpawnAmount = spawnAmount;
     public readonly float SpawnRadius = spawnRadius;
-    public readonly TileFlags? RestrictSpawnLocations = restrictSpawnLocations;
+    public readonly TileFlags? AllowedSpawnLocations = allowedSpawnLocations;
 
     public float SpawnTime = 0;
 }
