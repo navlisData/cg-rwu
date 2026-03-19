@@ -213,7 +213,8 @@ public class Game : GameWindow
             this.Close();
         }
 
-        if (keyboard.IsKeyPressed(Keys.P) && (this.gameState.Equals(GameState.InGame) || this.gameState.Equals(GameState.Paused)))
+        if (keyboard.IsKeyPressed(Keys.P) &&
+            (this.gameState.Equals(GameState.InGame) || this.gameState.Equals(GameState.Paused)))
         {
             if (this.gameState.Equals(GameState.Paused))
             {
@@ -300,7 +301,8 @@ public class Game : GameWindow
                 break;
             case GameState.Won:
                 {
-                    PrefabFactory.CreateText(this.world, "You've reached the end of this level.\nPress ESC to exit", Color.Green, textFactory,
+                    PrefabFactory.CreateText(this.world, "You've reached the end of this level.\nPress ESC to exit",
+                        Color.Green, textFactory,
                         this.ClientSize, TextAlignment.Center);
                 }
                 break;
