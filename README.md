@@ -38,3 +38,4 @@ The goal is simple: survive long enough to find the exit in each level while ene
 - [Moon-mage asset by RusKom](https://ruskom.itch.io/moon-mage-asset)
 - [Fire/Explosion assets by ppeldo](https://ppeldo.itch.io/2d-pixel-art-game-spellmagic-fx)
 - [Slime blob by the_game_house](https://the-game-house.itch.io/slime-assets-free-character-spritesheets)
+- [Linkage Free Font](https://www.1001fonts.com/linkage-free-font.html)

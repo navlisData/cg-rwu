@@ -1,8 +1,12 @@
 using Engine.Ecs;
 
 using engine.TextureProcessing;
+using engine.TextureProcessing.Text;
 
 using OpenTK.Mathematics;
+
+using SixLabors.Fonts;
+using SixLabors.ImageSharp;
 
 using unnamed.Components.General;
 using unnamed.Components.Map;
@@ -79,6 +83,19 @@ public static class PrefabFactory
             .Add(new HasShadow())
             .Add(new EnemyActionState())
             .Add(stats)
+            .ToEntity();
+    }
+
+    public static Entity CreateText(World world, String text, Color color, StaticTextTextureFactory textFactory,
+        Vector2i windowSize, TextAlignment textAlignment = TextAlignment.Start)
+    {
+        Texture2D titleTexture = textFactory.CreateTexture(text, color, textAlignment);
+
+        return world.Create()
+            .Add(new StaticTextTexture(titleTexture))
+            .Add(new AbsoluteSize(titleTexture.Width, titleTexture.Height))
+            .Add(new AbsolutePosition(windowSize.X * 0.5f, windowSize.Y * 0.5f))
+            .Add(new UiAlignment { VerticallyCentered = true, HorizontallyCentered = true })
             .ToEntity();
     }
 
