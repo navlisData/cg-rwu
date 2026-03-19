@@ -4,6 +4,7 @@ using Engine.Ecs;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
+using engine.TextureProcessing.Text;
 
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -11,6 +12,8 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+
+using SixLabors.Fonts;
 
 using unnamed.Components.General;
 using unnamed.Components.Physics;
@@ -27,6 +30,8 @@ using unnamed.Texture.DirectedAction;
 using unnamed.Texture.NonDirectionalAction;
 using unnamed.Utils;
 
+using Color = SixLabors.ImageSharp.Color;
+
 namespace unnamed;
 
 public class Game : GameWindow
@@ -37,6 +42,8 @@ public class Game : GameWindow
     {
         Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = InitialGameSize
     };
+
+    private StaticTextTextureFactory textFactory;
 
     private readonly SystemScheduler<GameState, UpdateContext> updateScheduler = new();
     private readonly SystemScheduler<GameState, RenderContext> renderScheduler = new();
@@ -79,6 +86,7 @@ public class Game : GameWindow
     private readonly ShadowRenderSystem shadowRenderSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
     private readonly UiRenderSystem uiRenderSystem;
+    private readonly UiTextRenderSystem uiTextRenderSystem;
 
     private readonly World world = new();
     private GameState gameState = GameState.InGame;
@@ -102,6 +110,7 @@ public class Game : GameWindow
         this.projectileRenderSystem = new ProjectileRenderingSystem(this.world, this.assetStore);
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
         this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
+        this.uiTextRenderSystem = new UiTextRenderSystem(this.world);
         this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
         this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world, this.assetStore);
 
@@ -139,6 +148,8 @@ public class Game : GameWindow
 
         GameSprites.Init(this.assetStore);
         ConfigureSchedulers();
+
+        textFactory = new(Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "linkage-free.regular.ttf"), 48f);
 
         this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
         this.gameMap.GenerateMap(
@@ -206,13 +217,13 @@ public class Game : GameWindow
         {
             if (this.gameState.Equals(GameState.Paused))
             {
-                this.gameState =  GameState.InGame;
+                this.gameState = GameState.InGame;
                 this.CursorState = CursorState.Confined;
                 this.Cursor = MouseCursor.Empty;
             }
             else
             {
-                this.gameState =  GameState.Paused;
+                this.gameState = GameState.Paused;
                 this.CursorState = CursorState.Normal;
                 this.Cursor = MouseCursor.Default;
             }
@@ -259,7 +270,7 @@ public class Game : GameWindow
                 ctx.dt,
                 this.enemyActionHandler,
                 this.assetStore,
-                state => this.gameState = state)))
+                UpdateGameState)))
             .DuringGameplay(ctx => this.pulseAnimationSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.destroyEntitySystem.Run((ctx.dt, this.player)));
 
@@ -271,7 +282,23 @@ public class Game : GameWindow
             .DuringGame(ctx => this.entityRenderSystem.Run(this.shaderProgram, ctx.Camera))
             .DuringGame(ctx => this.enemyHealthRenderSystem.Run(this.healthbarProgram, ctx.Camera))
             .DuringGame(ctx => this.mapRenderSystem.Run(this.shaderProgram, (ctx.Camera, 1)))
-            .DuringGame(ctx => this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize));
+            .DuringGame(ctx => this.uiRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize))
+            .Always(ctx => this.uiTextRenderSystem.Run((this.shaderProgram, this.ClientSize), this.ClientSize));
+    }
+
+    private void UpdateGameState(GameState state)
+    {
+        this.gameState = state;
+
+        switch (state)
+        {
+            case GameState.Lost:
+                {
+                    PrefabFactory.CreateText(this.world, "You've died\nPress R to restart", Color.Red, textFactory,
+                        InitialGameSize, TextAlignment.Center);
+                }
+                break;
+        }
     }
 
     protected override void OnResize(ResizeEventArgs e)
@@ -292,6 +319,7 @@ public class Game : GameWindow
         this.entityRenderSystem.OnUnload();
         this.enemyHealthRenderSystem.OnUnload();
         this.uiRenderSystem.OnUnload();
+        this.uiTextRenderSystem.OnUnload();
         GL.DeleteProgram(this.shaderProgram);
     }
 }
