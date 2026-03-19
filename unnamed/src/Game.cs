@@ -213,7 +213,7 @@ public class Game : GameWindow
             this.Close();
         }
 
-        if (keyboard.IsKeyPressed(Keys.P))
+        if (keyboard.IsKeyPressed(Keys.P) && (this.gameState.Equals(GameState.InGame) || this.gameState.Equals(GameState.Paused)))
         {
             if (this.gameState.Equals(GameState.Paused))
             {
@@ -294,8 +294,14 @@ public class Game : GameWindow
         {
             case GameState.Lost:
                 {
-                    PrefabFactory.CreateText(this.world, "You've died\nPress R to restart", Color.Red, textFactory,
-                        InitialGameSize, TextAlignment.Center);
+                    PrefabFactory.CreateText(this.world, "You've died\n\nPress ESC to exit", Color.Red, textFactory,
+                        this.ClientSize, TextAlignment.Center);
+                }
+                break;
+            case GameState.Won:
+                {
+                    PrefabFactory.CreateText(this.world, "You've reached the end of this level.\nPress ESC to exit", Color.Green, textFactory,
+                        this.ClientSize, TextAlignment.Center);
                 }
                 break;
         }
