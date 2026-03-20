@@ -56,6 +56,7 @@ public class Game : GameWindow
     private readonly EnemyHealthRenderSystem enemyHealthRenderSystem;
     private readonly EntityCollisionDetectSystem entityCollisionDetectSystem;
     private readonly EntityRenderSystem entityRenderSystem;
+    private readonly FadeAnimationSystem fadeAnimationSystem;
     private readonly FollowingSystem followSystem;
     private readonly Map gameMap;
     private readonly HandleCollisionSystem handleCollisionSystem;
@@ -137,6 +138,7 @@ public class Game : GameWindow
         this.spawnerSystem = new SpawnerSystem(this.world);
         this.lifespanSystem = new LifespanSystem(this.world);
         this.windSystem = new WindSystem(this.world);
+        this.fadeAnimationSystem = new FadeAnimationSystem(this.world);
     }
 
     protected override void OnLoad()
@@ -277,6 +279,7 @@ public class Game : GameWindow
                 this.enemyActionHandler,
                 this.assetStore, this.UpdateGameState)))
             .DuringGameplay(ctx => this.pulseAnimationSystem.Run(ctx.dt))
+            .Always(ctx => this.fadeAnimationSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.lifespanSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.destroyEntitySystem.Run((ctx.dt, this.player)));
 

@@ -24,6 +24,7 @@ public interface IColorStep
 {
     IProjectionStep WithColoration(in Color4 color, float blendFactor);
     IProjectionStep WithColoration(in Vector3 color, float blendFactor);
+    IProjectionStep WithColoration(in Color4? color, float blendFactor);
 }
 
 public interface IColorWithTextureStep : IColorStep

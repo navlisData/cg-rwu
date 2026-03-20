@@ -29,6 +29,11 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithColoration(new Color4(color.X, color.Y, color.Z, 1f), blendFactor);
     }
 
+    public IProjectionStep WithColoration(in Color4? color, float blendFactor)
+    {
+        return color is null ? this.WithoutColoration() : this.WithColoration(color.Value, blendFactor);
+    }
+
     public IProjectionStep WithAlpha(float alpha)
     {
         return this.WithColoration(new Color4(0f, 0f, 0f, alpha), 0f);

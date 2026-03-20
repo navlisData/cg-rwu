@@ -31,7 +31,7 @@ public class UiRenderSystem(World world, IAssetStore assets)
         if (handle.Has<Sprite>())
         {
             ref Sprite sprite = ref handle.Get<Sprite>();
-            ctx.BeginDraw().WithSprite(sprite.Frame).WithoutColoration().WithAbsolutePosition(position)
+            ctx.BeginDraw().WithSprite(sprite.Frame).WithColoration(in sprite.Tint, 1f).WithAbsolutePosition(position)
                 .WithAbsoluteSize(size, alignment).Draw();
         }
         else if (handle.Has<StaticTextTexture>())
