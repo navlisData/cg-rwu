@@ -55,7 +55,7 @@ public sealed class CharacterVisualSystem(
                 StaticSprite spriteById = assetStore.Get(staticSprite.Key);
                 if (!handle.Has<Sprite>())
                 {
-                    handle.Add(new Sprite { Tint = new Vector4(0f, 0f, 0f, 1f), Layer = 0 });
+                    handle.Add(new Sprite { Tint = new Color4(0f, 0f, 0f, 1f), Layer = 0 });
                 }
 
                 handle.Get<Sprite>().Frame = spriteById;

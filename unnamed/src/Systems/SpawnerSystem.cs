@@ -1,0 +1,96 @@
+using Engine.Ecs;
+using Engine.Ecs.Querying;
+using Engine.Ecs.Systems;
+
+using OpenTK.Mathematics;
+
+using unnamed.Components.General;
+using unnamed.Components.Map;
+using unnamed.Components.Physics;
+using unnamed.Components.UI;
+using unnamed.GameMap;
+
+namespace unnamed.systems;
+
+public sealed class SpawnerSystem(World world)
+    : EntitySetSystem<(float, Map)>(world,
+        new QueryBuilder()
+            .With<Spawner>()
+            .WithAny<Position, AbsolutePosition>()
+            .Build()
+    )
+{
+    protected override void Update((float, Map) args, in Entity e)
+    {
+        (float dt, Map map) = args;
+        EntityHandle handle = this.world.Handle(e);
+
+        ref Spawner spawner = ref handle.Get<Spawner>();
+
+        spawner.SpawnTime += dt;
+        if (spawner.SpawnTime < spawner.SpawnTimeMax)
+        {
+            return;
+        }
+
+        Random rng = Random.Shared;
+
+        if (handle.Has<Position>())
+        {
+            Position position = handle.Get<Position>();
+
+            if (spawner.SpawnEntity == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < spawner.SpawnAmount; i++)
+            {
+                if (rng.NextSingle() >= spawner.SpawnOdds)
+                {
+                    continue;
+                }
+
+                Vector2 variance = new((rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius,
+                    (rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius);
+                position += variance;
+
+                if (spawner.AllowedSpawnLocations.HasValue)
+                {
+                    Tile? tile = map.GetTileAt(position);
+                    if (!tile.HasValue || !((spawner.AllowedSpawnLocations & tile.Value.Flags) > 0))
+                    {
+                        continue;
+                    }
+                }
+
+                spawner.SpawnEntity(this.world, position);
+            }
+        }
+        else
+        {
+            AbsolutePosition position = handle.Get<AbsolutePosition>();
+
+            if (spawner.SpawnEntityA == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < spawner.SpawnAmount; i++)
+            {
+                if (rng.NextSingle() >= spawner.SpawnOdds)
+                {
+                    continue;
+                }
+
+                Vector2 variance = new((rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius,
+                    (rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius);
+                position += variance;
+                spawner.SpawnEntityA(this.world, new AbsolutePosition(position.X, position.Y, false));
+            }
+        }
+
+
+        spawner.SpawnTime = 0f;
+    }
+}
