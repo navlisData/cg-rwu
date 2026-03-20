@@ -58,9 +58,21 @@ public class RenderContext : IRenderContext, ISpriteStep,
         this.uOverrideColor = GL.GetUniformLocation(shader, "uOverrideColor");
         this.uBlendFactor = GL.GetUniformLocation(shader, "uBlendFactor");
 
+        GL.UseProgram(this.shader);
+
         GL.BindVertexArray(this.vertexHandle);
         GL.BindBuffer(BufferTarget.ArrayBuffer, this.vertexBuffer);
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.elementBuffer);
+
+        GL.EnableVertexAttribArray(this.aPosition);
+        GL.EnableVertexAttribArray(this.aTexCoord);
+
+        GL.VertexAttribPointer(this.aPosition, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
+        GL.VertexAttribPointer(this.aTexCoord, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float),
+            2 * sizeof(float));
+
+        GL.BufferData(BufferTarget.ElementArrayBuffer, QuadIndices.Length * sizeof(uint), QuadIndices,
+            BufferUsageHint.StaticDraw);
 
         this.fallbackSprite = this.assetStore.Get(GameAssets.FallBack.Default);
     }
@@ -218,18 +230,6 @@ public class RenderContext : IRenderContext, ISpriteStep,
             0, this.camera.Viewport.Y,
             -1f, 1f
         );
-
-        GL.UseProgram(this.shader);
-
-        GL.EnableVertexAttribArray(this.aPosition);
-        GL.EnableVertexAttribArray(this.aTexCoord);
-
-        GL.VertexAttribPointer(this.aPosition, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
-        GL.VertexAttribPointer(this.aTexCoord, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float),
-            2 * sizeof(float));
-
-        GL.BufferData(BufferTarget.ElementArrayBuffer, QuadIndices.Length * sizeof(uint), QuadIndices,
-            BufferUsageHint.StaticDraw);
     }
 
     public ISpriteStep BeginDraw()
