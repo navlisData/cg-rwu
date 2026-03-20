@@ -6,7 +6,7 @@ using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.UI;
 
-namespace unnamed.Rendering;
+namespace unnamed.Rendering.RenderContext;
 
 public interface ISpriteStep
 {

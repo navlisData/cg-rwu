@@ -2,7 +2,7 @@ using System.Drawing;
 
 using OpenTK.Mathematics;
 
-namespace unnamed.Rendering;
+namespace unnamed.Rendering.RenderContext;
 
 public struct DrawState
 {

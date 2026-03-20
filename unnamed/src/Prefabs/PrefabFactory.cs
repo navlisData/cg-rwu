@@ -175,7 +175,7 @@ public static class PrefabFactory
         Entity player)
     {
         StaticSprite frame = assetStore.Get(dropType.GetAsset());
-        Transform transform = new() { Size = new Vector2(1f, 1f), Scale = 1.5f, Height = frame.RectPx.Height };
+        Transform transform = new() { Size = new Vector2(1f, 1f), Scale = 1.5f };
 
         EntityHandle dropHandle = world.Create()
             .Add(new VisibleEntity())
