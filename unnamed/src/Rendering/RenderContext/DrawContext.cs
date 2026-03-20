@@ -4,7 +4,7 @@ using OpenTK.Mathematics;
 
 namespace unnamed.Rendering.RenderContext;
 
-public struct DrawState
+public struct DrawContext
 {
     public RectangleF SpriteSize;
     public Vector2i TextureSize;
