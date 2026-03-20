@@ -242,6 +242,9 @@ public static class GameAssets
 
         public static readonly AssetRef<StaticSprite> Simple =
             AssetRef<StaticSprite>.FromPath(Prefix + "simple");
+
+        public static readonly AssetRef<StaticSprite> ParticleCloud =
+            AssetRef<StaticSprite>.FromPath(Prefix + "particle-cloud");
     }
 
     public static class Hearts
@@ -267,5 +270,13 @@ public static class GameAssets
 
         public static readonly AssetRef<StaticSprite> BlueHeart =
             AssetRef<StaticSprite>.FromPath(Prefix + "blue-heart");
+    }
+
+    public static class FallBack
+    {
+        private const string Prefix = "fallback/";
+
+        public static readonly AssetRef<StaticSprite> Default =
+            AssetRef<StaticSprite>.FromPath(Prefix + "default");
     }
 }

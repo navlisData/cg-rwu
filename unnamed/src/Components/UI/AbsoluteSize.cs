@@ -12,12 +12,12 @@ public struct AbsoluteSize(float width, float height)
     public float Height = height;
     public float Width = width;
 
-    public static explicit operator AbsoluteSize(Vector2 size)
+    public static implicit operator AbsoluteSize(Vector2 size)
     {
         return new AbsoluteSize(size.X, size.Y);
     }
 
-    public static explicit operator Vector2(AbsoluteSize size)
+    public static implicit operator Vector2(AbsoluteSize size)
     {
         return new Vector2(size.Width, size.Height);
     }
