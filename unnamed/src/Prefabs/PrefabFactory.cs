@@ -16,6 +16,7 @@ using unnamed.Components.Tags;
 using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.Texture;
+using unnamed.Utils;
 
 namespace unnamed.Prefabs;
 
@@ -31,9 +32,7 @@ public static class PrefabFactory
             .Add(new ReceivesPlayerInput())
             .Add(new Sprite
             {
-                Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South),
-                Tint = null,
-                Layer = 0
+                Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South), Tint = null, Layer = 0
             })
             .Add(new AlignedCharacter
             {
@@ -70,9 +69,7 @@ public static class PrefabFactory
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 3 })
             .Add(new Sprite
             {
-                Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle),
-                Tint = null,
-                Layer = 0
+                Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle), Tint = null, Layer = 0
             })
             .Add(new NonDirectionalCharacter { CharacterType = CharacterType.Enemy })
             .Add(new VisibleEntity())
@@ -147,14 +144,15 @@ public static class PrefabFactory
 
     public static Entity CreateCrossHair2(World world, AbsolutePosition position, IAssetStore assetStore)
     {
+        var baseTint = new Color4(0.95f, 0.61f, 0.07f, 0.25f);
+        var tint = ColorUtils.CreateSlightColorVariation(baseTint, strength: 0.15f, centerBias: 0.55f,
+            sharedAmount: 1.35f);
+
         return world.Create()
             .Add(position)
             .Add(new AbsoluteSize(16, 16))
             .Add(new UiAlignment(true, true))
-            .Add(new Sprite
-            {
-                Frame = assetStore.Get(GameAssets.Crosshair.ParticleCloud), Tint = new Color4(1f, .4f, .0f, 0.75f)
-            })
+            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.ParticleCloud), Tint = tint })
             .Add(new Lifespan(0.5f))
             .Add(new InfluencedByWind(10))
             .Add(new FadeAnimation(false, 0.5f, FadeAnimationType.FadeOut))
@@ -212,10 +210,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(pos)
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 16f })
-            .Add(new Sprite
-            {
-                Frame = assetStore.Get(GameAssets.Props.Portal), Tint = null, Layer = 0
-            })
+            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Props.Portal), Tint = null, Layer = 0 })
             .Add(new Prop())
             .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new TriggerStageEnd())
