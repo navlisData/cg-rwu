@@ -55,12 +55,12 @@ public static class PrefabFactory
 
         return world.Create()
             .Add(new UiReferenceSize(frame.RectPx.Width, frame.RectPx.Height))
-            .Add(new UiReferenceOffset(0f, 0f))
+            .Add(new UiReferenceOffset())
             .Add(UiAnchor.TopLeft)
             .Add(UiPivot.TopLeft)
             .Add(UiScaleMode.Uniform)
             .Add(new AbsolutePosition())
-            .Add(new AbsoluteSize(0f, 0f))
+            .Add(new AbsoluteSize())
             .Add(new Sprite { Frame = frame, Tint = null })
             .ToEntity();
     }
@@ -95,12 +95,12 @@ public static class PrefabFactory
         return world.Create()
             .Add(new StaticTextTexture(titleTexture))
             .Add(new UiReferenceSize(titleTexture.Width, titleTexture.Height))
-            .Add(new UiReferenceOffset(0f, 0f))
+            .Add(new UiReferenceOffset())
             .Add(UiAnchor.Center)
             .Add(UiPivot.Center)
             .Add(UiScaleMode.Uniform)
             .Add(new AbsolutePosition())
-            .Add(new AbsoluteSize(0f, 0f))
+            .Add(new AbsoluteSize())
             .ToEntity();
     }
 

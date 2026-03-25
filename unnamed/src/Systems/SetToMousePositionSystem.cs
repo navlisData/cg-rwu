@@ -41,6 +41,7 @@ public sealed class SetToMousePositionSystem(
             return;
         }
 
+        // Scale the mouse position from client-space to viewport-space coordinates
         Vector2 mouseClient = mouseState.Position;
         Vector2 mouseViewport = new(
             mouseClient.X * camera2D.Viewport.X / clientSize.X,
