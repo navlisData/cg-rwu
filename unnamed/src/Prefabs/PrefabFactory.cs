@@ -54,9 +54,13 @@ public static class PrefabFactory
         StaticSprite frame = assetStore.Get(heartStatus.GetAsset());
 
         return world.Create()
-            .Add(new AbsoluteSize(frame.RectPx.Width, frame.RectPx.Height))
-            .Add(new UiAlignment())
-            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f })
+            .Add(new UiReferenceSize(frame.RectPx.Width, frame.RectPx.Height))
+            .Add(new UiReferenceOffset(0f, 0f))
+            .Add(UiAnchor.TopLeft)
+            .Add(UiPivot.TopLeft)
+            .Add(UiScaleMode.Uniform)
+            .Add(new AbsolutePosition())
+            .Add(new AbsoluteSize(0f, 0f))
             .Add(new Sprite { Frame = frame, Tint = null })
             .ToEntity();
     }
@@ -90,9 +94,13 @@ public static class PrefabFactory
 
         return world.Create()
             .Add(new StaticTextTexture(titleTexture))
-            .Add(new AbsoluteSize(titleTexture.Width, titleTexture.Height))
-            .Add(new AbsolutePosition(windowSize.X * 0.5f, windowSize.Y * 0.5f))
-            .Add(new UiAlignment { VerticallyCentered = true, HorizontallyCentered = true })
+            .Add(new UiReferenceSize(titleTexture.Width, titleTexture.Height))
+            .Add(new UiReferenceOffset(0f, 0f))
+            .Add(UiAnchor.Center)
+            .Add(UiPivot.Center)
+            .Add(UiScaleMode.Uniform)
+            .Add(new AbsolutePosition())
+            .Add(new AbsoluteSize(0f, 0f))
             .ToEntity();
     }
 
@@ -136,8 +144,8 @@ public static class PrefabFactory
     {
         return world.Create()
             .Add(new SetPositionToMouse())
+            .Add(new AbsoluteSize(16, 16))
             .Add(new AbsolutePosition())
-            .Add(new UiAlignment(true, true))
             .Add(new Spawner(0.01f, 1, 8, 5.0f, null, spawnCrosshair, null))
             .ToEntity();
     }
@@ -151,7 +159,6 @@ public static class PrefabFactory
         return world.Create()
             .Add(position)
             .Add(new AbsoluteSize(16, 16))
-            .Add(new UiAlignment(true, true))
             .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.ParticleCloud), Tint = tint })
             .Add(new Lifespan(0.5f))
             .Add(new InfluencedByWind(10))
@@ -165,7 +172,6 @@ public static class PrefabFactory
             .Add(new SetPositionToMouse())
             .Add(new AbsolutePosition())
             .Add(new AbsoluteSize(64, 64))
-            .Add(new UiAlignment(true, true))
             .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = null })
             .ToEntity();
     }

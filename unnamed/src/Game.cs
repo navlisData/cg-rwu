@@ -22,6 +22,7 @@ using unnamed.Components.Rendering;
 using unnamed.Enums;
 using unnamed.GameMap;
 using unnamed.GameMap.MapGeneration;
+using unnamed.Layout;
 using unnamed.Prefabs;
 using unnamed.Rendering;
 using unnamed.Rendering.RenderContext;
@@ -36,11 +37,11 @@ namespace unnamed;
 
 public class Game : GameWindow
 {
-    private static readonly Vector2i InitialGameSize = (500, 500);
+    private static readonly Vector2i ReferenceUiResolution = (500, 500);
 
     private static readonly NativeWindowSettings Settings = new()
     {
-        Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = InitialGameSize
+        Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = ReferenceUiResolution
     };
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
@@ -86,6 +87,7 @@ public class Game : GameWindow
     private readonly SpriteAnimationSystem spriteAnimationSystem;
 
     private readonly UiRenderSystem uiRenderSystem;
+    private readonly UiLayoutSystem uiLayoutSystem;
 
     private readonly SystemScheduler<GameState, UpdateContext> updateScheduler = new();
     private readonly WindSystem windSystem;
@@ -113,7 +115,7 @@ public class Game : GameWindow
         this.projectileRenderSystem = new ProjectileRenderingSystem(this.world);
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
         this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
-        // this.uiTextRenderSystem = new UiTextRenderSystem(this.world);
+        this.uiLayoutSystem = new UiLayoutSystem(this.world);
         this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
         this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world);
 
@@ -124,7 +126,8 @@ public class Game : GameWindow
         this.move = new MoveSystem(this.world, this.gameMap, this.assetStore);
         this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.mapLoadingSystem = new MapLoadingSystem(this.world);
-        this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
+        this.setToMousePositionSystem =
+            new SetToMousePositionSystem(this.world, () => this.MouseState, () => this.ClientSize);
         this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
         this.destroyEntitySystem = new DestroyEntitySystem(this.world, this.assetStore);
         this.enemyControlSystem = new EnemyControlSystem(this.world);
@@ -147,6 +150,7 @@ public class Game : GameWindow
         GL.ClearColor(Color4.Black);
 
         GL.Enable(EnableCap.Blend);
+        GL.Viewport(0, 0, this.FramebufferSize.X, this.FramebufferSize.Y);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         GameSprites.Init(this.assetStore);
@@ -192,7 +196,7 @@ public class Game : GameWindow
                 deco[rng.Next(deco.Count)]), false);
 
         this.camera =
-            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
+            PrefabFactory.CreateFollowingCamera(this.world, this.player, this.FramebufferSize, playerStartPosition);
 
         this.CursorState = CursorState.Confined;
         this.Cursor = MouseCursor.Empty;
@@ -280,6 +284,11 @@ public class Game : GameWindow
                 this.assetStore, this.UpdateGameState)))
             .DuringGameplay(ctx => this.pulseAnimationSystem.Run(ctx.dt))
             .Always(ctx => this.fadeAnimationSystem.Run(ctx.dt))
+            .Always(ctx => this.uiLayoutSystem.Run(
+                new UiLayoutContext(
+                    ReferenceUiResolution,
+                    this.world.Get<Camera2D>(this.camera).Viewport))
+            )
             .DuringGameplay(ctx => this.lifespanSystem.Run(ctx.dt))
             .DuringGameplay(ctx => this.destroyEntitySystem.Run((ctx.dt, this.player)));
 
@@ -317,11 +326,11 @@ public class Game : GameWindow
         }
     }
 
-    protected override void OnResize(ResizeEventArgs e)
+    protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
     {
-        base.OnResize(e);
-        GL.Viewport(0, 0, this.ClientSize.X, this.ClientSize.Y);
-        this.world.Get<Camera2D>(this.camera).Viewport = this.ClientSize;
+        base.OnFramebufferResize(e);
+        GL.Viewport(0, 0, e.Width, e.Height);
+        this.world.Get<Camera2D>(this.camera).Viewport = new Vector2i(e.Width, e.Height);
     }
 
     protected override void OnUnload()

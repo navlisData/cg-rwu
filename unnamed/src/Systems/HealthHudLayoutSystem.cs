@@ -33,20 +33,25 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
 
         this.EnsureExactSlotCount(ref hud, requiredSlots);
 
-        const int gap = 8;
-        const int offset = 10;
+        const float gap = 8f;
+        const float offsetX = 10f;
+        const float offsetY = 10f;
+
         for (int i = 0; i < requiredSlots; i++)
         {
             Entity heart = this.ResolveOrCreateHeart(ref hud, i);
             EntityHandle heartHandle = this.world.Handle(heart);
-            heartHandle.Ensure<AbsolutePosition>();
-            heartHandle.Ensure<AbsoluteSize>();
 
-            ref AbsolutePosition pos = ref heartHandle.Get<AbsolutePosition>();
-            ref AbsoluteSize absSize = ref heartHandle.Get<AbsoluteSize>();
-            float x = (i * (absSize.Width + gap)) + offset;
-            float y = absSize.Height + offset;
-            pos = new AbsolutePosition(x, y);
+            heartHandle.Ensure<UiReferenceOffset>();
+            heartHandle.Ensure<UiReferenceSize>();
+
+            ref UiReferenceSize referenceSize = ref heartHandle.Get<UiReferenceSize>();
+            ref UiReferenceOffset referenceOffset = ref heartHandle.Get<UiReferenceOffset>();
+
+            float x = offsetX + (i * (referenceSize.Width + gap));
+            float y = offsetY;
+
+            referenceOffset = new UiReferenceOffset(x, y);
         }
 
         handle.Remove<HealthHudLayoutDirty>();

@@ -91,7 +91,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
 
     public IVerticesAbsoluteStep WithAbsolutePosition(in AbsolutePosition position)
     {
-        AbsolutePosition pos = position with { Y = renderContext.camera.Viewport.Y - position.Y };
+        AbsolutePosition pos = position;
         if (position.AllowWrapping)
         {
             pos = pos.WrapToScreen(renderContext.camera.Viewport);
@@ -142,9 +142,29 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithSize(size, horizontallyCentered, verticallyCentered);
     }
 
-    public IDrawStep WithAbsoluteSize(in Vector2 size, UiAlignment alignment)
+    /// <summary>
+    ///     Writes absolute screen-space quad vertices for a UI element whose pivot was already resolved by layout.
+    /// </summary>
+    /// <param name="size">The final size in pixels.</param>
+    /// <returns>The draw step.</returns>
+    public IDrawStep WithAbsoluteSize(in Vector2 size)
     {
-        return this.WithSize(size, alignment.HorizontallyCentered, alignment.VerticallyCentered);
+        float x0 = 0f;
+        float x1 = size.X;
+        float y0 = 0f;
+        float y1 = size.Y;
+
+        float invW = 1f / this.drawContext.TextureSize.X;
+        float invH = 1f / this.drawContext.TextureSize.Y;
+
+        float u0 = this.drawContext.SpriteSize.Left * invW;
+        float u1 = this.drawContext.SpriteSize.Right * invW;
+
+        float vTop = 1f - (this.drawContext.SpriteSize.Top * invH);
+        float vBottom = 1f - (this.drawContext.SpriteSize.Bottom * invH);
+
+        this.FillVertexArray(x0, x1, y0, y1, u0, u1, vBottom, vTop);
+        return this.WithVertices(in renderContext.vertices);
     }
 
     public IDrawStep WithSize(in Vector2 size, bool horizontallyCentered, bool verticallyCentered)

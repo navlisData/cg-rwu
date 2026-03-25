@@ -61,8 +61,7 @@ public interface IVerticesRelativeStep
 
 public interface IVerticesAbsoluteStep : IVerticesStep
 {
-    IDrawStep WithAbsoluteSize(in Vector2 size, bool horizontallyCentered, bool verticallyCentered);
-    IDrawStep WithAbsoluteSize(in Vector2 size, UiAlignment alignment);
+    IDrawStep WithAbsoluteSize(in Vector2 size);
 }
 
 public interface IDrawStep
