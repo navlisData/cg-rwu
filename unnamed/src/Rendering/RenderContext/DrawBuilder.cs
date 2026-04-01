@@ -58,7 +58,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
     public IVerticesRelativeStep WithPosition(in Vector2 position)
     {
         Matrix4 model = Matrix4.CreateTranslation(position.X, position.Y, 0f);
-        Matrix4 modelViewProjection = model * renderContext.camera.ViewProjection;
+        Matrix4 modelViewProjection = model * renderContext.worldProjection;
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
@@ -71,7 +71,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
     {
         Matrix4 model = Matrix4.CreateTranslation(position.X, position.Y, 0f);
         Matrix4 distortedModel = distortionMatrix * model;
-        Matrix4 modelViewProjection = distortedModel * renderContext.camera.ViewProjection;
+        Matrix4 modelViewProjection = distortedModel * renderContext.worldProjection;
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
@@ -89,16 +89,46 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithPositionAndDistortion(new Vector2(position.X, position.Y + transform.Height), distortion);
     }
 
-    public IVerticesAbsoluteStep WithAbsolutePosition(in AbsolutePosition position)
+    /// <summary>
+    ///     Applies a direct screen-space UI transform.
+    /// </summary>
+    /// <param name="position">The screen-space position in pixels.</param>
+    /// <param name="size">The screen-space size in pixels.</param>
+    /// <param name="pivot">The normalized pivot inside the element relative to the given position.</param>
+    /// <returns>The next draw step.</returns>
+    public IVerticesAbsoluteStep WithAbsoluteUiTransform(
+        in AbsolutePosition position,
+        in AbsoluteSize size,
+        in UiPivot pivot)
     {
-        AbsolutePosition pos = position with { Y = renderContext.camera.Viewport.Y - position.Y };
-        if (position.AllowWrapping)
-        {
-            pos = pos.WrapToScreen(renderContext.camera.Viewport);
-        }
+        Matrix4 modelViewProjection = renderContext.CreateAbsoluteUiModelViewProjection(position, size, pivot);
+        this.WithModelViewProjection(ref modelViewProjection);
+        return this;
+    }
 
-        Matrix4 model = Matrix4.CreateTranslation(pos.X, pos.Y, 0f);
-        Matrix4 modelViewProjection = model * renderContext.screenProjection;
+    /// <summary>
+    ///     Applies a reference-space UI transform using anchor, pivot and scaling rules.
+    /// </summary>
+    /// <param name="referenceOffset">The authored offset in reference-space units.</param>
+    /// <param name="referenceSize">The authored size in reference-space units.</param>
+    /// <param name="anchor">The normalized screen anchor.</param>
+    /// <param name="pivot">The normalized local pivot.</param>
+    /// <param name="scaleMode">The scaling mode relative to the viewport.</param>
+    /// <returns>The next draw step.</returns>
+    public IVerticesAbsoluteStep WithReferenceUiTransform(
+        in UiReferenceOffset referenceOffset,
+        in UiReferenceSize referenceSize,
+        in UiAnchor anchor,
+        in UiPivot pivot,
+        UiScaleMode scaleMode)
+    {
+        Matrix4 modelViewProjection = renderContext.CreateReferenceUiModelViewProjection(
+            referenceSize,
+            referenceOffset,
+            anchor,
+            pivot,
+            scaleMode);
+
         this.WithModelViewProjection(ref modelViewProjection);
         return this;
     }
@@ -137,14 +167,14 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this;
     }
 
-    public IDrawStep WithAbsoluteSize(in Vector2 size, bool horizontallyCentered, bool verticallyCentered)
+    /// <summary>
+    ///     Writes a unit quad for UI rendering.
+    ///     Final placement and size are provided by the UI transform matrix.
+    /// </summary>
+    /// <returns>The next draw step.</returns>
+    public IDrawStep WithUiUnitQuad()
     {
-        return this.WithSize(size, horizontallyCentered, verticallyCentered);
-    }
-
-    public IDrawStep WithAbsoluteSize(in Vector2 size, UiAlignment alignment)
-    {
-        return this.WithSize(size, alignment.HorizontallyCentered, alignment.VerticallyCentered);
+        return this.WithTexturedQuad(0f, 1f, 1f, 0f);
     }
 
     public IDrawStep WithSize(in Vector2 size, bool horizontallyCentered, bool verticallyCentered)
@@ -152,6 +182,19 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         (float x0, float x1, float y0, float y1) =
             ComputeQuadBounds(size, horizontallyCentered, verticallyCentered);
 
+        return this.WithTexturedQuad(x0, x1, y0, y1);
+    }
+
+    private IDrawStep WithTexturedQuad(float x0, float x1, float y0, float y1)
+    {
+        (float u0, float u1, float vBottom, float vTop) = this.ComputeSpriteUvBounds();
+
+        this.FillVertexArray(x0, x1, y0, y1, u0, u1, vBottom, vTop);
+        return this.WithVertices(in renderContext.vertices);
+    }
+
+    private (float u0, float u1, float vBottom, float vTop) ComputeSpriteUvBounds()
+    {
         float invW = 1f / this.drawContext.TextureSize.X;
         float invH = 1f / this.drawContext.TextureSize.Y;
 
@@ -161,8 +204,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         float vTop = 1f - (this.drawContext.SpriteSize.Top * invH);
         float vBottom = 1f - (this.drawContext.SpriteSize.Bottom * invH);
 
-        this.FillVertexArray(x0, x1, y0, y1, u0, u1, vBottom, vTop);
-        return this.WithVertices(in renderContext.vertices);
+        return (u0, u1, vBottom, vTop);
     }
 
     /// <summary>
@@ -206,7 +248,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
     }
 
     /// <summary>
-    ///     Computes quad bounds in object/world space based on size and centering flags.
+    ///     Computes quad bounds in object space based on size and centering flags.
     /// </summary>
     /// <param name="size">Quad size in object/world units.</param>
     /// <param name="horizontallyCentered">If true, x is centered around 0.</param>

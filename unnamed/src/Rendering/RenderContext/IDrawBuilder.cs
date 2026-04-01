@@ -46,7 +46,17 @@ public interface IProjectionStep
 
     IVerticesRelativeStep WithPositionAndTransform(in Vector2 position, in Transform transform);
 
-    IVerticesAbsoluteStep WithAbsolutePosition(in AbsolutePosition position);
+    IVerticesAbsoluteStep WithAbsoluteUiTransform(
+        in AbsolutePosition position,
+        in AbsoluteSize size,
+        in UiPivot pivot);
+
+    IVerticesAbsoluteStep WithReferenceUiTransform(
+        in UiReferenceOffset referenceOffset,
+        in UiReferenceSize referenceSize,
+        in UiAnchor anchor,
+        in UiPivot pivot,
+        UiScaleMode scaleMode);
 }
 
 public interface IVerticesStep
@@ -61,8 +71,7 @@ public interface IVerticesRelativeStep
 
 public interface IVerticesAbsoluteStep : IVerticesStep
 {
-    IDrawStep WithAbsoluteSize(in Vector2 size, bool horizontallyCentered, bool verticallyCentered);
-    IDrawStep WithAbsoluteSize(in Vector2 size, UiAlignment alignment);
+    IDrawStep WithUiUnitQuad();
 }
 
 public interface IDrawStep
