@@ -144,9 +144,9 @@ public static class PrefabFactory
 
     public static Entity CreateCrossHair2(World world, AbsolutePosition position, IAssetStore assetStore)
     {
-        var baseTint = new Color4(0.95f, 0.61f, 0.07f, 0.25f);
-        var tint = ColorUtils.CreateSlightColorVariation(baseTint, strength: 0.15f, centerBias: 0.55f,
-            sharedAmount: 1.35f);
+        Color4 baseTint = new(0.95f, 0.61f, 0.07f, 0.25f);
+        Color4 tint = ColorUtils.CreateSlightColorVariation(baseTint, 0.15f, 0.55f,
+            1.35f);
 
         return world.Create()
             .Add(position)
@@ -224,6 +224,16 @@ public static class PrefabFactory
             .Add(new Transform { Size = size, Scale = 2f })
             .Add(new Sprite { Frame = asset, Tint = null, Layer = 0 })
             .Add(new Prop())
+            .ToEntity();
+    }
+
+    public static Entity CreateTest(World world, IAssetStore assetStore, AbsolutePosition pos)
+    {
+        return world.Create()
+            .Add(pos)
+            .Add(new AbsoluteSize(10, 10))
+            .Add(new UiAlignment(true, true))
+            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Props.Portal), Tint = null })
             .ToEntity();
     }
 }

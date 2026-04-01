@@ -44,8 +44,8 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
 
             ref AbsolutePosition pos = ref heartHandle.Get<AbsolutePosition>();
             ref AbsoluteSize absSize = ref heartHandle.Get<AbsoluteSize>();
-            float x = (i * (absSize.Width + gap)) + offset;
-            float y = absSize.Height + offset;
+            float x = i * 20;
+            float y = 10;
             pos = new AbsolutePosition(x, y);
         }
 

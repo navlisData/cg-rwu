@@ -19,6 +19,7 @@ using SixLabors.ImageSharp;
 using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
+using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.GameMap;
 using unnamed.GameMap.MapGeneration;
@@ -194,12 +195,14 @@ public class Game : GameWindow
         this.camera =
             PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
 
-        this.CursorState = CursorState.Confined;
-        this.Cursor = MouseCursor.Empty;
+        this.CursorState = CursorState.Normal;
+        this.Cursor = MouseCursor.Crosshair;
 
+        PrefabFactory.CreateTest(this.world, this.assetStore, new AbsolutePosition(250, 250));
         PrefabFactory.CreateCrossHairSpawner(this.world,
             (w, p) => PrefabFactory.CreateCrossHair2(w, p, this.assetStore));
         return;
+
 
         float ShiftInTile()
         {

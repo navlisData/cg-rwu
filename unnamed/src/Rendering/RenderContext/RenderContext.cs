@@ -21,6 +21,7 @@ public class RenderContext : IRenderContext
     protected internal readonly StaticSprite fallbackSprite;
     private readonly int shader;
     protected internal readonly int uBlendFactor;
+    private readonly Vector2i uiReferenceSize;
     protected internal readonly int uModelViewProjection;
     protected internal readonly int uOverrideColor;
     private readonly int vertexBuffer = GL.GenBuffer();
@@ -29,7 +30,9 @@ public class RenderContext : IRenderContext
     protected internal readonly float[] vertices = new float[VerticesArrayLength];
 
     protected internal Camera2D camera;
-    protected internal Matrix4 screenProjection;
+    private Matrix4 uiProjection;
+    private Matrix4 uiView;
+    protected internal Matrix4 uiViewProjection;
 
     public RenderContext(IAssetStore assetStore, int shader)
     {
@@ -60,6 +63,7 @@ public class RenderContext : IRenderContext
             BufferUsageHint.StaticDraw);
 
         this.fallbackSprite = this.assetStore.Get(GameAssets.FallBack.Default);
+        this.uiReferenceSize = new Vector2i(500, 500);
     }
 
 
@@ -67,11 +71,25 @@ public class RenderContext : IRenderContext
     {
         this.camera = newCamera;
 
-        this.screenProjection = Matrix4.CreateOrthographicOffCenter(
-            0, this.camera.Viewport.X,
-            0, this.camera.Viewport.Y,
-            -1f, 1f
-        );
+        float scale = (float)this.camera.Viewport.Y / this.uiReferenceSize.Y;
+
+        float offsetX = ((this.camera.Viewport.X / scale) - this.uiReferenceSize.X) * 0.5f;
+        float offsetY = ((this.camera.Viewport.Y / scale) - this.uiReferenceSize.Y) * 0.5f;
+
+        // With this scaling is more or less free
+        this.uiView = Matrix4.CreateScale(scale, scale, 1f) * Matrix4.CreateTranslation(offsetX, offsetY, 0f);
+
+        // This is the coordinate system that is used to render the elements according to their model matrix
+        // Compare also the cameraProjection
+        // Instead of a reference size one could also use a reference coord system of f.e. 0..1 or -1..1 to be able to position elements easily
+        // To be better it would need to be combined with some sort of anchor layout system
+        this.uiProjection = Matrix4.CreateOrthographicOffCenter(
+            0, this.uiReferenceSize.X,
+            this.uiReferenceSize.Y, 0,
+            -1f, 1f);
+
+        // The problem is there are currently still issues with stretching and positioning, if the size != referenceSize
+        this.uiViewProjection = this.uiView * this.uiProjection;
     }
 
     public ISpriteStep BeginDraw()

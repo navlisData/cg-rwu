@@ -89,16 +89,11 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithPositionAndDistortion(new Vector2(position.X, position.Y + transform.Height), distortion);
     }
 
-    public IVerticesAbsoluteStep WithAbsolutePosition(in AbsolutePosition position)
+    public IVerticesAbsoluteStep WithAbsolutePosition(in AbsolutePosition position, in AbsoluteSize size)
     {
-        AbsolutePosition pos = position with { Y = renderContext.camera.Viewport.Y - position.Y };
-        if (position.AllowWrapping)
-        {
-            pos = pos.WrapToScreen(renderContext.camera.Viewport);
-        }
-
-        Matrix4 model = Matrix4.CreateTranslation(pos.X, pos.Y, 0f);
-        Matrix4 modelViewProjection = model * renderContext.screenProjection;
+        Matrix4 model = Matrix4.CreateScale(size.Width, size.Height, 1f) *
+                        Matrix4.CreateTranslation(position.X, position.Y, 0f);
+        Matrix4 modelViewProjection = model * renderContext.uiViewProjection;
         this.WithModelViewProjection(ref modelViewProjection);
         return this;
     }
@@ -142,9 +137,22 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithSize(size, horizontallyCentered, verticallyCentered);
     }
 
-    public IDrawStep WithAbsoluteSize(in Vector2 size, UiAlignment alignment)
+    public IDrawStep WithAbsoluteSize()
     {
-        return this.WithSize(size, alignment.HorizontallyCentered, alignment.VerticallyCentered);
+        // Unlike the WithSize this now uses a unit quad and changes the size with the model matrix
+        // This is arguably better and the other should ideally use this aswell
+        // This needs a pivot point or similar to match the centering functionality the other one has
+        float invW = 1f / this.drawContext.TextureSize.X;
+        float invH = 1f / this.drawContext.TextureSize.Y;
+
+        float u0 = this.drawContext.SpriteSize.Left * invW;
+        float u1 = this.drawContext.SpriteSize.Right * invW;
+
+        float vTop = this.drawContext.SpriteSize.Top * invH;
+        float vBottom = this.drawContext.SpriteSize.Bottom * invH;
+
+        this.FillVertexArray(0, 1, 0, 1, u0, u1, vBottom, vTop);
+        return this.WithVertices(in renderContext.vertices);
     }
 
     public IDrawStep WithSize(in Vector2 size, bool horizontallyCentered, bool verticallyCentered)

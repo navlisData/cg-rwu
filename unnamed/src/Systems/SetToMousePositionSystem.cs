@@ -2,6 +2,7 @@ using Engine.Ecs;
 using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
+using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using unnamed.Components.Rendering;
@@ -30,7 +31,16 @@ public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouse
 
         try
         {
-            screenPos = (AbsolutePosition)mouseState.Position;
+            Vector2 mouse = mouseState.Position;
+
+            Vector2 viewport = camera2D.Viewport;
+            Vector2 reference = new(500, 500);
+
+            float scale = MathF.Min(
+                viewport.X / reference.X,
+                viewport.Y / reference.Y);
+
+            screenPos = new AbsolutePosition(mouseState.Position.X / scale, mouseState.Position.Y / scale);
         }
         catch
         {
