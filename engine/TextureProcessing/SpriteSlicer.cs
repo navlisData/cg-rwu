@@ -1,7 +1,5 @@
 using System.Drawing;
 
-using OpenTK.Mathematics;
-
 namespace engine.TextureProcessing;
 
 /// <summary>
@@ -65,11 +63,10 @@ public static class SpriteSlicer
     /// </summary>
     /// <param name="spriteSheet">Source sprite sheet descriptor.</param>
     /// <param name="spriteRectangle">Rectangle in pixels within the sprite sheet.</param>
-    /// <param name="pivot">Optional pivot in pixels relative to the rectangle's top-left; defaults to (0,0).</param>
     /// <returns>A <see cref="StaticSprite"/> referencing the given region.</returns>
-    public static StaticSprite FromRect(SpriteSheet spriteSheet, Rectangle spriteRectangle, Vector2? pivot = null)
+    public static StaticSprite FromRect(SpriteSheet spriteSheet, Rectangle spriteRectangle)
     {
-        return new() { SpriteSheetId = spriteSheet.Id, RectPx = spriteRectangle, PivotPx = pivot ?? new Vector2(0, 0) };
+        return new() { SpriteSheetId = spriteSheet.Id, RectPx = spriteRectangle };
     }
 
     /// <summary>

@@ -7,6 +7,7 @@ using OpenTK.Mathematics;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Components.UI;
 
 namespace unnamed.Rendering;
 
@@ -27,7 +28,7 @@ public class MapPropsRenderSystem(World world) : EntitySetSystem<RenderContext.R
         Vector2 position = handle.Get<Position>().ToWorldPosition();
         ref Transform transform = ref handle.Get<Transform>();
 
-        ctx.BeginDraw().WithSprite(sprite.Frame).WithoutColoration().WithPositionAndTransform(position, transform)
-            .WithSize(transform.Size, true, true).Draw();
+        ctx.BeginDraw().WithSprite(sprite.Frame).WithoutColoration().WithPositionAndTransform(position, transform, transform.Size, UiPivot.Center)
+            .WithUnitQuad().Draw();
     }
 }

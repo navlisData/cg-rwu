@@ -8,7 +8,7 @@ public sealed class StaticSprite
 {
     public SpriteSheetId SpriteSheetId { get; init; }
     public RectangleF RectPx { get; init; }
-    public Vector2 PivotPx { get; init; }
+    public Vector2 Pivot { get; init; }
 }
 
 public sealed class SpriteSet : List<StaticSprite>

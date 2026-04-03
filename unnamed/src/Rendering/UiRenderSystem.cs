@@ -68,7 +68,7 @@ public class UiRenderSystem(World world, IAssetStore assets)
             .WithColoration(in sprite.Tint, 1f);
 
         this.ApplyUiTransform(draw, handle, isReferenceUi)
-            .WithUiUnitQuad()
+            .WithUnitQuad()
             .Draw();
     }
 
@@ -83,11 +83,11 @@ public class UiRenderSystem(World world, IAssetStore assets)
             .WithoutColoration();
 
         this.ApplyUiTransform(draw, handle, isReferenceUi)
-            .WithUiUnitQuad()
+            .WithUnitQuad()
             .Draw();
     }
 
-    private IVerticesAbsoluteStep ApplyUiTransform(
+    private IVerticesStep ApplyUiTransform(
         IProjectionStep projectionStep,
         EntityHandle handle,
         bool isReferenceUi)

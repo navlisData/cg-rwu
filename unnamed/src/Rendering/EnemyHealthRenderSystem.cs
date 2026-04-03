@@ -8,6 +8,7 @@ using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Components.UI;
 
 namespace unnamed.Rendering;
 
@@ -62,9 +63,9 @@ public sealed class EnemyHealthRenderSystem(World world)
         };
 
         ctx.BeginDraw().WithoutSprite().WithColoration(in this.bgColor, 1f)
-            .WithPositionAndTransform(position, bgTransform).WithSize(bgTransform.Size, true, true).Draw();
+            .WithPositionAndTransform(position, bgTransform, bgTransform.Size, UiPivot.Center).WithUnitQuad().Draw();
 
-        ctx.BeginDraw().WithoutSprite().WithColoration(in fgColor, 1f).WithPositionAndTransform(fgPosition, fgTransform)
-            .WithSize(fgTransform.Size, true, true).Draw();
+        ctx.BeginDraw().WithoutSprite().WithColoration(in fgColor, 1f).WithPositionAndTransform(fgPosition, fgTransform, fgTransform.Size, UiPivot.Center)
+            .WithUnitQuad().Draw();
     }
 }

@@ -6,6 +6,7 @@ using OpenTK.Mathematics;
 
 using unnamed.Components.Map;
 using unnamed.Components.Tags;
+using unnamed.Components.UI;
 using unnamed.GameMap;
 
 namespace unnamed.Rendering;
@@ -36,11 +37,13 @@ public class MapRenderSystem(World world)
                     continue;
                 }
 
+                Vector2 size = new (Map.TileSize, Map.TileSize);
+
                 ctx.BeginDraw().WithSprite(in tile.Sprite).WithoutColoration()
                     .WithPosition(
                         ((chunkPosition.X * Map.ChunkSize) + x) * Map.TileSize,
-                        ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize)
-                    .WithSize(new Vector2(Map.TileSize, Map.TileSize), false, false).Draw();
+                        ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize, size, UiPivot.BottomLeft)
+                    .WithUnitQuad().Draw();
 
                 if (tile.OverlaySprite == null)
                 {
@@ -49,8 +52,8 @@ public class MapRenderSystem(World world)
 
                 ctx.BeginDraw().WithSprite(in tile.OverlaySprite).WithoutColoration().WithPosition(
                         ((chunkPosition.X * Map.ChunkSize) + x) * Map.TileSize,
-                        ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize)
-                    .WithSize(new Vector2(Map.TileSize, Map.TileSize), false, false).Draw();
+                        ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize, size, UiPivot.BottomLeft)
+                    .WithUnitQuad().Draw();
             }
         }
     }

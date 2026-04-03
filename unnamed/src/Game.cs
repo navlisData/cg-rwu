@@ -200,7 +200,7 @@ public class Game : GameWindow
         this.Cursor = MouseCursor.Empty;
 
         PrefabFactory.CreateCrossHairSpawner(this.world,
-            (w, p) => PrefabFactory.CreateCrossHair2(w, p, this.assetStore));
+            (w, p) => PrefabFactory.CreateCrossHair(w, p, this.assetStore));
         return;
 
         float ShiftInTile()

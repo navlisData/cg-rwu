@@ -11,7 +11,7 @@ namespace unnamed.Rendering.RenderContext;
 public interface IDrawBuilder : ISpriteStep,
     IColorWithoutTextureStep, IColorWithTextureStep,
     IProjectionStep,
-    IVerticesRelativeStep, IVerticesAbsoluteStep, IDrawStep;
+    IVerticesStep, IDrawStep;
 
 public interface ISpriteStep
 {
@@ -37,21 +37,21 @@ public interface IColorWithoutTextureStep : IColorStep;
 
 public interface IProjectionStep
 {
-    IVerticesRelativeStep WithModelViewProjection(ref Matrix4 modelViewProjection);
-    IVerticesRelativeStep WithPosition(in Vector2 position);
+    IVerticesStep WithModelViewProjection(ref Matrix4 modelViewProjection);
+    IVerticesStep WithPosition(in Vector2 position, Vector2 size, UiPivot pivot);
 
-    IVerticesRelativeStep WithPosition(in float x, in float y);
-    IVerticesRelativeStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix);
-    IVerticesRelativeStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix);
+    IVerticesStep WithPosition(in float x, in float y, Vector2 size, UiPivot pivot);
+    IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size, UiPivot pivot);
+    IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size, UiPivot pivot);
 
-    IVerticesRelativeStep WithPositionAndTransform(in Vector2 position, in Transform transform);
+    IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size, UiPivot pivot);
 
-    IVerticesAbsoluteStep WithAbsoluteUiTransform(
+    IVerticesStep WithAbsoluteUiTransform(
         in AbsolutePosition position,
         in AbsoluteSize size,
         in UiPivot pivot);
 
-    IVerticesAbsoluteStep WithReferenceUiTransform(
+    IVerticesStep WithReferenceUiTransform(
         in UiReferenceOffset referenceOffset,
         in UiReferenceSize referenceSize,
         in UiAnchor anchor,
@@ -62,17 +62,17 @@ public interface IProjectionStep
 public interface IVerticesStep
 {
     IDrawStep WithVertices(in float[] vertices);
+    IDrawStep WithUnitQuad();
 }
 
-public interface IVerticesRelativeStep
-{
-    IDrawStep WithSize(in Vector2 size, bool horizontallyCentered, bool verticallyCentered);
-}
+// public interface IVerticesRelativeStep
+// {
+//     IDrawStep WithSize(in Vector2 size, UiPivot pivot);
+// }
 
-public interface IVerticesAbsoluteStep : IVerticesStep
-{
-    IDrawStep WithUiUnitQuad();
-}
+// public interface IVerticesStep
+// {
+// }
 
 public interface IDrawStep
 {

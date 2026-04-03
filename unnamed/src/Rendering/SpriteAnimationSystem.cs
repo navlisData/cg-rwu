@@ -4,8 +4,6 @@ using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
 
-using OpenTK.Mathematics;
-
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 
@@ -60,7 +58,7 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
         StaticSprite currentFrame = clip.Frames[animatedSprite.CurrentFrameIndex];
         if (!handle.Has<Sprite>())
         {
-            handle.Add(new Sprite { Tint = new Color4(0f, 0f, 0f, 1f), Layer = 0 });
+            handle.Add(new Sprite(currentFrame, animatedSprite.Pivot));
         }
 
         handle.Get<Sprite>().Frame = currentFrame;

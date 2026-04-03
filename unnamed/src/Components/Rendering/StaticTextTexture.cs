@@ -2,20 +2,14 @@ using engine.TextureProcessing;
 
 using OpenTK.Mathematics;
 
+using unnamed.Components.UI;
+
 namespace unnamed.Components.Rendering;
 
-public readonly struct StaticTextTexture
+public readonly struct StaticTextTexture(Texture2D texture, UiPivot pivot)
 {
-    public Texture2D Texture { get; }
+    public readonly Texture2D Texture = texture;
+    public readonly UiPivot UiPivot = pivot;
 
     public Vector2i Size => this.Texture.Size;
-
-    /// <summary>
-    ///     Initializes the component with a pre-rasterized text texture.
-    /// </summary>
-    /// <param name="texture">The texture that contains the rendered text.</param>
-    public StaticTextTexture(Texture2D texture)
-    {
-        this.Texture = texture ?? throw new ArgumentNullException(nameof(texture));
-    }
 }

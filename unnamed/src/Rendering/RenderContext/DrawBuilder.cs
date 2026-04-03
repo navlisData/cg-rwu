@@ -49,44 +49,49 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         GL.DrawElements(PrimitiveType.Triangles, RenderContext.QuadIndices.Length, DrawElementsType.UnsignedInt, 0);
     }
 
-    public IVerticesRelativeStep WithModelViewProjection(ref Matrix4 modelViewProjection)
+    public IVerticesStep WithModelViewProjection(ref Matrix4 modelViewProjection)
     {
         GL.UniformMatrix4(renderContext.uModelViewProjection, false, ref modelViewProjection);
         return this;
     }
 
-    public IVerticesRelativeStep WithPosition(in Vector2 position)
+    public IVerticesStep WithPosition(in Vector2 position, Vector2 size, UiPivot pivot)
     {
+        Matrix4 local = Matrix4.CreateTranslation(-pivot.X, -pivot.Y, 0f) * Matrix4.CreateScale(size.X, -size.Y, 1);
+        
         Matrix4 model = Matrix4.CreateTranslation(position.X, position.Y, 0f);
-        Matrix4 modelViewProjection = model * renderContext.worldProjection;
+        Matrix4 modelViewProjection = local * model * renderContext.worldProjection;
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
-    public IVerticesRelativeStep WithPosition(in float x, in float y)
+    public IVerticesStep WithPosition(in float x, in float y, Vector2 size, UiPivot pivot)
     {
-        return this.WithPosition(new Vector2(x, y));
+        return this.WithPosition(new Vector2(x, y), size, pivot);
     }
 
-    public IVerticesRelativeStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix)
+    public IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size, UiPivot pivot)
     {
+        Matrix4 distortion =
+            Matrix4.CreateRotationZ(transform.Rotation) *
+            Matrix4.CreateScale(transform.Scale) *
+            Matrix4.CreateTranslation(0, transform.Height, 0);
+
+        return this.WithPositionAndDistortion(new Vector2(position.X, position.Y), distortion, size, pivot);
+    }
+
+    public IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size, UiPivot pivot)
+    {
+        Matrix4 local = Matrix4.CreateTranslation(-pivot.X, -pivot.Y, 0f) * Matrix4.CreateScale(size.X, -size.Y, 1);
+        
         Matrix4 model = Matrix4.CreateTranslation(position.X, position.Y, 0f);
-        Matrix4 distortedModel = distortionMatrix * model;
+        Matrix4 distortedModel = local * distortionMatrix * model;
         Matrix4 modelViewProjection = distortedModel * renderContext.worldProjection;
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
-    public IVerticesRelativeStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix)
+    public IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size, UiPivot pivot)
     {
-        return this.WithPositionAndDistortion(new Vector2(x, y), distortionMatrix);
-    }
-
-    public IVerticesRelativeStep WithPositionAndTransform(in Vector2 position, in Transform transform)
-    {
-        Matrix4 distortion =
-            Matrix4.CreateRotationZ(transform.Rotation) *
-            Matrix4.CreateScale(transform.Scale);
-
-        return this.WithPositionAndDistortion(new Vector2(position.X, position.Y + transform.Height), distortion);
+        return this.WithPositionAndDistortion(new Vector2(x, y), distortionMatrix, size, pivot);
     }
 
     /// <summary>
@@ -96,7 +101,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
     /// <param name="size">The screen-space size in pixels.</param>
     /// <param name="pivot">The normalized pivot inside the element relative to the given position.</param>
     /// <returns>The next draw step.</returns>
-    public IVerticesAbsoluteStep WithAbsoluteUiTransform(
+    public IVerticesStep WithAbsoluteUiTransform(
         in AbsolutePosition position,
         in AbsoluteSize size,
         in UiPivot pivot)
@@ -115,7 +120,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
     /// <param name="pivot">The normalized local pivot.</param>
     /// <param name="scaleMode">The scaling mode relative to the viewport.</param>
     /// <returns>The next draw step.</returns>
-    public IVerticesAbsoluteStep WithReferenceUiTransform(
+    public IVerticesStep WithReferenceUiTransform(
         in UiReferenceOffset referenceOffset,
         in UiReferenceSize referenceSize,
         in UiAnchor anchor,
@@ -172,17 +177,9 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
     ///     Final placement and size are provided by the UI transform matrix.
     /// </summary>
     /// <returns>The next draw step.</returns>
-    public IDrawStep WithUiUnitQuad()
+    public IDrawStep WithUnitQuad()
     {
         return this.WithTexturedQuad(0f, 1f, 1f, 0f);
-    }
-
-    public IDrawStep WithSize(in Vector2 size, bool horizontallyCentered, bool verticallyCentered)
-    {
-        (float x0, float x1, float y0, float y1) =
-            ComputeQuadBounds(size, horizontallyCentered, verticallyCentered);
-
-        return this.WithTexturedQuad(x0, x1, y0, y1);
     }
 
     private IDrawStep WithTexturedQuad(float x0, float x1, float y0, float y1)
@@ -245,25 +242,5 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         renderContext.vertices[13] = y1;
         renderContext.vertices[14] = u1;
         renderContext.vertices[15] = v1;
-    }
-
-    /// <summary>
-    ///     Computes quad bounds in object space based on size and centering flags.
-    /// </summary>
-    /// <param name="size">Quad size in object/world units.</param>
-    /// <param name="horizontallyCentered">If true, x is centered around 0.</param>
-    /// <param name="verticallyCentered">If true, y is centered around 0.</param>
-    /// <returns>Tuple of (x0, x1, y0, y1).</returns>
-    private static (float x0, float x1, float y0, float y1) ComputeQuadBounds(
-        in Vector2 size,
-        bool horizontallyCentered,
-        bool verticallyCentered)
-    {
-        float x0 = horizontallyCentered ? -0.5f * size.X : 0f;
-        float x1 = horizontallyCentered ? 0.5f * size.X : size.X;
-        float y0 = verticallyCentered ? -0.5f * size.Y : 0f;
-        float y1 = verticallyCentered ? 0.5f * size.Y : size.Y;
-
-        return (x0, x1, y0, y1);
     }
 }
