@@ -41,8 +41,12 @@ public interface IProjectionStep
     IVerticesStep WithPosition(in Vector2 position, Vector2 size, Vector2 pivot);
 
     IVerticesStep WithPosition(in float x, in float y, Vector2 size, Vector2 pivot);
-    IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size, Vector2 pivot);
-    IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size, Vector2 pivot);
+
+    IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size,
+        Vector2 pivot);
+
+    IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size,
+        Vector2 pivot);
 
     IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size, Vector2 pivot);
 

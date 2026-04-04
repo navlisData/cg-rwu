@@ -58,7 +58,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
     public IVerticesStep WithPosition(in Vector2 position, Vector2 size, Vector2 pivot)
     {
         Matrix4 local = Matrix4.CreateTranslation(-pivot.X, -pivot.Y, 0f) * Matrix4.CreateScale(size.X, -size.Y, 1);
-        
+
         Matrix4 model = Matrix4.CreateTranslation(position.X, position.Y, 0f);
         Matrix4 modelViewProjection = local * model * renderContext.worldProjection;
         return this.WithModelViewProjection(ref modelViewProjection);
@@ -69,7 +69,8 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithPosition(new Vector2(x, y), size, pivot);
     }
 
-    public IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size, Vector2 pivot)
+    public IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size,
+        Vector2 pivot)
     {
         Matrix4 distortion =
             Matrix4.CreateRotationZ(transform.Rotation) *
@@ -79,17 +80,19 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithPositionAndDistortion(new Vector2(position.X, position.Y), distortion, size, pivot);
     }
 
-    public IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size, Vector2 pivot)
+    public IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size,
+        Vector2 pivot)
     {
         Matrix4 local = Matrix4.CreateTranslation(-pivot.X, -pivot.Y, 0f) * Matrix4.CreateScale(size.X, -size.Y, 1);
-        
+
         Matrix4 model = Matrix4.CreateTranslation(position.X, position.Y, 0f);
         Matrix4 distortedModel = local * distortionMatrix * model;
         Matrix4 modelViewProjection = distortedModel * renderContext.worldProjection;
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
-    public IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size, Vector2 pivot)
+    public IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size,
+        Vector2 pivot)
     {
         return this.WithPositionAndDistortion(new Vector2(x, y), distortionMatrix, size, pivot);
     }

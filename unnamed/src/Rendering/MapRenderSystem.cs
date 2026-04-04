@@ -36,7 +36,7 @@ public class MapRenderSystem(World world)
                     continue;
                 }
 
-                Vector2 size = new (Map.TileSize, Map.TileSize);
+                Vector2 size = new(Map.TileSize, Map.TileSize);
 
                 ctx.BeginDraw().WithSprite(in tile.Sprite).WithoutColoration()
                     .WithPosition(

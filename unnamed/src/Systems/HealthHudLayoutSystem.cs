@@ -52,7 +52,6 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
             referenceOffset = new UiReferenceOffset(x, y);
         }
 
-
         handle.Remove<HealthHudLayoutDirty>();
         handle.Ensure<HealthHudVisualDirty>();
     }

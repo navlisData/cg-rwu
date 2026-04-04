@@ -28,7 +28,8 @@ public class ProjectileRenderingSystem(World world) : EntitySetSystem<RenderCont
         Vector2 position = handle.Get<Position>().ToWorldPosition();
         ref Transform transform = ref handle.Get<Transform>();
 
-        ctx.BeginDraw().WithSprite(sprite.Frame).WithoutColoration().WithPositionAndTransform(position, transform, transform.Size, sprite.Frame.Pivot)
+        ctx.BeginDraw().WithSprite(sprite.Frame).WithoutColoration()
+            .WithPositionAndTransform(position, transform, transform.Size, sprite.Frame.Pivot)
             .WithUnitQuad().Draw();
     }
 }

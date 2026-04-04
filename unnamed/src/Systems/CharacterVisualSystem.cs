@@ -26,7 +26,7 @@ public sealed class CharacterVisualSystem(
     protected override void Update(float dt, in Entity e)
     {
         EntityHandle handle = this.world.Handle(e);
-        
+
         VisualType resolvedType;
         if (handle.Has<AlignedCharacter>())
         {
@@ -51,6 +51,7 @@ public sealed class CharacterVisualSystem(
                 {
                     handle.Add(new Sprite(spriteById));
                 }
+
                 handle.Get<Sprite>().Frame = spriteById;
                 break;
             case VisualType.AnimationSpriteKey animationSprite:

@@ -80,7 +80,7 @@ public class UiRenderSystem(World world, IAssetStore assets)
             .WithText(text)
             .WithoutColoration();
 
-        this.ApplyUiTransform(draw, handle,text.Pivot, isReferenceUi)
+        this.ApplyUiTransform(draw, handle, text.Pivot, isReferenceUi)
             .WithUnitQuad()
             .Draw();
     }

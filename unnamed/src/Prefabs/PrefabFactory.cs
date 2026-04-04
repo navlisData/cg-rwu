@@ -85,7 +85,7 @@ public static class PrefabFactory
         Texture2D titleTexture = textFactory.CreateTexture(text, color, textAlignment);
 
         return world.Create()
-            .Add(new StaticTextTexture(titleTexture, UiPivot.Center.ToVector2()))
+            .Add(new StaticTextTexture(titleTexture, Pivot.Center))
             .Add(new UiReferenceSize(titleTexture.Width, titleTexture.Height))
             .Add(new UiReferenceOffset())
             .Add(new UiElement())
@@ -111,7 +111,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(startPos)
             .Add(new Transform { Size = new Vector2(2f, 1f), Scale = 2.4f, Rotation = rotation, Height = height })
-            .Add(new AnimatedSprite(0, null, assetStore.Get(GameAssets.Projectile.Fireball), 0, UiPivot.Center))
+            .Add(new AnimatedSprite(0, null, assetStore.Get(GameAssets.Projectile.Fireball), 0, Pivot.Center))
             .Add(velocity)
             .Add(new Projectile
             {
@@ -179,7 +179,7 @@ public static class PrefabFactory
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 5f, Height = height })
             .Add(new Projectile())
             .Add(new MarkedToDestroy { RemainingLifetime = assetStore.Get(animationClip).AnimationDuration() })
-            .Add(new AnimatedSprite(0, assetStore.Get(animationClip), null, 0, UiPivot.Center))
+            .Add(new AnimatedSprite(0, assetStore.Get(animationClip), null, 0, Pivot.Center))
             .ToEntity();
     }
 

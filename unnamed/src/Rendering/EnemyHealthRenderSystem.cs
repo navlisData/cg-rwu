@@ -34,7 +34,7 @@ public sealed class EnemyHealthRenderSystem(World world)
         ref Transform transform = ref handle.Get<Transform>();
         Vector2 position = handle.Get<Position>().ToWorldPosition();
         ref EntityStats stats = ref handle.Get<EntityStats>();
-        
+
         ref Sprite sprite = ref handle.Get<Sprite>();
 
         Transform bgTransform = transform with
@@ -63,12 +63,13 @@ public sealed class EnemyHealthRenderSystem(World world)
             _ => this.fgColorRed
         };
 
-        Vector2 healthbarPivot = new Vector2(sprite.Frame.Pivot.X, 0.5f);
+        Vector2 healthbarPivot = new(sprite.Frame.Pivot.X, 0.5f);
 
         ctx.BeginDraw().WithoutSprite().WithColoration(in this.bgColor, 1f)
             .WithPositionAndTransform(position, bgTransform, bgTransform.Size, healthbarPivot).WithUnitQuad().Draw();
 
-        ctx.BeginDraw().WithoutSprite().WithColoration(in fgColor, 1f).WithPositionAndTransform(fgPosition, fgTransform, fgTransform.Size, healthbarPivot)
+        ctx.BeginDraw().WithoutSprite().WithColoration(in fgColor, 1f)
+            .WithPositionAndTransform(fgPosition, fgTransform, fgTransform.Size, healthbarPivot)
             .WithUnitQuad().Draw();
     }
 }
