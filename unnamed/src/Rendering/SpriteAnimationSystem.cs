@@ -58,7 +58,7 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
         StaticSprite currentFrame = clip.Frames[animatedSprite.CurrentFrameIndex];
         if (!handle.Has<Sprite>())
         {
-            handle.Add(new Sprite(currentFrame, animatedSprite.Pivot));
+            handle.Add(new Sprite(currentFrame));
         }
 
         handle.Get<Sprite>().Frame = currentFrame;

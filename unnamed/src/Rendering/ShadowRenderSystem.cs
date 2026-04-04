@@ -7,7 +7,6 @@ using OpenTK.Mathematics;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
-using unnamed.Components.UI;
 
 namespace unnamed.Rendering;
 
@@ -39,7 +38,7 @@ public class ShadowRenderSystem(World world) : EntitySetSystem<RenderContext.Ren
             this.shearMatrix;
 
         ctx.BeginDraw().WithSprite(sprite.Frame).WithColoration(this.shadow, 1f)
-            .WithPositionAndDistortion(position, distortion, transform.Size, UiPivot.BottomCenter)
+            .WithPositionAndDistortion(position, distortion, transform.Size, sprite.Frame.Pivot)
             .WithUnitQuad().Draw();
     }
 }

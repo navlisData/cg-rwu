@@ -102,7 +102,7 @@ public class RenderContext : IRenderContext
     protected internal Matrix4 CreateAbsoluteUiModelViewProjection(
         in AbsolutePosition position,
         in AbsoluteSize size,
-        in UiPivot pivot)
+        in Vector2 pivot)
     {
         AbsolutePosition resolvedPosition = position;
         if (resolvedPosition.AllowWrapping)
@@ -135,7 +135,7 @@ public class RenderContext : IRenderContext
         in UiReferenceSize referenceSize,
         in UiReferenceOffset referenceOffset,
         in UiAnchor anchor,
-        in UiPivot pivot,
+        in Vector2 pivot,
         UiScaleMode scaleMode)
     {
         Vector2 scale = this.ResolveUiScale(scaleMode);
@@ -146,7 +146,7 @@ public class RenderContext : IRenderContext
             this.uiViewportSize.X * anchor.X,
             this.uiViewportSize.Y * anchor.Y);
 
-        Vector2 topLeft = anchorPosition + finalOffset - (finalSize * pivot.ToVector2());
+        Vector2 topLeft = anchorPosition + finalOffset - (finalSize * pivot);
 
         Matrix4 model =
             Matrix4.CreateScale(finalSize.X, finalSize.Y, 1f) *

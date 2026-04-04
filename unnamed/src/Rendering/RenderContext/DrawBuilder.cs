@@ -55,7 +55,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this;
     }
 
-    public IVerticesStep WithPosition(in Vector2 position, Vector2 size, UiPivot pivot)
+    public IVerticesStep WithPosition(in Vector2 position, Vector2 size, Vector2 pivot)
     {
         Matrix4 local = Matrix4.CreateTranslation(-pivot.X, -pivot.Y, 0f) * Matrix4.CreateScale(size.X, -size.Y, 1);
         
@@ -64,12 +64,12 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
-    public IVerticesStep WithPosition(in float x, in float y, Vector2 size, UiPivot pivot)
+    public IVerticesStep WithPosition(in float x, in float y, Vector2 size, Vector2 pivot)
     {
         return this.WithPosition(new Vector2(x, y), size, pivot);
     }
 
-    public IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size, UiPivot pivot)
+    public IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size, Vector2 pivot)
     {
         Matrix4 distortion =
             Matrix4.CreateRotationZ(transform.Rotation) *
@@ -79,7 +79,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithPositionAndDistortion(new Vector2(position.X, position.Y), distortion, size, pivot);
     }
 
-    public IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size, UiPivot pivot)
+    public IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size, Vector2 pivot)
     {
         Matrix4 local = Matrix4.CreateTranslation(-pivot.X, -pivot.Y, 0f) * Matrix4.CreateScale(size.X, -size.Y, 1);
         
@@ -89,7 +89,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
-    public IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size, UiPivot pivot)
+    public IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size, Vector2 pivot)
     {
         return this.WithPositionAndDistortion(new Vector2(x, y), distortionMatrix, size, pivot);
     }
@@ -104,7 +104,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
     public IVerticesStep WithAbsoluteUiTransform(
         in AbsolutePosition position,
         in AbsoluteSize size,
-        in UiPivot pivot)
+        in Vector2 pivot)
     {
         Matrix4 modelViewProjection = renderContext.CreateAbsoluteUiModelViewProjection(position, size, pivot);
         this.WithModelViewProjection(ref modelViewProjection);
@@ -124,7 +124,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         in UiReferenceOffset referenceOffset,
         in UiReferenceSize referenceSize,
         in UiAnchor anchor,
-        in UiPivot pivot,
+        in Vector2 pivot,
         UiScaleMode scaleMode)
     {
         Matrix4 modelViewProjection = renderContext.CreateReferenceUiModelViewProjection(

@@ -1,10 +1,10 @@
-using System.Diagnostics;
-
 using Engine.Ecs;
 using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
+
+using OpenTK.Mathematics;
 
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
@@ -30,14 +30,12 @@ public class UiRenderSystem(World world, IAssetStore assets)
             handle.Has<UiReferenceOffset>() &&
             handle.Has<UiReferenceSize>() &&
             handle.Has<UiAnchor>() &&
-            handle.Has<UiPivot>() &&
             handle.Has<UiScaleMode>();
 
         bool isAbsoluteUi =
             handle.Has<AbsolutePosition>() &&
             handle.Has<AbsoluteSize>();
 
-        Debug.Assert(isReferenceUi || isAbsoluteUi);
         if (!isReferenceUi && !isAbsoluteUi)
         {
             return;
@@ -67,7 +65,7 @@ public class UiRenderSystem(World world, IAssetStore assets)
             .WithSprite(sprite.Frame)
             .WithColoration(in sprite.Tint, 1f);
 
-        this.ApplyUiTransform(draw, handle, isReferenceUi)
+        this.ApplyUiTransform(draw, handle, sprite.Frame.Pivot, isReferenceUi)
             .WithUnitQuad()
             .Draw();
     }
@@ -82,7 +80,7 @@ public class UiRenderSystem(World world, IAssetStore assets)
             .WithText(text)
             .WithoutColoration();
 
-        this.ApplyUiTransform(draw, handle, isReferenceUi)
+        this.ApplyUiTransform(draw, handle,text.Pivot, isReferenceUi)
             .WithUnitQuad()
             .Draw();
     }
@@ -90,6 +88,7 @@ public class UiRenderSystem(World world, IAssetStore assets)
     private IVerticesStep ApplyUiTransform(
         IProjectionStep projectionStep,
         EntityHandle handle,
+        Vector2 pivot,
         bool isReferenceUi)
     {
         if (isReferenceUi)
@@ -97,7 +96,6 @@ public class UiRenderSystem(World world, IAssetStore assets)
             ref UiReferenceOffset referenceOffset = ref handle.Get<UiReferenceOffset>();
             ref UiReferenceSize referenceSize = ref handle.Get<UiReferenceSize>();
             ref UiAnchor anchor = ref handle.Get<UiAnchor>();
-            ref UiPivot pivot = ref handle.Get<UiPivot>();
             ref UiScaleMode scaleMode = ref handle.Get<UiScaleMode>();
 
             return projectionStep.WithReferenceUiTransform(
@@ -111,10 +109,6 @@ public class UiRenderSystem(World world, IAssetStore assets)
         ref AbsolutePosition position = ref handle.Get<AbsolutePosition>();
         ref AbsoluteSize size = ref handle.Get<AbsoluteSize>();
 
-        UiPivot pivotForAbsolute = handle.Has<UiPivot>()
-            ? handle.Get<UiPivot>()
-            : UiPivot.TopLeft;
-
-        return projectionStep.WithAbsoluteUiTransform(in position, in size, in pivotForAbsolute);
+        return projectionStep.WithAbsoluteUiTransform(in position, in size, in pivot);
     }
 }

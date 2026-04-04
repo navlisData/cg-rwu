@@ -7,7 +7,6 @@ using OpenTK.Mathematics;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
-using unnamed.Components.UI;
 using unnamed.Utils;
 
 namespace unnamed.Rendering;
@@ -29,10 +28,11 @@ public class EntityRenderSystem(World world) : EntitySetSystem<RenderContext.Ren
         ref Sprite sprite = ref handle.Get<Sprite>();
         Vector2 position = handle.Get<Position>().ToWorldPosition();
         ref Transform transform = ref handle.Get<Transform>();
+        Vector2 pivot = sprite.Frame.Pivot;
 
         ctx.BeginDraw().WithSprite(sprite.Frame)
             .WithoutColoration()
-            .WithPositionAndTransform(position, transform, transform.Size, UiPivot.BottomCenter)
+            .WithPositionAndTransform(position, transform, transform.Size, pivot)
             .WithUnitQuad().Draw();
     }
 }

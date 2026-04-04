@@ -38,24 +38,24 @@ public interface IColorWithoutTextureStep : IColorStep;
 public interface IProjectionStep
 {
     IVerticesStep WithModelViewProjection(ref Matrix4 modelViewProjection);
-    IVerticesStep WithPosition(in Vector2 position, Vector2 size, UiPivot pivot);
+    IVerticesStep WithPosition(in Vector2 position, Vector2 size, Vector2 pivot);
 
-    IVerticesStep WithPosition(in float x, in float y, Vector2 size, UiPivot pivot);
-    IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size, UiPivot pivot);
-    IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size, UiPivot pivot);
+    IVerticesStep WithPosition(in float x, in float y, Vector2 size, Vector2 pivot);
+    IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size, Vector2 pivot);
+    IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size, Vector2 pivot);
 
-    IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size, UiPivot pivot);
+    IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size, Vector2 pivot);
 
     IVerticesStep WithAbsoluteUiTransform(
         in AbsolutePosition position,
         in AbsoluteSize size,
-        in UiPivot pivot);
+        in Vector2 pivot);
 
     IVerticesStep WithReferenceUiTransform(
         in UiReferenceOffset referenceOffset,
         in UiReferenceSize referenceSize,
         in UiAnchor anchor,
-        in UiPivot pivot,
+        in Vector2 pivot,
         UiScaleMode scaleMode);
 }
 
@@ -64,15 +64,6 @@ public interface IVerticesStep
     IDrawStep WithVertices(in float[] vertices);
     IDrawStep WithUnitQuad();
 }
-
-// public interface IVerticesRelativeStep
-// {
-//     IDrawStep WithSize(in Vector2 size, UiPivot pivot);
-// }
-
-// public interface IVerticesStep
-// {
-// }
 
 public interface IDrawStep
 {

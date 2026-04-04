@@ -18,7 +18,7 @@ public sealed class CharacterVisualSystem(
     NonDirectionalActionDatabase nonDirectionalActionDatabase) : EntitySetSystem<float>(world, new QueryBuilder()
     .With<VisibleEntity>()
     .With<Character>()
-    .With<Sprite>()
+    .WithAny<AlignedCharacter, NonDirectionalCharacter>()
     .Without<Sleeping>()
     .Build()
 )
@@ -26,12 +26,7 @@ public sealed class CharacterVisualSystem(
     protected override void Update(float dt, in Entity e)
     {
         EntityHandle handle = this.world.Handle(e);
-
-        if (!handle.Has<AlignedCharacter>() && !handle.Has<NonDirectionalCharacter>())
-        {
-            return;
-        }
-
+        
         VisualType resolvedType;
         if (handle.Has<AlignedCharacter>())
         {
@@ -52,7 +47,10 @@ public sealed class CharacterVisualSystem(
         {
             case VisualType.StaticSpriteKey staticSprite:
                 StaticSprite spriteById = assetStore.Get(staticSprite.Key);
-                
+                if (!handle.Has<Sprite>())
+                {
+                    handle.Add(new Sprite(spriteById));
+                }
                 handle.Get<Sprite>().Frame = spriteById;
                 break;
             case VisualType.AnimationSpriteKey animationSprite:

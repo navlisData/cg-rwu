@@ -1,5 +1,7 @@
 using System.Drawing;
 
+using OpenTK.Mathematics;
+
 namespace engine.TextureProcessing;
 
 /// <summary>
@@ -64,9 +66,9 @@ public static class SpriteSlicer
     /// <param name="spriteSheet">Source sprite sheet descriptor.</param>
     /// <param name="spriteRectangle">Rectangle in pixels within the sprite sheet.</param>
     /// <returns>A <see cref="StaticSprite"/> referencing the given region.</returns>
-    public static StaticSprite FromRect(SpriteSheet spriteSheet, Rectangle spriteRectangle)
+    public static StaticSprite FromRect(SpriteSheet spriteSheet, Rectangle spriteRectangle, Vector2 pivot)
     {
-        return new() { SpriteSheetId = spriteSheet.Id, RectPx = spriteRectangle };
+        return new() { SpriteSheetId = spriteSheet.Id, RectPx = spriteRectangle, Pivot = pivot};
     }
 
     /// <summary>
@@ -78,7 +80,7 @@ public static class SpriteSlicer
     /// Optional zero-based linear indices (row-major) selecting specific cells; when <c>null</c>, all cells are included.
     /// </param>
     /// <returns>A <see cref="SpriteSet"/> consisting of the selected grid cells; empty if resolved cols/rows are zero.</returns>
-    public static SpriteSet FromGrid(SpriteSheet spriteSheet, TextureGrid textureGrid, IEnumerable<int>? indices = null)
+    public static SpriteSet FromGrid(Vector2 pivot, SpriteSheet spriteSheet, TextureGrid textureGrid, IEnumerable<int>? indices = null)
     {
         var (cols, rows) = textureGrid.Resolve(spriteSheet.Size.X, spriteSheet.Size.Y);
         if (cols == 0 || rows == 0) return new SpriteSet();
@@ -92,7 +94,7 @@ public static class SpriteSlicer
                 int cx = i % cols, cy = i / cols;
                 int x = textureGrid.OffsetX + cx * (textureGrid.CellW + textureGrid.GapX);
                 int y = textureGrid.OffsetY + cy * (textureGrid.CellH + textureGrid.GapY);
-                yield return FromRect(spriteSheet, new Rectangle(x, y, textureGrid.CellW, textureGrid.CellH));
+                yield return FromRect(spriteSheet, new Rectangle(x, y, textureGrid.CellW, textureGrid.CellH), pivot);
             }
         }
 
@@ -111,9 +113,9 @@ public static class SpriteSlicer
     /// <param name="startIndex">Starting zero-based cell index (row-major order).</param>
     /// <returns>An <see cref="AnimationClip"/> with the selected frames.</returns>
     public static AnimationClip ClipFromGrid(SpriteSheet spriteSheet, TextureGrid textureGrid, int frameCount,
-        float fps, byte priority = 0, bool loop = true, int startIndex = 0)
+        float fps, Vector2 pivot, byte priority = 0, bool loop = true, int startIndex = 0)
     {
-        var set = FromGrid(spriteSheet, textureGrid, Enumerable.Range(startIndex, frameCount));
+        var set = FromGrid(pivot, spriteSheet, textureGrid, Enumerable.Range(startIndex, frameCount));
         return new AnimationClip { Frames = set, Fps = fps, Loop = loop, Priority = priority };
     }
 }

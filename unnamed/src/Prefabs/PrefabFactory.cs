@@ -30,7 +30,7 @@ public static class PrefabFactory
             .Add(new Velocity())
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 5f })
             .Add(new ReceivesPlayerInput())
-            .Add(new Sprite(assetStore.FirstAnimationFrame(GameAssets.Player.Run.South), UiPivot.BottomCenter))
+            .Add(new Sprite(assetStore.FirstAnimationFrame(GameAssets.Player.Run.South)))
             .Add(new AlignedCharacter
             {
                 CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
@@ -56,7 +56,7 @@ public static class PrefabFactory
             .Add(new UiElement())
             .Add(UiAnchor.TopLeft)
             .Add(UiScaleMode.Uniform)
-            .Add(new Sprite(frame, UiPivot.TopLeft))
+            .Add(new Sprite(frame))
             .ToEntity();
     }
 
@@ -66,7 +66,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(startPos)
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 3 })
-            .Add(new Sprite(assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle), UiPivot.BottomCenter))
+            .Add(new Sprite(assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle)))
             .Add(new NonDirectionalCharacter { CharacterType = CharacterType.Enemy })
             .Add(new VisibleEntity())
             .Add(new Character())
@@ -85,7 +85,7 @@ public static class PrefabFactory
         Texture2D titleTexture = textFactory.CreateTexture(text, color, textAlignment);
 
         return world.Create()
-            .Add(new StaticTextTexture(titleTexture, UiPivot.Center))
+            .Add(new StaticTextTexture(titleTexture, UiPivot.Center.ToVector2()))
             .Add(new UiReferenceSize(titleTexture.Width, titleTexture.Height))
             .Add(new UiReferenceOffset())
             .Add(new UiElement())
@@ -144,7 +144,7 @@ public static class PrefabFactory
             .Add(position)
             .Add(new AbsoluteSize(16, 16))
             .Add(new UiElement())
-            .Add(new Sprite(assetStore.Get(GameAssets.Crosshair.ParticleCloud), tint, UiPivot.Center))
+            .Add(new Sprite(assetStore.Get(GameAssets.Crosshair.ParticleCloud), tint))
             .Add(new Lifespan(0.5f))
             .Add(new InfluencedByWind(10))
             .Add(new FadeAnimation(false, 0.5f, FadeAnimationType.FadeOut))
@@ -165,7 +165,7 @@ public static class PrefabFactory
             .Add(new CanCollideWithPlayer { Range = 0.5f })
             .Add(new Follows { Target = player, Speed = 8f, FollowRadius = 8, Type = FollowType.Linear })
             .Add(transform)
-            .Add(new Sprite(frame, UiPivot.BottomCenter));
+            .Add(new Sprite(frame));
 
         dropHandle.AddDefaultDropComponent(dropType);
         return dropHandle.ToEntity();
@@ -188,7 +188,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(pos)
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 16f })
-            .Add(new Sprite(assetStore.Get(GameAssets.Props.Portal), UiPivot.BottomCenter))
+            .Add(new Sprite(assetStore.Get(GameAssets.Props.Portal)))
             .Add(new Prop())
             .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new TriggerStageEnd())
@@ -200,7 +200,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(pos)
             .Add(new Transform { Size = size, Scale = 2f })
-            .Add(new Sprite(asset, UiPivot.Center))
+            .Add(new Sprite(asset))
             .Add(new Prop())
             .ToEntity();
     }
