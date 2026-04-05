@@ -44,49 +44,25 @@ public class UiRenderSystem(World world, IAssetStore assets)
         if (handle.Has<Sprite>())
         {
             ref Sprite sprite = ref handle.Get<Sprite>();
-            this.DrawSprite(ctx, handle, sprite, isReferenceUi);
+            RenderUi(ctx.BeginUi(), handle, sprite.Frame.Pivot, isReferenceUi)
+                .WithSprite(sprite.Frame)
+                .WithColoration(in sprite.Tint, 1f)
+                .Draw();
             return;
         }
 
         if (handle.Has<StaticTextTexture>())
         {
             ref StaticTextTexture text = ref handle.Get<StaticTextTexture>();
-            this.DrawText(ctx, handle, text, isReferenceUi);
+            RenderUi(ctx.BeginUi(), handle, text.Pivot, isReferenceUi)
+                .WithSprite(text)
+                .WithoutColoration()
+                .Draw();
         }
     }
 
-    private void DrawSprite(
-        RenderContext.RenderContext ctx,
-        EntityHandle handle,
-        in Sprite sprite,
-        bool isReferenceUi)
-    {
-        var draw = ctx.BeginDraw()
-            .WithSprite(sprite.Frame)
-            .WithColoration(in sprite.Tint, 1f);
-
-        this.ApplyUiTransform(draw, handle, sprite.Frame.Pivot, isReferenceUi)
-            .WithUnitQuad()
-            .Draw();
-    }
-
-    private void DrawText(
-        RenderContext.RenderContext ctx,
-        EntityHandle handle,
-        in StaticTextTexture text,
-        bool isReferenceUi)
-    {
-        var draw = ctx.BeginDraw()
-            .WithText(text)
-            .WithoutColoration();
-
-        this.ApplyUiTransform(draw, handle, text.Pivot, isReferenceUi)
-            .WithUnitQuad()
-            .Draw();
-    }
-
-    private IVerticesStep ApplyUiTransform(
-        IProjectionStep projectionStep,
+    private static ISpriteStep RenderUi(
+        IProjectionUiStep projectionStep,
         EntityHandle handle,
         Vector2 pivot,
         bool isReferenceUi)
@@ -98,17 +74,17 @@ public class UiRenderSystem(World world, IAssetStore assets)
             ref UiAnchor anchor = ref handle.Get<UiAnchor>();
             ref UiScaleMode scaleMode = ref handle.Get<UiScaleMode>();
 
-            return projectionStep.WithReferenceUiTransform(
+            return projectionStep.WithReferencePosition(
                 in referenceOffset,
                 in referenceSize,
-                in anchor,
                 in pivot,
+                in anchor,
                 scaleMode);
         }
 
         ref AbsolutePosition position = ref handle.Get<AbsolutePosition>();
         ref AbsoluteSize size = ref handle.Get<AbsoluteSize>();
 
-        return projectionStep.WithAbsoluteUiTransform(in position, in size, in pivot);
+        return projectionStep.WithAbsolutePosition(in position, in size, in pivot);
     }
 }

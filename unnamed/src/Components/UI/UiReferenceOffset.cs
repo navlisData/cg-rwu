@@ -9,8 +9,8 @@ namespace unnamed.Components.UI;
 /// <param name="Y">Vertical offset in reference-space units.</param>
 public readonly record struct UiReferenceOffset(float X = 0f, float Y = 0f)
 {
-    public Vector2 ToVector2()
+    public static implicit operator Vector2(UiReferenceOffset offset)
     {
-        return new Vector2(this.X, this.Y);
+        return new Vector2(offset.X, offset.Y);
     }
 }

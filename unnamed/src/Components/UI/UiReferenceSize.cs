@@ -9,8 +9,8 @@ namespace unnamed.Components.UI;
 /// <param name="Height">Height in reference-space units.</param>
 public readonly record struct UiReferenceSize(float Width, float Height)
 {
-    public Vector2 ToVector2()
+    public static implicit operator Vector2(UiReferenceSize size)
     {
-        return new Vector2(this.Width, this.Height);
+        return new Vector2(size.Width, size.Height);
     }
 }

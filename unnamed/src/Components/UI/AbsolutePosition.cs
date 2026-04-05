@@ -18,12 +18,12 @@ public struct AbsolutePosition(float x, float y, bool allowWrapping = true)
     public float Y = y;
     public readonly bool AllowWrapping = allowWrapping;
 
-    public static explicit operator AbsolutePosition(Vector2 pos)
+    public static implicit operator AbsolutePosition(Vector2 pos)
     {
         return new AbsolutePosition(pos.X, pos.Y);
     }
 
-    public static explicit operator Vector2(AbsolutePosition pos)
+    public static implicit operator Vector2(AbsolutePosition pos)
     {
         return new Vector2(pos.X, pos.Y);
     }

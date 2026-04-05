@@ -30,9 +30,7 @@ public class EntityRenderSystem(World world) : EntitySetSystem<RenderContext.Ren
         ref Transform transform = ref handle.Get<Transform>();
         Vector2 pivot = sprite.Frame.Pivot;
 
-        ctx.BeginDraw().WithSprite(sprite.Frame)
-            .WithoutColoration()
-            .WithPositionAndTransform(position, transform, transform.Size, pivot)
-            .WithUnitQuad().Draw();
+        ctx.BeginDraw().WithPositionAndTransform(position, transform, transform.Size, pivot).WithSprite(sprite.Frame)
+            .WithoutColoration().Draw();
     }
 }

@@ -12,33 +12,26 @@ namespace unnamed.Rendering.RenderContext;
 
 public class RenderContext : IRenderContext
 {
-    protected internal const int VerticesArrayLength = 16;
+    private const int VerticesArrayLength = 16;
     protected internal const int VerticesLength = VerticesArrayLength * sizeof(float);
-
     protected internal static readonly uint[] QuadIndices = [0, 1, 2, 2, 1, 3];
-
     protected internal readonly IAssetStore assetStore;
-    protected internal readonly StaticSprite fallbackSprite;
-    protected internal readonly float[] vertices = new float[VerticesArrayLength];
-
-    private readonly int shader;
-    private readonly int vertexHandle = GL.GenVertexArray();
-    private readonly int vertexBuffer = GL.GenBuffer();
     private readonly int elementBuffer = GL.GenBuffer();
-
+    protected internal readonly StaticSprite fallbackSprite;
+    private readonly int shader;
     protected internal readonly int uBlendFactor;
+    private readonly Vector2 uiReferenceResolution;
     protected internal readonly int uModelViewProjection;
     protected internal readonly int uOverrideColor;
+    private readonly int vertexBuffer = GL.GenBuffer();
+    private readonly int vertexHandle = GL.GenVertexArray();
+    protected internal readonly float[] vertices = new float[VerticesArrayLength];
 
-    private readonly Vector2 uiReferenceResolution;
-
-    private Camera2D camera;
-    protected internal Matrix4 worldProjection;
+    protected internal Camera2D camera;
     private Matrix4 uiProjection;
-    private Vector2 uiViewportSize;
-
     private Vector2 uiStretchScale = Vector2.One;
     private Vector2 uiUniformScale = Vector2.One;
+    protected internal Vector2 uiViewportSize;
 
     public RenderContext(IAssetStore assetStore, int shader, Vector2i uiReferenceResolution)
     {
@@ -75,92 +68,6 @@ public class RenderContext : IRenderContext
     public void UpdateState(Camera2D newCamera)
     {
         this.camera = newCamera;
-        this.UpdateUiState();
-    }
-
-    public ISpriteStep BeginDraw()
-    {
-        return new DrawBuilder(this);
-    }
-
-
-    public void OnUnload()
-    {
-        GL.DeleteVertexArray(this.vertexHandle);
-        GL.DeleteBuffer(this.vertexBuffer);
-        GL.DeleteBuffer(this.elementBuffer);
-        GL.DeleteProgram(this.shader);
-    }
-
-    /// <summary>
-    ///     Creates the final model-view-projection matrix for a direct screen-space UI element.
-    /// </summary>
-    /// <param name="position">The screen-space position in pixels.</param>
-    /// <param name="size">The screen-space size in pixels.</param>
-    /// <param name="pivot">The normalized pivot inside the element relative to the given position.</param>
-    /// <returns>The final model-view-projection matrix.</returns>
-    protected internal Matrix4 CreateAbsoluteUiModelViewProjection(
-        in AbsolutePosition position,
-        in AbsoluteSize size,
-        in Vector2 pivot)
-    {
-        AbsolutePosition resolvedPosition = position;
-        if (resolvedPosition.AllowWrapping)
-        {
-            resolvedPosition = resolvedPosition.WrapToScreen(this.camera.Viewport);
-        }
-
-        Vector2 finalSize = size;
-        Vector2 topLeft = new(
-            resolvedPosition.X - (finalSize.X * pivot.X),
-            resolvedPosition.Y - (finalSize.Y * pivot.Y));
-
-        Matrix4 model =
-            Matrix4.CreateScale(finalSize.X, finalSize.Y, 1f) *
-            Matrix4.CreateTranslation(topLeft.X, topLeft.Y, 0f);
-
-        return model * this.uiProjection;
-    }
-
-    /// <summary>
-    ///     Creates the final model-view-projection matrix for a reference-space UI element.
-    /// </summary>
-    /// <param name="referenceSize">The authored size in reference-space units.</param>
-    /// <param name="referenceOffset">The authored offset in reference-space units.</param>
-    /// <param name="anchor">The normalized screen anchor.</param>
-    /// <param name="pivot">The normalized local pivot.</param>
-    /// <param name="scaleMode">The scaling mode relative to the current viewport.</param>
-    /// <returns>The final model-view-projection matrix.</returns>
-    protected internal Matrix4 CreateReferenceUiModelViewProjection(
-        in UiReferenceSize referenceSize,
-        in UiReferenceOffset referenceOffset,
-        in UiAnchor anchor,
-        in Vector2 pivot,
-        UiScaleMode scaleMode)
-    {
-        Vector2 scale = this.ResolveUiScale(scaleMode);
-        Vector2 finalSize = referenceSize.ToVector2() * scale;
-        Vector2 finalOffset = referenceOffset.ToVector2() * scale;
-
-        Vector2 anchorPosition = new(
-            this.uiViewportSize.X * anchor.X,
-            this.uiViewportSize.Y * anchor.Y);
-
-        Vector2 topLeft = anchorPosition + finalOffset - (finalSize * pivot);
-
-        Matrix4 model =
-            Matrix4.CreateScale(finalSize.X, finalSize.Y, 1f) *
-            Matrix4.CreateTranslation(topLeft.X, topLeft.Y, 0f);
-
-        return model * this.uiProjection;
-    }
-
-    /// <summary>
-    ///     Updates cached UI projection and scale values for the current framebuffer size.
-    /// </summary>
-    private void UpdateUiState()
-    {
-        this.worldProjection = this.camera.ViewProjection;
 
         this.uiViewportSize = new Vector2(this.camera.Viewport.X, this.camera.Viewport.Y);
         this.uiProjection = Matrix4.CreateOrthographicOffCenter(
@@ -176,12 +83,31 @@ public class RenderContext : IRenderContext
         this.uiUniformScale = new Vector2(uniformScale, uniformScale);
     }
 
+    public IProjectionUiStep BeginUi()
+    {
+        return new DrawBuilder(this, this.uiProjection);
+    }
+
+    public IProjectionGameStep BeginDraw()
+    {
+        return new DrawBuilder(this, this.camera.ViewProjection);
+    }
+
+    public void OnUnload()
+    {
+        GL.DeleteVertexArray(this.vertexHandle);
+        GL.DeleteBuffer(this.vertexBuffer);
+        GL.DeleteBuffer(this.elementBuffer);
+        GL.DeleteProgram(this.shader);
+    }
+
+
     /// <summary>
     ///     Resolves the scale vector for a UI element based on the configured scale mode.
     /// </summary>
     /// <param name="scaleMode">The requested scale mode.</param>
     /// <returns>The resolved scale vector.</returns>
-    private Vector2 ResolveUiScale(UiScaleMode scaleMode)
+    protected internal Vector2 ResolveUiScale(UiScaleMode scaleMode)
     {
         return scaleMode switch
         {

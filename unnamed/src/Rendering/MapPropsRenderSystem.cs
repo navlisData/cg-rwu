@@ -27,8 +27,7 @@ public class MapPropsRenderSystem(World world) : EntitySetSystem<RenderContext.R
         Vector2 position = handle.Get<Position>().ToWorldPosition();
         ref Transform transform = ref handle.Get<Transform>();
 
-        ctx.BeginDraw().WithSprite(sprite.Frame).WithoutColoration()
-            .WithPositionAndTransform(position, transform, transform.Size, sprite.Frame.Pivot)
-            .WithUnitQuad().Draw();
+        ctx.BeginDraw().WithPositionAndTransform(position, transform, transform.Size, sprite.Frame.Pivot)
+            .WithSprite(sprite.Frame).WithoutColoration().Draw();
     }
 }

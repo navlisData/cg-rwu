@@ -12,11 +12,11 @@ using unnamed.Components.UI;
 
 namespace unnamed.Rendering.RenderContext;
 
-public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
+public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix) : IDrawBuilder
 {
     private DrawContext drawContext;
 
-    public IProjectionStep WithColoration(in Color4 color, float blendFactor)
+    public IDrawStep WithColoration(in Color4 color, float blendFactor)
     {
         Debug.Assert(blendFactor is >= 0f and <= 1f);
         GL.Uniform4(renderContext.uOverrideColor, color);
@@ -24,52 +24,47 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this;
     }
 
-    public IProjectionStep WithColoration(in Vector3 color, float blendFactor)
+    public IDrawStep WithColoration(in Vector3 color, float blendFactor)
     {
         return this.WithColoration(new Color4(color.X, color.Y, color.Z, 1f), blendFactor);
     }
 
-    public IProjectionStep WithColoration(in Color4? color, float blendFactor)
+    public IDrawStep WithColoration(in Color4? color, float blendFactor)
     {
         return color is null ? this.WithoutColoration() : this.WithColoration(color.Value, blendFactor);
     }
 
-    public IProjectionStep WithAlpha(float alpha)
+    public IDrawStep WithAlpha(float alpha)
     {
         return this.WithColoration(new Color4(0f, 0f, 0f, alpha), 0f);
     }
 
-    public IProjectionStep WithoutColoration()
+    public IDrawStep WithoutColoration()
     {
         return this.WithColoration(new Color4(0f, 0f, 0f, 1f), 0f);
     }
 
-    public void Draw()
-    {
-        GL.DrawElements(PrimitiveType.Triangles, RenderContext.QuadIndices.Length, DrawElementsType.UnsignedInt, 0);
-    }
-
-    public IVerticesStep WithModelViewProjection(ref Matrix4 modelViewProjection)
+    public ISpriteStep WithModelViewProjection(ref Matrix4 modelViewProjection)
     {
         GL.UniformMatrix4(renderContext.uModelViewProjection, false, ref modelViewProjection);
         return this;
     }
 
-    public IVerticesStep WithPosition(in Vector2 position, Vector2 size, Vector2 pivot)
+    public ISpriteStep WithPosition(in Vector2 position, Vector2 size, Vector2 pivot)
     {
         Matrix4 local = Matrix4.CreateTranslation(-pivot.X, -pivot.Y, 0f) * Matrix4.CreateScale(size.X, -size.Y, 1);
 
         Matrix4 model = Matrix4.CreateTranslation(position.X, position.Y, 0f);
-        Matrix4 modelViewProjection = local * model * renderContext.worldProjection;
+        Matrix4 modelViewProjection = local * model * projectionMatrix;
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
-    public IVerticesStep WithPosition(in float x, in float y, Vector2 size, Vector2 pivot)
+    public ISpriteStep WithPosition(in float x, in float y, Vector2 size, Vector2 pivot)
     {
         return this.WithPosition(new Vector2(x, y), size, pivot);
     }
 
-    public IVerticesStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size,
+    public ISpriteStep WithPositionAndTransform(in Vector2 position, in Transform transform, Vector2 size,
         Vector2 pivot)
     {
         Matrix4 distortion =
@@ -80,65 +75,21 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this.WithPositionAndDistortion(new Vector2(position.X, position.Y), distortion, size, pivot);
     }
 
-    public IVerticesStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size,
+    public ISpriteStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size,
         Vector2 pivot)
     {
         Matrix4 local = Matrix4.CreateTranslation(-pivot.X, -pivot.Y, 0f) * Matrix4.CreateScale(size.X, -size.Y, 1);
 
         Matrix4 model = Matrix4.CreateTranslation(position.X, position.Y, 0f);
         Matrix4 distortedModel = local * distortionMatrix * model;
-        Matrix4 modelViewProjection = distortedModel * renderContext.worldProjection;
+        Matrix4 modelViewProjection = distortedModel * projectionMatrix;
         return this.WithModelViewProjection(ref modelViewProjection);
     }
 
-    public IVerticesStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size,
+    public ISpriteStep WithPositionAndDistortion(in float x, in float y, in Matrix4 distortionMatrix, Vector2 size,
         Vector2 pivot)
     {
         return this.WithPositionAndDistortion(new Vector2(x, y), distortionMatrix, size, pivot);
-    }
-
-    /// <summary>
-    ///     Applies a direct screen-space UI transform.
-    /// </summary>
-    /// <param name="position">The screen-space position in pixels.</param>
-    /// <param name="size">The screen-space size in pixels.</param>
-    /// <param name="pivot">The normalized pivot inside the element relative to the given position.</param>
-    /// <returns>The next draw step.</returns>
-    public IVerticesStep WithAbsoluteUiTransform(
-        in AbsolutePosition position,
-        in AbsoluteSize size,
-        in Vector2 pivot)
-    {
-        Matrix4 modelViewProjection = renderContext.CreateAbsoluteUiModelViewProjection(position, size, pivot);
-        this.WithModelViewProjection(ref modelViewProjection);
-        return this;
-    }
-
-    /// <summary>
-    ///     Applies a reference-space UI transform using anchor, pivot and scaling rules.
-    /// </summary>
-    /// <param name="referenceOffset">The authored offset in reference-space units.</param>
-    /// <param name="referenceSize">The authored size in reference-space units.</param>
-    /// <param name="anchor">The normalized screen anchor.</param>
-    /// <param name="pivot">The normalized local pivot.</param>
-    /// <param name="scaleMode">The scaling mode relative to the viewport.</param>
-    /// <returns>The next draw step.</returns>
-    public IVerticesStep WithReferenceUiTransform(
-        in UiReferenceOffset referenceOffset,
-        in UiReferenceSize referenceSize,
-        in UiAnchor anchor,
-        in Vector2 pivot,
-        UiScaleMode scaleMode)
-    {
-        Matrix4 modelViewProjection = renderContext.CreateReferenceUiModelViewProjection(
-            referenceSize,
-            referenceOffset,
-            anchor,
-            pivot,
-            scaleMode);
-
-        this.WithModelViewProjection(ref modelViewProjection);
-        return this;
     }
 
     public IColorWithTextureStep WithSprite(in StaticSprite sprite)
@@ -151,7 +102,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this;
     }
 
-    public IColorWithTextureStep WithText(in StaticTextTexture text)
+    public IColorWithTextureStep WithSprite(in StaticTextTexture text)
     {
         Texture2D texture = text.Texture;
         GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
@@ -167,33 +118,7 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         return this;
     }
 
-    public IDrawStep WithVertices(in float[] vertexArray)
-    {
-        Debug.Assert(vertexArray.Length == RenderContext.VerticesArrayLength);
-        GL.BufferData(BufferTarget.ArrayBuffer, RenderContext.VerticesLength, vertexArray,
-            BufferUsageHint.StaticDraw);
-        return this;
-    }
-
-    /// <summary>
-    ///     Writes a unit quad for UI rendering.
-    ///     Final placement and size are provided by the UI transform matrix.
-    /// </summary>
-    /// <returns>The next draw step.</returns>
-    public IDrawStep WithUnitQuad()
-    {
-        return this.WithTexturedQuad(0f, 1f, 1f, 0f);
-    }
-
-    private IDrawStep WithTexturedQuad(float x0, float x1, float y0, float y1)
-    {
-        (float u0, float u1, float vBottom, float vTop) = this.ComputeSpriteUvBounds();
-
-        this.FillVertexArray(x0, x1, y0, y1, u0, u1, vBottom, vTop);
-        return this.WithVertices(in renderContext.vertices);
-    }
-
-    private (float u0, float u1, float vBottom, float vTop) ComputeSpriteUvBounds()
+    public void Draw()
     {
         float invW = 1f / this.drawContext.TextureSize.X;
         float invH = 1f / this.drawContext.TextureSize.Y;
@@ -201,14 +126,58 @@ public sealed class DrawBuilder(RenderContext renderContext) : IDrawBuilder
         float u0 = this.drawContext.SpriteSize.Left * invW;
         float u1 = this.drawContext.SpriteSize.Right * invW;
 
-        float vTop = 1f - (this.drawContext.SpriteSize.Top * invH);
-        float vBottom = 1f - (this.drawContext.SpriteSize.Bottom * invH);
+        float v0 = 1f - (this.drawContext.SpriteSize.Top * invH);
+        float v1 = 1f - (this.drawContext.SpriteSize.Bottom * invH);
 
-        return (u0, u1, vBottom, vTop);
+        this.FillVertexArray(0f, 1f, 0f, 1f, u0, u1, v0, v1);
+
+        GL.BufferData(BufferTarget.ArrayBuffer, RenderContext.VerticesLength, renderContext.vertices,
+            BufferUsageHint.StaticDraw);
+        GL.DrawElements(PrimitiveType.Triangles, RenderContext.QuadIndices.Length, DrawElementsType.UnsignedInt, 0);
     }
 
+    public ISpriteStep WithAbsolutePosition(
+        in AbsolutePosition position,
+        in AbsoluteSize size,
+        in Vector2 pivot)
+    {
+        AbsolutePosition resolvedPosition = position;
+        if (resolvedPosition.AllowWrapping)
+        {
+            resolvedPosition = resolvedPosition.WrapToScreen(renderContext.camera.Viewport);
+        }
+
+        Vector2 topLeft = resolvedPosition - (size * pivot);
+
+        Matrix4 model =
+            Matrix4.CreateScale(size.Width, size.Height, 1f) *
+            Matrix4.CreateTranslation(topLeft.X, topLeft.Y, 0f);
+
+        Matrix4 modelViewProjection = model * projectionMatrix;
+        return this.WithModelViewProjection(ref modelViewProjection);
+    }
+
+    public ISpriteStep WithReferencePosition(in UiReferenceOffset referenceOffset, in UiReferenceSize referenceSize,
+        in Vector2 pivot, in UiAnchor anchor, UiScaleMode scaleMode)
+    {
+        Vector2 scale = renderContext.ResolveUiScale(scaleMode);
+        Vector2 finalSize = referenceSize * scale;
+        Vector2 finalOffset = referenceOffset * scale;
+
+        Vector2 anchorPosition = renderContext.uiViewportSize * anchor;
+        Vector2 topLeft = anchorPosition + finalOffset - (finalSize * pivot);
+
+        Matrix4 model =
+            Matrix4.CreateScale(finalSize.X, finalSize.Y, 1f) *
+            Matrix4.CreateTranslation(topLeft.X, topLeft.Y, 0f);
+
+        Matrix4 modelViewProjection = model * projectionMatrix;
+        return this.WithModelViewProjection(ref modelViewProjection);
+    }
+
+
     /// <summary>
-    ///     Writes an interleaved quad into the provided vertex array.
+    ///     Writes an interleaved quad into the internal vertex array.
     ///     Vertex layout: (x, y, u, v) for 4 vertices (total 16 floats).
     /// </summary>
     /// <param name="x0">Left x in object/world space.</param>

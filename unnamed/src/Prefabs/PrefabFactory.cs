@@ -136,9 +136,9 @@ public static class PrefabFactory
 
     public static Entity CreateCrossHair(World world, AbsolutePosition position, IAssetStore assetStore)
     {
-        var baseTint = new Color4(0.95f, 0.61f, 0.07f, 0.25f);
-        var tint = ColorUtils.CreateSlightColorVariation(baseTint, strength: 0.15f, centerBias: 0.55f,
-            sharedAmount: 1.35f);
+        Color4 baseTint = new(0.95f, 0.61f, 0.07f, 0.25f);
+        Color4 tint = ColorUtils.CreateSlightColorVariation(baseTint, 0.15f, 0.55f,
+            1.35f);
 
         return world.Create()
             .Add(position)

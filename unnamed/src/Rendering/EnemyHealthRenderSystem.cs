@@ -65,11 +65,10 @@ public sealed class EnemyHealthRenderSystem(World world)
 
         Vector2 healthbarPivot = new(sprite.Frame.Pivot.X, 0.5f);
 
-        ctx.BeginDraw().WithoutSprite().WithColoration(in this.bgColor, 1f)
-            .WithPositionAndTransform(position, bgTransform, bgTransform.Size, healthbarPivot).WithUnitQuad().Draw();
+        ctx.BeginDraw().WithPositionAndTransform(position, bgTransform, bgTransform.Size, healthbarPivot)
+            .WithoutSprite().WithColoration(in this.bgColor, 1f).Draw();
 
-        ctx.BeginDraw().WithoutSprite().WithColoration(in fgColor, 1f)
-            .WithPositionAndTransform(fgPosition, fgTransform, fgTransform.Size, healthbarPivot)
-            .WithUnitQuad().Draw();
+        ctx.BeginDraw().WithPositionAndTransform(fgPosition, fgTransform, fgTransform.Size, healthbarPivot)
+            .WithoutSprite().WithColoration(in fgColor, 1f).Draw();
     }
 }

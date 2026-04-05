@@ -20,8 +20,8 @@ public readonly record struct UiAnchor(float X, float Y)
     public static readonly UiAnchor BottomCenter = new(0.5f, 1f);
     public static readonly UiAnchor BottomRight = new(1f, 1f);
 
-    public Vector2 ToVector2()
+    public static implicit operator Vector2(UiAnchor anchor)
     {
-        return new Vector2(this.X, this.Y);
+        return new Vector2(anchor.X, anchor.Y);
     }
 }
