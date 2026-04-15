@@ -2,6 +2,8 @@ using System.Drawing;
 
 using engine.TextureProcessing;
 
+using OpenTK.Mathematics;
+
 using unnamed.Enums;
 
 namespace unnamed.Texture;
@@ -99,6 +101,7 @@ public static class GameSprites
         foreach ((AssetRef<AnimationClip> clip, TextureGrid grid, bool loop, byte priority, float fps) in playerClips)
         {
             AnimationClip animation = SpriteSlicer.ClipFromGrid(playerSpriteSheet, grid, 6, fps,
+                Pivot.BottomCenter,
                 priority, loop);
             assetStore.Register(clip, animation);
         }
@@ -106,27 +109,28 @@ public static class GameSprites
 
     private static void InitEnemySprites(IAssetStore assetStore)
     {
+        Vector2 enemyPivot = Pivot.BottomCenter;
         SpriteSheet enemySpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "slime_enemy.png"));
 
         TextureGrid enemyMoveTextureGrid = new(16, 16, GapX: 4);
         AnimationClip moveAnimation =
-            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyMoveTextureGrid, 7, 5f);
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyMoveTextureGrid, 7, 5f, enemyPivot);
         assetStore.Register(GameAssets.Enemy.Slime1.Move, moveAnimation);
 
         TextureGrid enemyAttackTextureGrid = new(18, 19, 0, 20, 2);
         AnimationClip attackAnimation =
-            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyAttackTextureGrid, 7, 12f, loop: false);
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyAttackTextureGrid, 7, 12f, enemyPivot, loop: false);
         assetStore.Register(GameAssets.Enemy.Slime1.Attack, attackAnimation);
 
         TextureGrid enemyIdleTextureGrid = new(16, 14, 0, 40, 4);
         AnimationClip idleAnimation =
-            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyIdleTextureGrid, 6, 5f);
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyIdleTextureGrid, 6, 5f, enemyPivot);
         assetStore.Register(GameAssets.Enemy.Slime1.Idle, idleAnimation);
 
         TextureGrid enemyDamageTextureGrid = new(14, 16, 0, 55, 1);
         AnimationClip damageAnimation =
-            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyDamageTextureGrid, 4, 15f, loop: false);
+            SpriteSlicer.ClipFromGrid(enemySpriteSheet, enemyDamageTextureGrid, 4, 15f, enemyPivot, loop: false);
         assetStore.Register(GameAssets.Enemy.Slime1.Damage, damageAnimation);
     }
 
@@ -137,7 +141,7 @@ public static class GameSprites
 
         TextureGrid projectileTextureGrid = new(64, 32, 0, 16);
         AnimationClip idleAnimation =
-            SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, 8, 24f);
+            SpriteSlicer.ClipFromGrid(projectileSpriteSheet, projectileTextureGrid, 8, 24f, Pivot.Center);
         assetStore.Register(GameAssets.Projectile.Fireball, idleAnimation);
     }
 
@@ -148,73 +152,76 @@ public static class GameSprites
 
         TextureGrid explosionTextureGrid = new(64, 64);
         AnimationClip explosionAnimation =
-            SpriteSlicer.ClipFromGrid(explosionSpriteSheet, explosionTextureGrid, 44, 60f, loop: false);
+            SpriteSlicer.ClipFromGrid(explosionSpriteSheet, explosionTextureGrid, 44, 60f, Pivot.Center,
+                loop: false);
         assetStore.Register(GameAssets.Explosion.BulletExplosion, explosionAnimation);
     }
 
     private static void InitMapTiles(IAssetStore assetStore)
     {
+        Vector2 pivot = Pivot.BottomLeft;
         SpriteSheet mapTileSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "floor.png"));
 
         TextureGrid flowerTextureGrid = new(32, 32, 128, Rows: 4);
-        SpriteSet flowerTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, flowerTextureGrid);
+        SpriteSet flowerTiles = SpriteSlicer.FromGrid(pivot, mapTileSpriteSheet, flowerTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Flowers, flowerTiles);
 
         TextureGrid pathwayTextureGrid = new(32, 32, 0, 128, Rows: 4);
-        SpriteSet pathwayTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, pathwayTextureGrid);
+        SpriteSet pathwayTiles = SpriteSlicer.FromGrid(pivot, mapTileSpriteSheet, pathwayTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Pathway, pathwayTiles);
 
         TextureGrid grassTextureGrid = new(32, 32, Rows: 4, Columns: 4);
-        SpriteSet grassTiles = SpriteSlicer.FromGrid(mapTileSpriteSheet, grassTextureGrid);
+        SpriteSet grassTiles = SpriteSlicer.FromGrid(pivot, mapTileSpriteSheet, grassTextureGrid);
         assetStore.Register(GameAssets.MapTiles.Grass, grassTiles);
     }
 
     private static void InitWallTiles(IAssetStore assetStore)
     {
+        Vector2 pivot = Pivot.BottomLeft;
         SpriteSheet wallTileSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "walls.png"));
 
         assetStore.Register(GameAssets.WallTiles.Illegal,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(0, 0, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(0, 0, 32, 32), pivot));
 
         assetStore.Register(GameAssets.WallTiles.WallFrameTopLeft,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 32, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 32, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameTopCenter,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 32, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 32, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameTopRight,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 32, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 32, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameLeft,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 64, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 64, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameCenter,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 64, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 64, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameRight,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 64, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 64, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameOuterCornerTopLeft,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(128, 32, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(128, 32, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameOuterCornerTopRight,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(256, 32, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(256, 32, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameOuterCornerBottomLeft,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(128, 128, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(128, 128, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallFrameOuterCornerBottomRight,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(256, 128, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(256, 128, 32, 32), pivot));
 
         assetStore.Register(GameAssets.WallTiles.WallTileTopLeft,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 96, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 96, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallTileTopCenter,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 96, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 96, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallTileTopRight,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 96, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 96, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallTileBaseLeft,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 128, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(32, 128, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallTileBaseCenter,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 128, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(64, 128, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallTileBaseRight,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 128, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(96, 128, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallTileTopLeftInner,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 32, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 32, 32, 32), pivot));
         assetStore.Register(GameAssets.WallTiles.WallTileBaseLeftInner,
-            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 64, 32, 32)));
+            SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 64, 32, 32), pivot));
     }
 
     private static void InitCrosshair(IAssetStore assetStore)
@@ -222,7 +229,7 @@ public static class GameSprites
         SpriteSheet crossHair =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "crosshair.png"));
         assetStore.Register(GameAssets.Crosshair.Simple,
-            SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64)));
+            SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64), Pivot.Center));
     }
 
     private static void InitCrosshair2(IAssetStore assetStore)
@@ -230,7 +237,7 @@ public static class GameSprites
         SpriteSheet crossHair =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "crosshair2.png"));
         assetStore.Register(GameAssets.Crosshair.ParticleCloud,
-            SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64)));
+            SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64), Pivot.Center));
     }
 
     private static void InitDrops(IAssetStore assetStore)
@@ -239,49 +246,51 @@ public static class GameSprites
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "drops.png"));
 
         assetStore.Register(GameAssets.Drops.RedHeart,
-            SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 2, 14, 13)));
+            SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 2, 14, 13), Pivot.Center));
 
         assetStore.Register(GameAssets.Drops.BlueHeart,
-            SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 34, 14, 13)));
+            SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 34, 14, 13), Pivot.Center));
     }
 
     private static void InitPlayerHearts(IAssetStore assetStore)
     {
+        Vector2 pivot = Pivot.TopLeft;
         SpriteSheet heartSpritesheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "hearts.png"));
 
         assetStore.Register(GameAssets.Hearts.Full,
-            SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(0, 0, 19, 18)));
+            SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(0, 0, 19, 18), pivot));
 
         assetStore.Register(GameAssets.Hearts.Half,
-            SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(22, 0, 19, 18)));
+            SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(22, 0, 19, 18), pivot));
 
         assetStore.Register(GameAssets.Hearts.Empty,
-            SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(44, 0, 19, 18)));
+            SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(44, 0, 19, 18), pivot));
     }
 
     private static void InitMapDecoration(IAssetStore assetStore)
     {
+        Vector2 pivot = Pivot.Center;
         SpriteSheet plantsSpritesheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "plants.png"));
 
         TextureGrid grassTextureGrid = new(32, 32, 0, 384, Rows: 4, Columns: 4);
-        SpriteSet grassTiles = SpriteSlicer.FromGrid(plantsSpritesheet, grassTextureGrid);
+        SpriteSet grassTiles = SpriteSlicer.FromGrid(pivot, plantsSpritesheet, grassTextureGrid);
         assetStore.Register(GameAssets.MapDecoration.Grass, grassTiles);
 
         SpriteSheet propsSpritesheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "props.png"));
 
         TextureGrid bushTextureGrid = new(64, 64, 14, 177, Columns: 4);
-        SpriteSet bushTiles = SpriteSlicer.FromGrid(plantsSpritesheet, bushTextureGrid);
+        SpriteSet bushTiles = SpriteSlicer.FromGrid(pivot, plantsSpritesheet, bushTextureGrid);
         assetStore.Register(GameAssets.MapDecoration.Bushes, bushTiles);
 
         TextureGrid stoneTextureGrid = new(32, 32, 0, 480, Columns: 2);
-        SpriteSet stoneTiles = SpriteSlicer.FromGrid(propsSpritesheet, stoneTextureGrid);
+        SpriteSet stoneTiles = SpriteSlicer.FromGrid(pivot, propsSpritesheet, stoneTextureGrid);
         assetStore.Register(GameAssets.MapDecoration.SmallStones, stoneTiles);
 
         TextureGrid brickTextureGrid = new(32, 32, 224, 480, Columns: 3);
-        SpriteSet brickTiles = SpriteSlicer.FromGrid(propsSpritesheet, brickTextureGrid);
+        SpriteSet brickTiles = SpriteSlicer.FromGrid(pivot, propsSpritesheet, brickTextureGrid);
         assetStore.Register(GameAssets.MapDecoration.Bricks, brickTiles);
     }
 
@@ -291,7 +300,7 @@ public static class GameSprites
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "props.png"));
 
         assetStore.Register(GameAssets.Props.Portal,
-            SpriteSlicer.FromRect(propsSpritesheet, new Rectangle(353, 269, 94, 72)));
+            SpriteSlicer.FromRect(propsSpritesheet, new Rectangle(353, 269, 94, 72), Pivot.Center));
     }
 
     private static void InitFallback(IAssetStore assetStore)
@@ -299,6 +308,6 @@ public static class GameSprites
         SpriteSheet fallback =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "fallback.png"));
         assetStore.Register(GameAssets.FallBack.Default,
-            SpriteSlicer.FromRect(fallback, new Rectangle(0, 0, 1, 1)));
+            SpriteSlicer.FromRect(fallback, new Rectangle(0, 0, 1, 1), Pivot.Center));
     }
 }

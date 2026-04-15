@@ -28,8 +28,9 @@ public class EntityRenderSystem(World world) : EntitySetSystem<RenderContext.Ren
         ref Sprite sprite = ref handle.Get<Sprite>();
         Vector2 position = handle.Get<Position>().ToWorldPosition();
         ref Transform transform = ref handle.Get<Transform>();
+        Vector2 pivot = sprite.Frame.Pivot;
 
-        ctx.BeginDraw().WithSprite(sprite.Frame).WithoutColoration().WithPositionAndTransform(position, transform)
-            .WithSize(transform.Size, true, false).Draw();
+        ctx.BeginDraw().WithPositionAndTransform(position, transform, transform.Size, pivot).WithSprite(sprite.Frame)
+            .WithoutColoration().Draw();
     }
 }

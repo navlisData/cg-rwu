@@ -36,11 +36,11 @@ namespace unnamed;
 
 public class Game : GameWindow
 {
-    private static readonly Vector2i InitialGameSize = (500, 500);
+    private static readonly Vector2i ReferenceUiResolution = (500, 500);
 
     private static readonly NativeWindowSettings Settings = new()
     {
-        Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = InitialGameSize
+        Title = "Unnamed", Vsync = VSyncMode.On, ClientSize = ReferenceUiResolution
     };
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
@@ -147,10 +147,12 @@ public class Game : GameWindow
         GL.ClearColor(Color4.Black);
 
         GL.Enable(EnableCap.Blend);
+        GL.Viewport(0, 0, this.FramebufferSize.X, this.FramebufferSize.Y);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         GameSprites.Init(this.assetStore);
-        this.renderContext = new RenderContext(this.assetStore, Shader.Setup("sprite.vert", "sprite.frag"));
+        this.renderContext =
+            new RenderContext(this.assetStore, Shader.Setup("sprite.vert", "sprite.frag"), ReferenceUiResolution);
         this.ConfigureSchedulers();
 
         this.textFactory =
@@ -192,13 +194,13 @@ public class Game : GameWindow
                 deco[rng.Next(deco.Count)]), false);
 
         this.camera =
-            PrefabFactory.CreateFollowingCamera(this.world, this.player, InitialGameSize, playerStartPosition);
+            PrefabFactory.CreateFollowingCamera(this.world, this.player, this.FramebufferSize, playerStartPosition);
 
         this.CursorState = CursorState.Confined;
         this.Cursor = MouseCursor.Empty;
 
         PrefabFactory.CreateCrossHairSpawner(this.world,
-            (w, p) => PrefabFactory.CreateCrossHair2(w, p, this.assetStore));
+            (w, p) => PrefabFactory.CreateCrossHair(w, p, this.assetStore));
         return;
 
         float ShiftInTile()
@@ -303,25 +305,24 @@ public class Game : GameWindow
             case GameState.Lost:
                 {
                     PrefabFactory.CreateText(this.world, "You've died\n\nPress ESC to exit", Color.Red,
-                        this.textFactory,
-                        this.ClientSize, TextAlignment.Center);
+                        this.textFactory, TextAlignment.Center);
                 }
                 break;
             case GameState.Won:
                 {
                     PrefabFactory.CreateText(this.world, "You've reached the end of this level.\nPress ESC to exit",
-                        Color.Green, this.textFactory,
-                        this.ClientSize, TextAlignment.Center);
+                        Color.Green, this.textFactory, TextAlignment.Center);
                 }
                 break;
         }
     }
 
-    protected override void OnResize(ResizeEventArgs e)
+    protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
     {
-        base.OnResize(e);
-        GL.Viewport(0, 0, this.ClientSize.X, this.ClientSize.Y);
-        this.world.Get<Camera2D>(this.camera).Viewport = this.ClientSize;
+        base.OnFramebufferResize(e);
+
+        GL.Viewport(0, 0, e.Width, e.Height);
+        this.world.Get<Camera2D>(this.camera).Viewport = new Vector2i(e.Width, e.Height);
     }
 
     protected override void OnUnload()

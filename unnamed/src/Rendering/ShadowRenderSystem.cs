@@ -37,8 +37,8 @@ public class ShadowRenderSystem(World world) : EntitySetSystem<RenderContext.Ren
             Matrix4.CreateTranslation(0f, transform.Height, 0f) *
             this.shearMatrix;
 
-        ctx.BeginDraw().WithSprite(sprite.Frame).WithColoration(this.shadow, 1f)
-            .WithPositionAndDistortion(position, distortion)
-            .WithSize(transform.Size, true, handle.Has<Projectile>()).Draw();
+        ctx.BeginDraw().WithPositionAndDistortion(position, distortion, transform.Size, sprite.Frame.Pivot)
+            .WithSprite(sprite.Frame).WithColoration(this.shadow, 1f)
+            .Draw();
     }
 }

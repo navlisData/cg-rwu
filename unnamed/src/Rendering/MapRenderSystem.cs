@@ -36,21 +36,23 @@ public class MapRenderSystem(World world)
                     continue;
                 }
 
-                ctx.BeginDraw().WithSprite(in tile.Sprite).WithoutColoration()
+                Vector2 size = new(Map.TileSize, Map.TileSize);
+
+                ctx.BeginDraw()
                     .WithPosition(
                         ((chunkPosition.X * Map.ChunkSize) + x) * Map.TileSize,
-                        ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize)
-                    .WithSize(new Vector2(Map.TileSize, Map.TileSize), false, false).Draw();
+                        ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize, size, tile.Sprite.Pivot)
+                    .WithSprite(in tile.Sprite).WithoutColoration().Draw();
 
                 if (tile.OverlaySprite == null)
                 {
                     continue;
                 }
 
-                ctx.BeginDraw().WithSprite(in tile.OverlaySprite).WithoutColoration().WithPosition(
+                ctx.BeginDraw().WithPosition(
                         ((chunkPosition.X * Map.ChunkSize) + x) * Map.TileSize,
-                        ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize)
-                    .WithSize(new Vector2(Map.TileSize, Map.TileSize), false, false).Draw();
+                        ((chunkPosition.Y * Map.ChunkSize) + y) * Map.TileSize, size, tile.Sprite.Pivot)
+                    .WithSprite(in tile.OverlaySprite).WithoutColoration().Draw();
             }
         }
     }

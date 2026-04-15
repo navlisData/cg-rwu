@@ -4,8 +4,6 @@ using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
 
-using OpenTK.Mathematics;
-
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Texture.DirectedAction;
@@ -20,6 +18,7 @@ public sealed class CharacterVisualSystem(
     NonDirectionalActionDatabase nonDirectionalActionDatabase) : EntitySetSystem<float>(world, new QueryBuilder()
     .With<VisibleEntity>()
     .With<Character>()
+    .WithAny<AlignedCharacter, NonDirectionalCharacter>()
     .Without<Sleeping>()
     .Build()
 )
@@ -27,11 +26,6 @@ public sealed class CharacterVisualSystem(
     protected override void Update(float dt, in Entity e)
     {
         EntityHandle handle = this.world.Handle(e);
-
-        if (!handle.Has<AlignedCharacter>() && !handle.Has<NonDirectionalCharacter>())
-        {
-            return;
-        }
 
         VisualType resolvedType;
         if (handle.Has<AlignedCharacter>())
@@ -55,7 +49,7 @@ public sealed class CharacterVisualSystem(
                 StaticSprite spriteById = assetStore.Get(staticSprite.Key);
                 if (!handle.Has<Sprite>())
                 {
-                    handle.Add(new Sprite { Tint = new Color4(0f, 0f, 0f, 1f), Layer = 0 });
+                    handle.Add(new Sprite(spriteById));
                 }
 
                 handle.Get<Sprite>().Frame = spriteById;

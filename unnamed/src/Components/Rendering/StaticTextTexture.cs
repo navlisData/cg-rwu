@@ -4,18 +4,10 @@ using OpenTK.Mathematics;
 
 namespace unnamed.Components.Rendering;
 
-public readonly struct StaticTextTexture
+public readonly struct StaticTextTexture(Texture2D texture, Vector2 pivot)
 {
-    public Texture2D Texture { get; }
+    public readonly Texture2D Texture = texture;
+    public readonly Vector2 Pivot = pivot;
 
     public Vector2i Size => this.Texture.Size;
-
-    /// <summary>
-    ///     Initializes the component with a pre-rasterized text texture.
-    /// </summary>
-    /// <param name="texture">The texture that contains the rendered text.</param>
-    public StaticTextTexture(Texture2D texture)
-    {
-        this.Texture = texture ?? throw new ArgumentNullException(nameof(texture));
-    }
 }

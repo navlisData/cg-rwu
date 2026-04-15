@@ -4,9 +4,8 @@ using OpenTK.Mathematics;
 
 namespace unnamed.Components.Rendering;
 
-public struct Sprite
+public struct Sprite(StaticSprite frame, Color4? tint = null)
 {
-    public StaticSprite Frame;
-    public Color4? Tint;
-    public float Layer;
+    public StaticSprite Frame = frame;
+    public Color4? Tint = tint;
 }

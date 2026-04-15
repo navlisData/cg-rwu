@@ -30,7 +30,7 @@ public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouse
 
         try
         {
-            screenPos = (AbsolutePosition)mouseState.Position;
+            screenPos = mouseState.Position;
         }
         catch
         {

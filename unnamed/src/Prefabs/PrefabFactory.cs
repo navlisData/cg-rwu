@@ -30,10 +30,7 @@ public static class PrefabFactory
             .Add(new Velocity())
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 5f })
             .Add(new ReceivesPlayerInput())
-            .Add(new Sprite
-            {
-                Frame = assetStore.FirstAnimationFrame(GameAssets.Player.Run.South), Tint = null, Layer = 0
-            })
+            .Add(new Sprite(assetStore.FirstAnimationFrame(GameAssets.Player.Run.South)))
             .Add(new AlignedCharacter
             {
                 CharacterDirection = CharacterDirection.South, CharacterType = CharacterType.Player
@@ -54,10 +51,12 @@ public static class PrefabFactory
         StaticSprite frame = assetStore.Get(heartStatus.GetAsset());
 
         return world.Create()
-            .Add(new AbsoluteSize(frame.RectPx.Width, frame.RectPx.Height))
-            .Add(new UiAlignment())
-            .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 1f })
-            .Add(new Sprite { Frame = frame, Tint = null })
+            .Add(new UiReferenceSize(frame.RectPx.Width, frame.RectPx.Height))
+            .Add(new UiReferenceOffset())
+            .Add(new UiElement())
+            .Add(UiAnchor.TopLeft)
+            .Add(UiScaleMode.Uniform)
+            .Add(new Sprite(frame))
             .ToEntity();
     }
 
@@ -67,10 +66,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(startPos)
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 3 })
-            .Add(new Sprite
-            {
-                Frame = assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle), Tint = null, Layer = 0
-            })
+            .Add(new Sprite(assetStore.FirstAnimationFrame(GameAssets.Enemy.Slime1.Idle)))
             .Add(new NonDirectionalCharacter { CharacterType = CharacterType.Enemy })
             .Add(new VisibleEntity())
             .Add(new Character())
@@ -84,15 +80,17 @@ public static class PrefabFactory
     }
 
     public static Entity CreateText(World world, string text, Color color, StaticTextTextureFactory textFactory,
-        Vector2i windowSize, TextAlignment textAlignment = TextAlignment.Start)
+        TextAlignment textAlignment = TextAlignment.Start)
     {
         Texture2D titleTexture = textFactory.CreateTexture(text, color, textAlignment);
 
         return world.Create()
-            .Add(new StaticTextTexture(titleTexture))
-            .Add(new AbsoluteSize(titleTexture.Width, titleTexture.Height))
-            .Add(new AbsolutePosition(windowSize.X * 0.5f, windowSize.Y * 0.5f))
-            .Add(new UiAlignment { VerticallyCentered = true, HorizontallyCentered = true })
+            .Add(new StaticTextTexture(titleTexture, Pivot.Center))
+            .Add(new UiReferenceSize(titleTexture.Width, titleTexture.Height))
+            .Add(new UiReferenceOffset())
+            .Add(new UiElement())
+            .Add(UiAnchor.Center)
+            .Add(UiScaleMode.Uniform)
             .ToEntity();
     }
 
@@ -113,12 +111,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(startPos)
             .Add(new Transform { Size = new Vector2(2f, 1f), Scale = 2.4f, Rotation = rotation, Height = height })
-            .Add(new AnimatedSprite
-            {
-                CurrentFrameIndex = 0,
-                AnimationClip = assetStore.Get(GameAssets.Projectile.Fireball),
-                TimeInFrame = 0
-            })
+            .Add(new AnimatedSprite(0, null, assetStore.Get(GameAssets.Projectile.Fireball), 0, Pivot.Center))
             .Add(velocity)
             .Add(new Projectile
             {
@@ -137,36 +130,24 @@ public static class PrefabFactory
         return world.Create()
             .Add(new SetPositionToMouse())
             .Add(new AbsolutePosition())
-            .Add(new UiAlignment(true, true))
             .Add(new Spawner(0.01f, 1, 8, 5.0f, null, spawnCrosshair, null))
             .ToEntity();
     }
 
-    public static Entity CreateCrossHair2(World world, AbsolutePosition position, IAssetStore assetStore)
+    public static Entity CreateCrossHair(World world, AbsolutePosition position, IAssetStore assetStore)
     {
-        var baseTint = new Color4(0.95f, 0.61f, 0.07f, 0.25f);
-        var tint = ColorUtils.CreateSlightColorVariation(baseTint, strength: 0.15f, centerBias: 0.55f,
-            sharedAmount: 1.35f);
+        Color4 baseTint = new(0.95f, 0.61f, 0.07f, 0.25f);
+        Color4 tint = ColorUtils.CreateSlightColorVariation(baseTint, 0.15f, 0.55f,
+            1.35f);
 
         return world.Create()
             .Add(position)
             .Add(new AbsoluteSize(16, 16))
-            .Add(new UiAlignment(true, true))
-            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.ParticleCloud), Tint = tint })
+            .Add(new UiElement())
+            .Add(new Sprite(assetStore.Get(GameAssets.Crosshair.ParticleCloud), tint))
             .Add(new Lifespan(0.5f))
             .Add(new InfluencedByWind(10))
             .Add(new FadeAnimation(false, 0.5f, FadeAnimationType.FadeOut))
-            .ToEntity();
-    }
-
-    public static Entity CreateCrossHair(World world, IAssetStore assetStore)
-    {
-        return world.Create()
-            .Add(new SetPositionToMouse())
-            .Add(new AbsolutePosition())
-            .Add(new AbsoluteSize(64, 64))
-            .Add(new UiAlignment(true, true))
-            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Crosshair.Simple), Tint = null })
             .ToEntity();
     }
 
@@ -184,7 +165,7 @@ public static class PrefabFactory
             .Add(new CanCollideWithPlayer { Range = 0.5f })
             .Add(new Follows { Target = player, Speed = 8f, FollowRadius = 8, Type = FollowType.Linear })
             .Add(transform)
-            .Add(new Sprite { Frame = frame, Tint = null });
+            .Add(new Sprite(frame));
 
         dropHandle.AddDefaultDropComponent(dropType);
         return dropHandle.ToEntity();
@@ -198,10 +179,7 @@ public static class PrefabFactory
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 5f, Height = height })
             .Add(new Projectile())
             .Add(new MarkedToDestroy { RemainingLifetime = assetStore.Get(animationClip).AnimationDuration() })
-            .Add(new AnimatedSprite
-            {
-                CurrentFrameIndex = 0, AnimationClip = assetStore.Get(animationClip), TimeInFrame = 0
-            })
+            .Add(new AnimatedSprite(0, assetStore.Get(animationClip), null, 0, Pivot.Center))
             .ToEntity();
     }
 
@@ -210,7 +188,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(pos)
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 16f })
-            .Add(new Sprite { Frame = assetStore.Get(GameAssets.Props.Portal), Tint = null, Layer = 0 })
+            .Add(new Sprite(assetStore.Get(GameAssets.Props.Portal)))
             .Add(new Prop())
             .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new TriggerStageEnd())
@@ -222,7 +200,7 @@ public static class PrefabFactory
         return world.Create()
             .Add(pos)
             .Add(new Transform { Size = size, Scale = 2f })
-            .Add(new Sprite { Frame = asset, Tint = null, Layer = 0 })
+            .Add(new Sprite(asset))
             .Add(new Prop())
             .ToEntity();
     }

@@ -39,14 +39,17 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
         {
             Entity heart = this.ResolveOrCreateHeart(ref hud, i);
             EntityHandle heartHandle = this.world.Handle(heart);
-            heartHandle.Ensure<AbsolutePosition>();
-            heartHandle.Ensure<AbsoluteSize>();
 
-            ref AbsolutePosition pos = ref heartHandle.Get<AbsolutePosition>();
-            ref AbsoluteSize absSize = ref heartHandle.Get<AbsoluteSize>();
-            float x = (i * (absSize.Width + gap)) + offset;
-            float y = absSize.Height + offset;
-            pos = new AbsolutePosition(x, y);
+            heartHandle.Ensure<UiReferenceOffset>();
+            heartHandle.Ensure<UiReferenceSize>();
+
+            ref UiReferenceSize referenceSize = ref heartHandle.Get<UiReferenceSize>();
+            ref UiReferenceOffset referenceOffset = ref heartHandle.Get<UiReferenceOffset>();
+
+            float x = offset + (i * (referenceSize.Width + gap));
+            float y = offset;
+
+            referenceOffset = new UiReferenceOffset(x, y);
         }
 
         handle.Remove<HealthHudLayoutDirty>();
