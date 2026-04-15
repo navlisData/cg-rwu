@@ -72,7 +72,7 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
             Matrix4.CreateScale(transform.Scale) *
             Matrix4.CreateTranslation(0, transform.Height, 0);
 
-        return this.WithPositionAndDistortion(new Vector2(position.X, position.Y), distortion, size, pivot);
+        return this.WithPositionAndDistortion(position, distortion, size, pivot);
     }
 
     public ISpriteStep WithPositionAndDistortion(in Vector2 position, in Matrix4 distortionMatrix, Vector2 size,
