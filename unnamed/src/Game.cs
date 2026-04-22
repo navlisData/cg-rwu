@@ -13,12 +13,12 @@ using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 
 using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
+using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.GameMap;
 using unnamed.GameMap.MapGeneration;
@@ -97,25 +97,34 @@ public class Game : GameWindow
     private Entity player;
 
     private RenderContext renderContext;
-
-    private StaticTextTextureFactory textFactory;
+    private readonly StaticTextTextureFactory textFactoryLarge;
+    private readonly StaticTextTextureFactory textFactoryMedium;
+    private uint level = 1;
 
     public Game() : base(NativeSettings, Settings)
     {
         GameSprites.Init(this.assetStore);
-        
+
+        this.textFactoryLarge =
+            new StaticTextTextureFactory(
+                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "flavina.regular.ttf"), 48f);
+
+        this.textFactoryMedium =
+            new StaticTextTextureFactory(
+                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "flavina.regular.ttf"), 28f);
+
         this.Reset();
     }
 
     private void Reset()
     {
         this.world = new();
-        
+
         this.gameState = GameState.InGame;
-        
+
         this.gameMap = new Map(this.world, new GraphBasedGenerator());
         this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
-        
+
         this.gameMap.GenerateMap(
             new Vector2i(-2, -2),
             new Vector2i(2, 2));
@@ -154,10 +163,11 @@ public class Game : GameWindow
 
         this.CursorState = CursorState.Confined;
         this.Cursor = MouseCursor.Empty;
-        
+
         PrefabFactory.CreateCrossHairSpawner(this.world,
             (w, p) => PrefabFactory.CreateCrossHair(w, p, this.assetStore));
 
+        this.UpdateLevelText();
         this.InitSystems();
         return;
 
@@ -165,6 +175,12 @@ public class Game : GameWindow
         {
             return (rng.NextSingle() * Map.TileSize) - (Map.TileSize / 2);
         }
+    }
+
+    private void UpdateLevelText()
+    {
+        PrefabFactory.CreateText(this.world, "Level: " + this.level, Color.White,
+            this.textFactoryMedium, Pivot.TopRight, UiAnchor.TopRight, new UiReferenceOffset(-10, 10));
     }
 
     private void InitSystems()
@@ -213,14 +229,10 @@ public class Game : GameWindow
         GL.Enable(EnableCap.Blend);
         GL.Viewport(0, 0, this.FramebufferSize.X, this.FramebufferSize.Y);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-        
+
         this.renderContext =
             new RenderContext(this.assetStore, Shader.Setup("sprite.vert", "sprite.frag"), ReferenceUiResolution);
         this.ConfigureSchedulers();
-
-        this.textFactory =
-            new StaticTextTextureFactory(
-                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "linkage-free.regular.ttf"), 48f);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -232,6 +244,14 @@ public class Game : GameWindow
         if (keyboard.IsKeyDown(Keys.Escape))
         {
             this.Close();
+        }
+
+        if (keyboard.IsKeyPressed(Keys.Space))
+        {
+            if (this.gameState.Equals(GameState.Lost) || this.gameState.Equals(GameState.Won))
+            {
+                this.Reset();
+            }
         }
 
         if (keyboard.IsKeyPressed(Keys.P) &&
@@ -318,15 +338,17 @@ public class Game : GameWindow
         {
             case GameState.Lost:
                 {
-                    PrefabFactory.CreateText(this.world, "You've died\n\nPress ESC to exit", Color.Red,
-                        this.textFactory, TextAlignment.Center);
-                    this.Reset();
+                    PrefabFactory.CreateCenteredText(this.world, "You've died\n\nPress Space to restart", Color.Red,
+                        this.textFactoryLarge);
+                    this.level = 1;
                 }
                 break;
             case GameState.Won:
                 {
-                    PrefabFactory.CreateText(this.world, "You've reached the end of this level.\nPress ESC to exit",
-                        Color.Green, this.textFactory, TextAlignment.Center);
+                    PrefabFactory.CreateCenteredText(this.world,
+                        "You've reached the end of this level.\nPress Space to continue",
+                        Color.Green, this.textFactoryLarge);
+                    this.level++;
                 }
                 break;
         }

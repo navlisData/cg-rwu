@@ -80,18 +80,24 @@ public static class PrefabFactory
     }
 
     public static Entity CreateText(World world, string text, Color color, StaticTextTextureFactory textFactory,
-        TextAlignment textAlignment = TextAlignment.Start)
+        Pivot textPivot, UiAnchor anchor, Vector2 offset = new(), TextAlignment textAlignment = TextAlignment.Start)
     {
         Texture2D titleTexture = textFactory.CreateTexture(text, color, textAlignment);
 
         return world.Create()
-            .Add(new StaticTextTexture(titleTexture, Pivot.Center))
+            .Add(new StaticTextTexture(titleTexture, textPivot))
             .Add(new UiReferenceSize(titleTexture.Width, titleTexture.Height))
-            .Add(new UiReferenceOffset())
+            .Add(new UiReferenceOffset(offset.X, offset.Y))
             .Add(new UiElement())
-            .Add(UiAnchor.Center)
+            .Add(anchor)
             .Add(UiScaleMode.Uniform)
             .ToEntity();
+    }
+
+    public static Entity CreateCenteredText(World world, string text, Color color, StaticTextTextureFactory textFactory)
+    {
+        return CreateText(world, text, color, textFactory, Pivot.Center, UiAnchor.Center, new Vector2(),
+            TextAlignment.Center);
     }
 
     public static Entity CreateFollowingCamera(World world, in Entity target, Vector2i viewport, Position startPos)
