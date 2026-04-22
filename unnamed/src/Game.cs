@@ -45,55 +45,55 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
-    private readonly CameraInputSystem cameraInputSystem;
-    private readonly CameraSystem cameraSystem;
-    private readonly CharacterVisualSystem characterVisualSystem;
-    private readonly DestroyEntitySystem destroyEntitySystem;
+    private CameraInputSystem cameraInputSystem;
+    private CameraSystem cameraSystem;
+    private CharacterVisualSystem characterVisualSystem;
+    private DestroyEntitySystem destroyEntitySystem;
 
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly ActionControlHandler<EnemyAction> enemyActionHandler = new(EnemyActionExtensions.Priority);
-    private readonly EnemyControlSystem enemyControlSystem;
-    private readonly EnemyHealthRenderSystem enemyHealthRenderSystem;
-    private readonly EntityCollisionDetectSystem entityCollisionDetectSystem;
-    private readonly EntityRenderSystem entityRenderSystem;
-    private readonly FadeAnimationSystem fadeAnimationSystem;
-    private readonly FollowingSystem followSystem;
-    private readonly Map gameMap;
-    private readonly HandleCollisionSystem handleCollisionSystem;
-    private readonly HealthHudLayoutSystem healthLayoutSystem;
+    private EnemyControlSystem enemyControlSystem;
+    private EnemyHealthRenderSystem enemyHealthRenderSystem;
+    private EntityCollisionDetectSystem entityCollisionDetectSystem;
+    private EntityRenderSystem entityRenderSystem;
+    private FadeAnimationSystem fadeAnimationSystem;
+    private FollowingSystem followSystem;
+    private Map gameMap;
+    private HandleCollisionSystem handleCollisionSystem;
+    private HealthHudLayoutSystem healthLayoutSystem;
 
     // Health
-    private readonly HealthHudSyncSystem healthSyncSystem;
-    private readonly LifespanSystem lifespanSystem;
-    private readonly MapLoadingSystem mapLoadingSystem;
-    private readonly MapPropsRenderSystem mapPropsRenderingSystem;
-    private readonly MapRenderSystem mapRenderSystem;
-    private readonly MoveSystem move;
+    private HealthHudSyncSystem healthSyncSystem;
+    private LifespanSystem lifespanSystem;
+    private MapLoadingSystem mapLoadingSystem;
+    private MapPropsRenderSystem mapPropsRenderingSystem;
+    private MapRenderSystem mapRenderSystem;
+    private MoveSystem move;
 
     private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
         NonDirectionalActionDatabase.CreateDefault();
 
     private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
-    private readonly PlayerEntityCollisionSystem playerEntityCollisionSystem;
-    private readonly PlayerInputSystem playerInput;
-    private readonly ProjectileRenderingSystem projectileRenderSystem;
-    private readonly PulseAnimationSystem pulseAnimationSystem;
+    private PlayerEntityCollisionSystem playerEntityCollisionSystem;
+    private PlayerInputSystem playerInput;
+    private ProjectileRenderingSystem projectileRenderSystem;
+    private PulseAnimationSystem pulseAnimationSystem;
     private readonly SystemScheduler<GameState, RenderContext> renderScheduler = new();
 
-    private readonly SetToMousePositionSystem setToMousePositionSystem;
-    private readonly ShadowRenderSystem shadowRenderSystem;
-    private readonly SpawnerSystem spawnerSystem;
-    private readonly SpriteAnimationSystem spriteAnimationSystem;
+    private SetToMousePositionSystem setToMousePositionSystem;
+    private ShadowRenderSystem shadowRenderSystem;
+    private SpawnerSystem spawnerSystem;
+    private SpriteAnimationSystem spriteAnimationSystem;
 
-    private readonly UiRenderSystem uiRenderSystem;
+    private UiRenderSystem uiRenderSystem;
 
     private readonly SystemScheduler<GameState, UpdateContext> updateScheduler = new();
-    private readonly WindSystem windSystem;
+    private WindSystem windSystem;
 
-    private readonly World world = new();
+    private World world;
 
     private Entity camera;
-    private GameState gameState = GameState.InGame;
+    private GameState gameState;
     private Entity player;
 
     private RenderContext renderContext;
@@ -102,64 +102,20 @@ public class Game : GameWindow
 
     public Game() : base(NativeSettings, Settings)
     {
-        this.gameMap = new Map(this.world, new GraphBasedGenerator());
-
-        // Rendering systems
-        this.cameraSystem = new CameraSystem(this.world);
-        this.entityRenderSystem = new EntityRenderSystem(this.world);
-        this.followSystem = new FollowingSystem(this.world);
-        this.mapRenderSystem = new MapRenderSystem(this.world);
-        this.shadowRenderSystem = new ShadowRenderSystem(this.world);
-        this.projectileRenderSystem = new ProjectileRenderingSystem(this.world);
-        this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
-        this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
-        // this.uiTextRenderSystem = new UiTextRenderSystem(this.world);
-        this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
-        this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world);
-
-        // General systems
-        this.characterVisualSystem =
-            new CharacterVisualSystem(this.world, this.assetStore, this.directedActionDatabase,
-                this.nonDirectionalActionDatabase);
-        this.move = new MoveSystem(this.world, this.gameMap, this.assetStore);
-        this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
-        this.mapLoadingSystem = new MapLoadingSystem(this.world);
-        this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
-        this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
-        this.destroyEntitySystem = new DestroyEntitySystem(this.world, this.assetStore);
-        this.enemyControlSystem = new EnemyControlSystem(this.world);
-        this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
-        this.playerEntityCollisionSystem =
-            new PlayerEntityCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
-        this.handleCollisionSystem = new HandleCollisionSystem(this.world);
-        this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
-        this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
-        this.pulseAnimationSystem = new PulseAnimationSystem(this.world);
-        this.spawnerSystem = new SpawnerSystem(this.world);
-        this.lifespanSystem = new LifespanSystem(this.world);
-        this.windSystem = new WindSystem(this.world);
-        this.fadeAnimationSystem = new FadeAnimationSystem(this.world);
+        GameSprites.Init(this.assetStore);
+        
+        this.Reset();
     }
 
-    protected override void OnLoad()
+    private void Reset()
     {
-        base.OnLoad();
-        GL.ClearColor(Color4.Black);
-
-        GL.Enable(EnableCap.Blend);
-        GL.Viewport(0, 0, this.FramebufferSize.X, this.FramebufferSize.Y);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-        GameSprites.Init(this.assetStore);
-        this.renderContext =
-            new RenderContext(this.assetStore, Shader.Setup("sprite.vert", "sprite.frag"), ReferenceUiResolution);
-        this.ConfigureSchedulers();
-
-        this.textFactory =
-            new StaticTextTextureFactory(
-                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "linkage-free.regular.ttf"), 48f);
-
+        this.world = new();
+        
+        this.gameState = GameState.InGame;
+        
+        this.gameMap = new Map(this.world, new GraphBasedGenerator());
         this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
+        
         this.gameMap.GenerateMap(
             new Vector2i(-2, -2),
             new Vector2i(2, 2));
@@ -198,15 +154,73 @@ public class Game : GameWindow
 
         this.CursorState = CursorState.Confined;
         this.Cursor = MouseCursor.Empty;
-
+        
         PrefabFactory.CreateCrossHairSpawner(this.world,
             (w, p) => PrefabFactory.CreateCrossHair(w, p, this.assetStore));
+
+        this.InitSystems();
         return;
 
         float ShiftInTile()
         {
             return (rng.NextSingle() * Map.TileSize) - (Map.TileSize / 2);
         }
+    }
+
+    private void InitSystems()
+    {
+        // Rendering systems
+        this.cameraSystem = new CameraSystem(this.world);
+        this.entityRenderSystem = new EntityRenderSystem(this.world);
+        this.followSystem = new FollowingSystem(this.world);
+        this.mapRenderSystem = new MapRenderSystem(this.world);
+        this.shadowRenderSystem = new ShadowRenderSystem(this.world);
+        this.projectileRenderSystem = new ProjectileRenderingSystem(this.world);
+        this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
+        this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
+        this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
+        this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world);
+
+        // General systems
+        this.characterVisualSystem =
+            new CharacterVisualSystem(this.world, this.assetStore, this.directedActionDatabase,
+                this.nonDirectionalActionDatabase);
+        this.move = new MoveSystem(this.world, this.gameMap, this.assetStore);
+        this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
+        this.mapLoadingSystem = new MapLoadingSystem(this.world);
+        this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
+        this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
+        this.destroyEntitySystem = new DestroyEntitySystem(this.world, this.assetStore);
+        this.enemyControlSystem = new EnemyControlSystem(this.world);
+        this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
+        this.playerEntityCollisionSystem =
+            new PlayerEntityCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
+        this.handleCollisionSystem = new HandleCollisionSystem(this.world);
+        this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
+        this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
+        this.pulseAnimationSystem = new PulseAnimationSystem(this.world);
+        this.spawnerSystem = new SpawnerSystem(this.world);
+        this.lifespanSystem = new LifespanSystem(this.world);
+        this.windSystem = new WindSystem(this.world);
+        this.fadeAnimationSystem = new FadeAnimationSystem(this.world);
+    }
+
+    protected override void OnLoad()
+    {
+        base.OnLoad();
+        GL.ClearColor(Color4.Black);
+
+        GL.Enable(EnableCap.Blend);
+        GL.Viewport(0, 0, this.FramebufferSize.X, this.FramebufferSize.Y);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        
+        this.renderContext =
+            new RenderContext(this.assetStore, Shader.Setup("sprite.vert", "sprite.frag"), ReferenceUiResolution);
+        this.ConfigureSchedulers();
+
+        this.textFactory =
+            new StaticTextTextureFactory(
+                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "linkage-free.regular.ttf"), 48f);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -306,6 +320,7 @@ public class Game : GameWindow
                 {
                     PrefabFactory.CreateText(this.world, "You've died\n\nPress ESC to exit", Color.Red,
                         this.textFactory, TextAlignment.Center);
+                    this.Reset();
                 }
                 break;
             case GameState.Won:
