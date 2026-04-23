@@ -143,7 +143,7 @@ public class Game : GameWindow
 
         this.gameMap.SpawnEntitiesRandomlyOnMap(10,
             pos => PrefabFactory.CreateEnemy(this.world, pos,
-                new EntityStats(20, 20), this.player,
+                this.player, (int)this.level,
                 this.assetStore));
 
         Random rng = Random.Shared;

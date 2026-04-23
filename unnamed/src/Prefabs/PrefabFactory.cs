@@ -60,7 +60,7 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateEnemy(World world, Position startPos, EntityStats stats, Entity target,
+    public static Entity CreateEnemy(World world, Position startPos, Entity target, int level,
         IAssetStore assetStore)
     {
         return world.Create()
@@ -72,10 +72,16 @@ public static class PrefabFactory
             .Add(new Character())
             .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new Enemy())
-            .Add(new Follows { Target = target, Type = FollowType.Linear, FollowRadius = 15, Speed = 2f })
+            .Add(new Follows
+            {
+                Target = target,
+                Type = FollowType.Linear,
+                FollowRadius = 15 + (level * 2.5f),
+                Speed = 2f + (0.5f * level)
+            })
             .Add(new HasShadow())
             .Add(new EnemyActionState())
-            .Add(stats)
+            .Add(new EntityStats(20 * level * 5, 20 + (level * 5)))
             .ToEntity();
     }
 
