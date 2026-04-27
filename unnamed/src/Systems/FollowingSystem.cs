@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 using Engine.Ecs;
 using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
@@ -7,7 +5,7 @@ using Engine.Ecs.Systems;
 using unnamed.Components.Physics;
 using unnamed.Components.Tags;
 
-namespace unnamed.Rendering;
+namespace unnamed.Systems;
 
 public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world, new QueryBuilder()
     .With<Follows>()
@@ -30,34 +28,10 @@ public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world,
 
         if (distance > follows.FollowRadius)
         {
-            switch (follows.Type)
-            {
-                case FollowType.Linear:
-                    handle.Remove<Velocity>();
-                    break;
-                case FollowType.Lerp:
-                    // Shouldn't happen, as the lerp following directly updates the Position and is only really useful globally 
-                    Debug.WriteLine("Lerp following is out of range of target");
-                    break;
-                default:
-                    Debug.Fail($"Unknown follow type {follows.Type}");
-                    break;
-            }
-
+            handle.Remove<Velocity>();
             return;
         }
 
-        switch (follows.Type)
-        {
-            case FollowType.Linear:
-                handle.Add(new Velocity { Direction = positionDifference.NormalizeFast(), Speed = follows.Speed });
-                break;
-            case FollowType.Lerp:
-                selfPosition = Position.Lerp(selfPosition, targetPosition, follows.Speed * dt);
-                break;
-            default:
-                Debug.Fail($"Unknown follow type {follows.Type}");
-                break;
-        }
+        handle.Add(new Velocity { Direction = positionDifference.NormalizeFast(), Speed = follows.Speed });
     }
 }

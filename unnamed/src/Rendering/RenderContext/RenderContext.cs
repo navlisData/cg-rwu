@@ -3,35 +3,35 @@ using engine.TextureProcessing;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
-using unnamed.Components.Rendering;
 using unnamed.Components.UI;
+using unnamed.Resources;
 using unnamed.Systems.SystemScheduler;
 using unnamed.Texture;
 
 namespace unnamed.Rendering.RenderContext;
 
-public class RenderContext : IRenderContext
+public struct RenderContext : IRenderContext
 {
     private const int VerticesArrayLength = 16;
-    protected internal const int VerticesLength = VerticesArrayLength * sizeof(float);
-    protected internal static readonly uint[] QuadIndices = [0, 1, 2, 2, 1, 3];
-    protected internal readonly IAssetStore assetStore;
+    internal const int VerticesLength = VerticesArrayLength * sizeof(float);
+    internal static readonly uint[] QuadIndices = [0, 1, 2, 2, 1, 3];
+    internal readonly IAssetStore assetStore;
     private readonly int elementBuffer = GL.GenBuffer();
-    protected internal readonly StaticSprite fallbackSprite;
+    internal readonly StaticSprite fallbackSprite;
     private readonly int shader;
-    protected internal readonly int uBlendFactor;
+    internal readonly int uBlendFactor;
     private readonly Vector2 uiReferenceResolution;
-    protected internal readonly int uModelViewProjection;
-    protected internal readonly int uOverrideColor;
+    internal readonly int uModelViewProjection;
+    internal readonly int uOverrideColor;
     private readonly int vertexBuffer = GL.GenBuffer();
     private readonly int vertexHandle = GL.GenVertexArray();
-    protected internal readonly float[] vertices = new float[VerticesArrayLength];
+    internal readonly float[] vertices = new float[VerticesArrayLength];
 
-    protected internal Camera2D camera;
+    internal Camera2D camera;
     private Matrix4 uiProjection;
     private Vector2 uiStretchScale = Vector2.One;
     private Vector2 uiUniformScale = Vector2.One;
-    protected internal Vector2 uiViewportSize;
+    internal Vector2 uiViewportSize;
 
     public RenderContext(IAssetStore assetStore, int shader, Vector2i uiReferenceResolution)
     {
@@ -107,7 +107,7 @@ public class RenderContext : IRenderContext
     /// </summary>
     /// <param name="scaleMode">The requested scale mode.</param>
     /// <returns>The resolved scale vector.</returns>
-    protected internal Vector2 ResolveUiScale(UiScaleMode scaleMode)
+    internal Vector2 ResolveUiScale(UiScaleMode scaleMode)
     {
         return scaleMode switch
         {

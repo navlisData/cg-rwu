@@ -15,6 +15,7 @@ using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Components.UI;
 using unnamed.Enums;
+using unnamed.Resources;
 using unnamed.Texture;
 using unnamed.Utils;
 
@@ -75,7 +76,6 @@ public static class PrefabFactory
             .Add(new Follows
             {
                 Target = target,
-                Type = FollowType.Linear,
                 FollowRadius = 15 + (level * 2.5f),
                 Speed = 2f + (0.5f * level)
             })
@@ -110,7 +110,7 @@ public static class PrefabFactory
     {
         return world.Create()
             .Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport })
-            .Add(new Follows { Target = target, Speed = 5f, FollowRadius = float.MaxValue, Type = FollowType.Lerp })
+            .Add(new Follows { Target = target, Speed = 5f, FollowRadius = float.MaxValue })
             .Add(startPos)
             .Add(new ReceivesCameraControl())
             .Add(new Hidden())
@@ -175,7 +175,7 @@ public static class PrefabFactory
             .Add(dropType)
             .Add(new PulseAnimation(transform, 1.45f, 1.65f, 0.8f))
             .Add(new CanCollideWithPlayer { Range = 0.5f })
-            .Add(new Follows { Target = player, Speed = 8f, FollowRadius = 8, Type = FollowType.Linear })
+            .Add(new Follows { Target = player, Speed = 8f, FollowRadius = 8 })
             .Add(transform)
             .Add(new Sprite(frame));
 

@@ -69,12 +69,9 @@ public class HandleCollisionSystem(World world)
                     if (handle.Has<Follows>() && !handle.Has<Velocity>())
                     {
                         ref Follows follows = ref handle.Get<Follows>();
-                        EntityEnumerator playerQuery =
-                            new QueryBuilder().With<Player>().Build().AsEnumerator(this.world);
 
-                        if (playerQuery.MoveNext())
+                        if (new QueryBuilder().With<Player>().Build().TrySingle(this.world, out Entity player))
                         {
-                            Entity player = playerQuery.Current;
                             ref Position playerPos = ref this.world.Get<Position>(player);
                             follows.FollowRadius = (playerPos - handle.Get<Position>()).LengthFast();
                         }

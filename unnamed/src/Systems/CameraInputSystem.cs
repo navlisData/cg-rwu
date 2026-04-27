@@ -4,8 +4,8 @@ using Engine.Ecs.Systems;
 
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Resources;
 using unnamed.Utils;
 
 namespace unnamed.systems;

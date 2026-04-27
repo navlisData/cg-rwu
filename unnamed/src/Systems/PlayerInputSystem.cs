@@ -15,6 +15,7 @@ using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
 using unnamed.Prefabs;
+using unnamed.Resources;
 using unnamed.Texture;
 using unnamed.Utils;
 using unnamed.Utils.Health;
@@ -22,7 +23,7 @@ using unnamed.Utils.Health;
 namespace unnamed.systems;
 
 public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
-    : EntitySetSystem<(float dt, Camera2D camera, Vector2i windowSize, IAssetStore assets,
+    : EntitySetSystem<(float dt, Vector2i windowSize, IAssetStore assets,
         ActionControlHandler<PlayerAction> actionHandler)>(world,
         new QueryBuilder()
             .With<ReceivesPlayerInput>()
@@ -39,7 +40,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
     protected override void Update(
-        (float dt, Camera2D camera, Vector2i windowSize, IAssetStore assets, ActionControlHandler<PlayerAction>
+        (float dt, Vector2i windowSize, IAssetStore assets, ActionControlHandler<PlayerAction>
             actionHandler) args, in Entity e)
     {
         EntityHandle handle = this.world.Handle(e);
@@ -49,7 +50,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         float dt = args.dt;
 
         ref Velocity velocity = ref handle.Get<Velocity>();
-        ref Camera2D camera2D = ref args.camera;
+        ref Camera2D camera2D = ref this.world.GetResource<Camera2D>();
         ref Position playerPosition = ref handle.Get<Position>();
         ref PlayerActionState playerState = ref handle.Get<PlayerActionState>();
         ref AlignedCharacter alignedCharacter = ref handle.Get<AlignedCharacter>();
