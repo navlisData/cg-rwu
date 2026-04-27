@@ -17,23 +17,17 @@ namespace Engine.Ecs.Systems;
 ///     (e.g., removing a component that is part of the query's required set on the current entity),
 ///     as this can perturb enumeration order. Non-anchor mutations are typically safe.
 /// </remarks>
-public abstract class EntitySetSystem<T>
+public abstract class EntitySetSystem<T> : BaseSystem<T>
 {
     private readonly Query query;
-
-    /// <summary>
-    ///     The ECS world this system operates on.
-    /// </summary>
-    protected readonly World world;
 
     /// <summary>
     ///     Creates a new system bound to a world and a precompiled query.
     /// </summary>
     /// <param name="world">The ECS world.</param>
     /// <param name="query">The entity filter used by this system.</param>
-    protected EntitySetSystem(World world, Query query)
+    protected EntitySetSystem(World world, Query query) : base(world)
     {
-        this.world = world ?? throw new ArgumentNullException(nameof(world));
         this.query = query ?? throw new ArgumentNullException(nameof(query));
     }
 
@@ -41,7 +35,7 @@ public abstract class EntitySetSystem<T>
     ///     Executes the system once for all entities matching the query.
     /// </summary>
     /// <param name="context">Context payload forwarded to <see cref="Update(T, in Entity)" />.</param>
-    public void Run(T context)
+    public override void Run(T context)
     {
         EntityEnumerator it = this.query.AsEnumerator(this.world);
 
