@@ -9,7 +9,7 @@ namespace unnamed.Systems;
 
 public sealed class FollowingSystem : BaseSystem
 {
-    private static readonly Query Query2 = new QueryBuilder()
+    private static readonly Query Query = new QueryBuilder()
         .With<Follows>()
         .With<Position>()
         .Without<Sleeping>()
@@ -17,7 +17,11 @@ public sealed class FollowingSystem : BaseSystem
 
     public override void Run(World world)
     {
-        foreach (Entity e in Query2.AsEnumerator(world))
+        foreach (Entity e in new QueryBuilder()
+                     .With<Follows>()
+                     .With<Position>()
+                     .Without<Sleeping>()
+                     .Build().AsEnumerator(world))
         {
             EntityHandle handle = world.Handle(e);
 
@@ -33,7 +37,7 @@ public sealed class FollowingSystem : BaseSystem
             if (distance > follows.FollowRadius)
             {
                 handle.Remove<Velocity>();
-                return;
+                continue;
             }
 
             handle.Add(new Velocity { Direction = positionDifference.NormalizeFast(), Speed = follows.Speed });

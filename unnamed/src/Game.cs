@@ -156,6 +156,8 @@ public class Game : GameWindow
         this.Reset(assetStore, 1);
     }
 
+    // INFO: Ideally we would only clear Entities and leave most Resources alone I guess (or even provide an api for partial entity drops)
+    //       this preserves the AssetStore at least
     private void Reset(AssetStore assetStore, int level)
     {
         this.world = new World();
