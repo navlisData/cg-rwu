@@ -32,14 +32,10 @@ public struct Map
     private readonly Dictionary<Vector2i, Entity> chunks = new();
     private readonly List<Position> validPositions;
 
-    public IMapGenerator MapGenerator;
-    public SpriteMapper SpriteMapper;
     private int validPositionsIndex;
 
-    public Map(SpriteMapper spriteMapper, IMapGenerator? mapGenerator = null)
+    public Map()
     {
-        this.SpriteMapper = spriteMapper;
-        this.MapGenerator = mapGenerator ?? new RandomTileGenerator();
         this.validPositions = [];
     }
 
@@ -159,12 +155,12 @@ public struct Map
     }
 
     /// <summary>
-    ///     Generates a rectangular region of chunks using the current <see cref="MapGenerator" />
+    ///     Generates a rectangular region of chunks />
     ///     surrounded by a one chunk border of walls.
     /// </summary>
-    public void GenerateMap(World world, Vector2i minChunk, Vector2i maxChunk)
+    public void GenerateMap(World world, IMapGenerator mapGenerator, SpriteMapper spriteMapper, Vector2i minChunk,
+        Vector2i maxChunk)
     {
-        Debug.Assert(this.SpriteMapper != null);
         Debug.Assert(minChunk.X <= maxChunk.X && minChunk.Y <= maxChunk.Y);
 
         this.CurrentWorldBounds = (minChunk.X, maxChunk.X, maxChunk.Y, minChunk.Y);
@@ -176,7 +172,7 @@ public struct Map
         IntermediateMap map = new TileFlags[widthTiles, heightTiles];
 
         this.validPositions.Clear();
-        List<Vector2i> rooms = this.MapGenerator.GenerateMap(map);
+        List<Vector2i> rooms = mapGenerator.GenerateMap(map);
         this.validPositions
             .AddRange(rooms.Select(p =>
                     bottomLeftCorner + new Position(Vector2i.Zero, p, Vector2i.Zero))
@@ -198,7 +194,7 @@ public struct Map
                 TileFlags flags = map[x, y];
 
                 (StaticSprite sprite, StaticSprite? overlay, ushort layer) =
-                    this.SpriteMapper.MapToSprite(x, y, map);
+                    spriteMapper.MapToSprite(x, y, map);
                 tileGrid.Tiles[tx + (ty * ChunkSize)] = Tile.Filled(flags, layer, sprite, overlay);
             }
         }

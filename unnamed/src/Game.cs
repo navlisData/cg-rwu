@@ -18,9 +18,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using SixLabors.ImageSharp;
 
-using unnamed.Components.General;
 using unnamed.Components.Physics;
-using unnamed.Components.Rendering;
 using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.GameMap;
@@ -52,6 +50,8 @@ public class Game : GameWindow
     private readonly CameraInputSystem cameraInputSystem;
     private readonly CameraSystem cameraSystem;
     private readonly CharacterVisualSystem characterVisualSystem;
+
+    private readonly List<StaticSprite> deco = [];
     private readonly DestroyEntitySystem destroyEntitySystem;
 
     private readonly EnemyControlSystem enemyControlSystem;
@@ -83,17 +83,18 @@ public class Game : GameWindow
     private readonly SpawnerSystem spawnerSystem;
     private readonly SpriteAnimationSystem spriteAnimationSystem;
 
+    private readonly StaticTextTextureFactory textFactoryLarge = new(
+        Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "flavina.regular.ttf"), 48f);
+
+    private readonly StaticTextTextureFactory textFactoryMedium = new(
+        Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "flavina.regular.ttf"), 28f);
+
     private readonly UiRenderSystem uiRenderSystem;
 
     private readonly SystemScheduler<GameState, World> updateScheduler = new();
     private readonly WindSystem windSystem;
 
-    private readonly World world = new();
-
-    private StaticTextTextureFactory textFactory;
-    private readonly StaticTextTextureFactory textFactoryLarge;
-    private readonly StaticTextTextureFactory textFactoryMedium;
-    private uint level = 1;
+    private World world = new();
 
     public Game() : base(NativeSettings, Settings)
     {
@@ -144,32 +145,29 @@ public class Game : GameWindow
 
         AssetStore assetStore = new();
         GameSprites.Init(assetStore);
+
+        this.ConfigureSchedulers();
+
+        this.deco.AddRange(assetStore.Get(GameAssets.MapDecoration.Bricks));
+        this.deco.AddRange(assetStore.Get(GameAssets.MapDecoration.Bushes));
+        this.deco.AddRange(assetStore.Get(GameAssets.MapDecoration.Grass));
+        this.deco.AddRange(assetStore.Get(GameAssets.MapDecoration.SmallStones));
+
+        this.Reset(assetStore, 1);
+    }
+
+    private void Reset(AssetStore assetStore, int level)
+    {
+        this.world = new World();
         this.world.AddResource(assetStore);
 
         this.world.AddResource(new RenderContext(assetStore, Shader.Setup("sprite.vert", "sprite.frag"),
             ReferenceUiResolution));
-        this.ConfigureSchedulers();
 
-        this.textFactoryLarge =
-            new StaticTextTextureFactory(
-                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "flavina.regular.ttf"), 48f);
-
-        this.textFactoryMedium =
-            new StaticTextTextureFactory(
-                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "flavina.regular.ttf"), 28f);
-
-        this.Reset();
-    }
-
-    private void Reset()
-    {
-        this.world = new();
-
-        this.gameState = GameState.InGame;
-
-        Map gameMap = new(new SpriteMapper(assetStore), new GraphBasedGenerator());
+        Map gameMap = new();
         gameMap.GenerateMap(
             this.world,
+            new GraphBasedGenerator(), new SpriteMapper(assetStore),
             new Vector2i(-2, -2),
             new Vector2i(2, 2));
 
@@ -184,20 +182,11 @@ public class Game : GameWindow
             playerStartPosition);
 
         gameMap.SpawnEntitiesRandomlyOnMap(this.world, 10,
-            pos => PrefabFactory.CreateEnemy(this.world, pos,
-                new EntityStats(20, 20), player));
-
-        List<StaticSprite> deco = [];
-        deco.AddRange(assetStore.Get(GameAssets.MapDecoration.Bricks));
-        deco.AddRange(assetStore.Get(GameAssets.MapDecoration.Bushes));
-        deco.AddRange(assetStore.Get(GameAssets.MapDecoration.Grass));
-        deco.AddRange(assetStore.Get(GameAssets.MapDecoration.SmallStones));
+            pos => PrefabFactory.CreateEnemy(this.world, pos, player, level));
 
         gameMap.SpawnEntitiesRandomlyOnMap(this.world, 10,
             pos => PrefabFactory.CreateMapDeco(this.world, pos + new Vector2(ShiftInTile(), ShiftInTile()),
-                new Vector2(2f, 2f),
-                deco[Random.Shared.Next(deco.Count)]), false);
-
+                new Vector2(2f, 2f), this.deco[Random.Shared.Next(this.deco.Count)]), false);
 
         this.world.AddResource(gameMap);
         this.world.AddResource(new Camera2D
@@ -208,10 +197,14 @@ public class Game : GameWindow
         this.world.AddResource(new ActionControlHandler<EnemyAction>(EnemyActionExtensions.Priority));
         this.world.AddResource(new NonDirectionalActionDatabase());
         this.world.AddResource(new DirectedActionDatabase());
+        this.world.AddResource(new Level(level));
         this.world.AddState(GameState.InGame);
 
         this.CursorState = CursorState.Confined;
         this.Cursor = MouseCursor.Empty;
+
+        PrefabFactory.CreateText(this.world, $"Level: {level}", Color.White,
+            this.textFactoryMedium, Pivot.TopRight, UiAnchor.TopRight, new UiReferenceOffset(-10, 10));
 
         PrefabFactory.CreateCrossHairSpawner(this.world,
             PrefabFactory.CreateCrossHair);
@@ -223,72 +216,13 @@ public class Game : GameWindow
         }
     }
 
-    private void UpdateLevelText()
-    {
-        PrefabFactory.CreateText(this.world, "Level: " + this.level, Color.White,
-            this.textFactoryMedium, Pivot.TopRight, UiAnchor.TopRight, new UiReferenceOffset(-10, 10));
-    }
-
-    private void InitSystems()
-    {
-        // Rendering systems
-        this.cameraSystem = new CameraSystem(this.world);
-        this.entityRenderSystem = new EntityRenderSystem(this.world);
-        this.followSystem = new FollowingSystem(this.world);
-        this.mapRenderSystem = new MapRenderSystem(this.world);
-        this.shadowRenderSystem = new ShadowRenderSystem(this.world);
-        this.projectileRenderSystem = new ProjectileRenderingSystem(this.world);
-        this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
-        this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
-        this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
-        this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world);
-
-        // General systems
-        this.characterVisualSystem =
-            new CharacterVisualSystem(this.world, this.assetStore, this.directedActionDatabase,
-                this.nonDirectionalActionDatabase);
-        this.move = new MoveSystem(this.world, this.gameMap, this.assetStore);
-        this.playerInput = new PlayerInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
-        this.mapLoadingSystem = new MapLoadingSystem(this.world);
-        this.setToMousePositionSystem = new SetToMousePositionSystem(this.world, () => this.MouseState);
-        this.cameraInputSystem = new CameraInputSystem(this.world, () => this.KeyboardState, () => this.MouseState);
-        this.destroyEntitySystem = new DestroyEntitySystem(this.world, this.assetStore);
-        this.enemyControlSystem = new EnemyControlSystem(this.world);
-        this.entityCollisionDetectSystem = new EntityCollisionDetectSystem(this.world, this.assetStore);
-        this.playerEntityCollisionSystem =
-            new PlayerEntityCollisionSystem(this.world, this.assetStore, this.enemyActionHandler);
-        this.handleCollisionSystem = new HandleCollisionSystem(this.world);
-        this.healthSyncSystem = new HealthHudSyncSystem(this.world, this.assetStore);
-        this.healthLayoutSystem = new HealthHudLayoutSystem(this.world, this.assetStore);
-        this.pulseAnimationSystem = new PulseAnimationSystem(this.world);
-        this.spawnerSystem = new SpawnerSystem(this.world);
-        this.lifespanSystem = new LifespanSystem(this.world);
-        this.windSystem = new WindSystem(this.world);
-        this.fadeAnimationSystem = new FadeAnimationSystem(this.world);
-    }
-
-    protected override void OnLoad()
-    {
-        base.OnLoad();
-        GL.ClearColor(Color4.Black);
-
-        GL.Enable(EnableCap.Blend);
-        GL.Viewport(0, 0, this.FramebufferSize.X, this.FramebufferSize.Y);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-        this.renderContext =
-            new RenderContext(this.assetStore, Shader.Setup("sprite.vert", "sprite.frag"), ReferenceUiResolution);
-        this.ConfigureSchedulers();
-    }
-
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
         this.world.AddOrUpdateResource(new DeltaTime((float)args.Time));
         this.world.AddOrUpdateResource(new WindowSize(this.ClientSize));
-        KeyboardState keyboard = this.KeyboardState;
 
-        if (keyboard.IsKeyDown(Keys.Escape))
+        if (this.KeyboardState.IsKeyDown(Keys.Escape))
         {
             this.Close();
         }
@@ -296,29 +230,24 @@ public class Game : GameWindow
         ref State<GameState> state = ref this.world.GetState<GameState>();
         GameState currentState = state.Current();
 
-        if (keyboard.IsKeyPressed(Keys.Space))
+        if (this.KeyboardState.IsKeyPressed(Keys.Space))
         {
             if (currentState.Equals(GameState.Lost) || currentState.Equals(GameState.Won))
             {
-                // TODO: FIXME
-                this.Reset();
+                state.QueueChange(GameState.InGame);
             }
         }
 
-        if (keyboard.IsKeyPressed(Keys.P) &&
+        if (this.KeyboardState.IsKeyPressed(Keys.P) &&
             (currentState.Equals(GameState.InGame) || currentState.Equals(GameState.Paused)))
         {
             if (currentState.Equals(GameState.Paused))
             {
                 state.QueueChange(GameState.InGame);
-                this.CursorState = CursorState.Confined;
-                this.Cursor = MouseCursor.Empty;
             }
             else
             {
                 state.QueueChange(GameState.Paused);
-                this.CursorState = CursorState.Normal;
-                this.Cursor = MouseCursor.Default;
             }
         }
 
@@ -377,7 +306,7 @@ public class Game : GameWindow
 
     private void UpdateGameState(ref State<GameState> state)
     {
-        if (!state.HasChanged(out GameState nextState))
+        if (!state.HasChanged(out GameState currentState, out GameState nextState))
         {
             return;
         }
@@ -388,7 +317,7 @@ public class Game : GameWindow
                 {
                     PrefabFactory.CreateCenteredText(this.world, "You've died\n\nPress Space to restart", Color.Red,
                         this.textFactoryLarge);
-                    this.level = 1;
+                    this.world.GetResource<Level>().Value = 1;
                 }
                 break;
             case GameState.Won:
@@ -396,7 +325,27 @@ public class Game : GameWindow
                     PrefabFactory.CreateCenteredText(this.world,
                         "You've reached the end of this level.\nPress Space to continue",
                         Color.Green, this.textFactoryLarge);
-                    this.level++;
+                    this.world.GetResource<Level>().Value += 1;
+                    ;
+                }
+                break;
+            case GameState.InGame:
+                {
+                    if (currentState.Equals(GameState.Lost) || currentState.Equals(GameState.Won))
+                    {
+                        this.Reset(this.world.GetResource<AssetStore>(), this.world.GetResource<Level>());
+                    }
+                    else
+                    {
+                        this.CursorState = CursorState.Confined;
+                        this.Cursor = MouseCursor.Empty;
+                    }
+                }
+                break;
+            case GameState.Paused:
+                {
+                    this.CursorState = CursorState.Normal;
+                    this.Cursor = MouseCursor.Default;
                 }
                 break;
         }

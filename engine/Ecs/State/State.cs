@@ -15,16 +15,12 @@ public struct State<TEnum>(TEnum initial) : IState<TEnum> where TEnum : Enum
         return this.current;
     }
 
-    public bool HasChanged(out TEnum nextState)
+    public bool HasChanged(out TEnum currentState, out TEnum nextState)
     {
-        if (this.next.Equals(this.current))
-        {
-            nextState = this.current;
-            return false;
-        }
-
+        currentState = this.current;
         nextState = this.next;
-        return true;
+
+        return !this.next.Equals(this.current);
     }
 
     public void DoChange()
