@@ -2,6 +2,8 @@ using System.Runtime.CompilerServices;
 
 using Engine.Ecs.Pools;
 
+using engine.Ecs.State;
+
 namespace Engine.Ecs;
 
 /// <summary>
@@ -371,7 +373,57 @@ public sealed class World
         return this.resources.ContainsKey(typeof(T));
     }
 
-    private class BoxRes<T> where T : struct
+    /// <summary>
+    ///     Adds a new state of type <typeparamref name="T" /> with the specified initial value.
+    /// </summary>
+    /// <typeparam name="T">The resource type. Only one instance per type can be stored.</typeparam>
+    /// <param name="value">The initial value of the resource.</param>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown when a resource of type <typeparamref name="T" /> is already registered.
+    /// </exception>
+    public void AddState<T>(T value) where T : Enum
+    {
+        Type type = typeof(State<T>);
+
+        if (this.resources.ContainsKey(type))
+        {
+            throw new InvalidOperationException($"Type {type} already registered.");
+        }
+
+        this.resources[type] = new BoxRes<State<T>> { Value = new State<T>(value) };
+    }
+
+    /// <summary>
+    ///     Removes the state of type <typeparamref name="T" />, if it exists.
+    /// </summary>
+    /// <typeparam name="T">The state type.</typeparam>
+    public void RemoveState<T>() where T : Enum
+    {
+        this.resources.Remove(typeof(State<T>));
+    }
+
+    /// <summary>
+    ///     Gets a mutable reference to the state of type <typeparamref name="T" />.
+    /// </summary>
+    /// <typeparam name="T">The state type.</typeparam>
+    /// <returns>
+    ///     A reference to the stored state. Mutating the returned value updates the stored instance.
+    /// </returns>
+    /// <exception cref="KeyNotFoundException">
+    ///     Thrown when no resource of type <typeparamref name="T" /> is registered.
+    /// </exception>
+    public ref State<T> GetState<T>() where T : Enum
+    {
+        if (!this.resources.TryGetValue(typeof(State<T>), out object? obj))
+        {
+            throw new KeyNotFoundException($"Type {typeof(State<T>)} not found.");
+        }
+
+        return ref ((BoxRes<State<T>>)obj).Value;
+    }
+
+
+    private class BoxRes<T>
     {
         public T Value;
     }
