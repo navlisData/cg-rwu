@@ -60,7 +60,7 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateEnemy(World world, Position startPos, EntityStats stats, Entity target,
+    public static Entity CreateEnemy(World world, Position startPos, Entity target, int level,
         IAssetStore assetStore)
     {
         return world.Create()
@@ -72,26 +72,38 @@ public static class PrefabFactory
             .Add(new Character())
             .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new Enemy())
-            .Add(new Follows { Target = target, Type = FollowType.Linear, FollowRadius = 15, Speed = 2f })
+            .Add(new Follows
+            {
+                Target = target,
+                Type = FollowType.Linear,
+                FollowRadius = 15 + (level * 2.5f),
+                Speed = 2f + (0.5f * level)
+            })
             .Add(new HasShadow())
             .Add(new EnemyActionState())
-            .Add(stats)
+            .Add(new EntityStats(20 * level * 5, 20 + (level * 5)))
             .ToEntity();
     }
 
     public static Entity CreateText(World world, string text, Color color, StaticTextTextureFactory textFactory,
-        TextAlignment textAlignment = TextAlignment.Start)
+        Pivot textPivot, UiAnchor anchor, Vector2 offset = new(), TextAlignment textAlignment = TextAlignment.Start)
     {
         Texture2D titleTexture = textFactory.CreateTexture(text, color, textAlignment);
 
         return world.Create()
-            .Add(new StaticTextTexture(titleTexture, Pivot.Center))
+            .Add(new StaticTextTexture(titleTexture, textPivot))
             .Add(new UiReferenceSize(titleTexture.Width, titleTexture.Height))
-            .Add(new UiReferenceOffset())
+            .Add(new UiReferenceOffset(offset.X, offset.Y))
             .Add(new UiElement())
-            .Add(UiAnchor.Center)
+            .Add(anchor)
             .Add(UiScaleMode.Uniform)
             .ToEntity();
+    }
+
+    public static Entity CreateCenteredText(World world, string text, Color color, StaticTextTextureFactory textFactory)
+    {
+        return CreateText(world, text, color, textFactory, Pivot.Center, UiAnchor.Center, new Vector2(),
+            TextAlignment.Center);
     }
 
     public static Entity CreateFollowingCamera(World world, in Entity target, Vector2i viewport, Position startPos)

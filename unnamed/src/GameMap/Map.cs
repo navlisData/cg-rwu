@@ -35,7 +35,10 @@ public sealed class Map
 
     private readonly World world;
     public IMapGenerator MapGenerator;
-    public SpriteMapper? SpriteMapper;
+
+    public SpriteMapper?
+        SpriteMapper;
+
     private int validPositionsIndex;
 
     public Map(World world, IMapGenerator? mapGenerator = null)

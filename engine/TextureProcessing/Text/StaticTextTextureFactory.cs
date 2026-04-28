@@ -100,15 +100,14 @@ public sealed class StaticTextTextureFactory
     /// <returns>The width in pixels of the longest line.</returns>
     private float MeasureLongestLineWidth(string text)
     {
-        string[] lines = text.Split('\n');
+        string[] lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         TextOptions measureOptions = new(this.font);
 
         float maxWidth = 1f;
-
+        
         foreach (string line in lines)
         {
-            string textToMeasure = string.IsNullOrEmpty(line) ? " " : line;
-            FontRectangle lineSize = TextMeasurer.MeasureSize(textToMeasure, measureOptions);
+            FontRectangle lineSize = TextMeasurer.MeasureSize(line, measureOptions);
             maxWidth = Math.Max(maxWidth, lineSize.Width);
         }
 

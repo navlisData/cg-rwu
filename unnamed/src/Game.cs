@@ -13,12 +13,12 @@ using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 
 using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
+using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.GameMap;
 using unnamed.GameMap.MapGeneration;
@@ -45,65 +45,146 @@ public class Game : GameWindow
 
     private static readonly GameWindowSettings NativeSettings = new() { UpdateFrequency = 60 };
     private readonly IAssetStore assetStore = new AssetStore();
-    private readonly CameraInputSystem cameraInputSystem;
-    private readonly CameraSystem cameraSystem;
-    private readonly CharacterVisualSystem characterVisualSystem;
-    private readonly DestroyEntitySystem destroyEntitySystem;
+    private CameraInputSystem cameraInputSystem;
+    private CameraSystem cameraSystem;
+    private CharacterVisualSystem characterVisualSystem;
+    private DestroyEntitySystem destroyEntitySystem;
 
     private readonly DirectedActionDatabase directedActionDatabase = DirectedActionDatabase.CreateDefault();
     private readonly ActionControlHandler<EnemyAction> enemyActionHandler = new(EnemyActionExtensions.Priority);
-    private readonly EnemyControlSystem enemyControlSystem;
-    private readonly EnemyHealthRenderSystem enemyHealthRenderSystem;
-    private readonly EntityCollisionDetectSystem entityCollisionDetectSystem;
-    private readonly EntityRenderSystem entityRenderSystem;
-    private readonly FadeAnimationSystem fadeAnimationSystem;
-    private readonly FollowingSystem followSystem;
-    private readonly Map gameMap;
-    private readonly HandleCollisionSystem handleCollisionSystem;
-    private readonly HealthHudLayoutSystem healthLayoutSystem;
+    private EnemyControlSystem enemyControlSystem;
+    private EnemyHealthRenderSystem enemyHealthRenderSystem;
+    private EntityCollisionDetectSystem entityCollisionDetectSystem;
+    private EntityRenderSystem entityRenderSystem;
+    private FadeAnimationSystem fadeAnimationSystem;
+    private FollowingSystem followSystem;
+    private Map gameMap;
+    private HandleCollisionSystem handleCollisionSystem;
+    private HealthHudLayoutSystem healthLayoutSystem;
 
     // Health
-    private readonly HealthHudSyncSystem healthSyncSystem;
-    private readonly LifespanSystem lifespanSystem;
-    private readonly MapLoadingSystem mapLoadingSystem;
-    private readonly MapPropsRenderSystem mapPropsRenderingSystem;
-    private readonly MapRenderSystem mapRenderSystem;
-    private readonly MoveSystem move;
+    private HealthHudSyncSystem healthSyncSystem;
+    private LifespanSystem lifespanSystem;
+    private MapLoadingSystem mapLoadingSystem;
+    private MapPropsRenderSystem mapPropsRenderingSystem;
+    private MapRenderSystem mapRenderSystem;
+    private MoveSystem move;
 
     private readonly NonDirectionalActionDatabase nonDirectionalActionDatabase =
         NonDirectionalActionDatabase.CreateDefault();
 
     private readonly ActionControlHandler<PlayerAction> playerActionHandler = new(PlayerActionExtensions.Priority);
-    private readonly PlayerEntityCollisionSystem playerEntityCollisionSystem;
-    private readonly PlayerInputSystem playerInput;
-    private readonly ProjectileRenderingSystem projectileRenderSystem;
-    private readonly PulseAnimationSystem pulseAnimationSystem;
+    private PlayerEntityCollisionSystem playerEntityCollisionSystem;
+    private PlayerInputSystem playerInput;
+    private ProjectileRenderingSystem projectileRenderSystem;
+    private PulseAnimationSystem pulseAnimationSystem;
     private readonly SystemScheduler<GameState, RenderContext> renderScheduler = new();
 
-    private readonly SetToMousePositionSystem setToMousePositionSystem;
-    private readonly ShadowRenderSystem shadowRenderSystem;
-    private readonly SpawnerSystem spawnerSystem;
-    private readonly SpriteAnimationSystem spriteAnimationSystem;
+    private SetToMousePositionSystem setToMousePositionSystem;
+    private ShadowRenderSystem shadowRenderSystem;
+    private SpawnerSystem spawnerSystem;
+    private SpriteAnimationSystem spriteAnimationSystem;
 
-    private readonly UiRenderSystem uiRenderSystem;
+    private UiRenderSystem uiRenderSystem;
 
     private readonly SystemScheduler<GameState, UpdateContext> updateScheduler = new();
-    private readonly WindSystem windSystem;
+    private WindSystem windSystem;
 
-    private readonly World world = new();
+    private World world;
 
     private Entity camera;
-    private GameState gameState = GameState.InGame;
+    private GameState gameState;
     private Entity player;
 
     private RenderContext renderContext;
-
-    private StaticTextTextureFactory textFactory;
+    private readonly StaticTextTextureFactory textFactoryLarge;
+    private readonly StaticTextTextureFactory textFactoryMedium;
+    private uint level = 1;
 
     public Game() : base(NativeSettings, Settings)
     {
-        this.gameMap = new Map(this.world, new GraphBasedGenerator());
+        GameSprites.Init(this.assetStore);
 
+        this.textFactoryLarge =
+            new StaticTextTextureFactory(
+                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "flavina.regular.ttf"), 48f);
+
+        this.textFactoryMedium =
+            new StaticTextTextureFactory(
+                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "flavina.regular.ttf"), 28f);
+
+        this.Reset();
+    }
+
+    private void Reset()
+    {
+        this.world = new();
+
+        this.gameState = GameState.InGame;
+
+        this.gameMap = new Map(this.world, new GraphBasedGenerator());
+        this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
+
+        this.gameMap.GenerateMap(
+            new Vector2i(-2, -2),
+            new Vector2i(2, 2));
+
+        this.gameMap.NextValidPosition(out Position portalPosition);
+        PrefabFactory.CreatePortal(
+            this.world,
+            portalPosition,
+            this.assetStore);
+
+        this.gameMap.NextValidPosition(out Position playerStartPosition);
+        this.player = PrefabFactory.CreatePlayer(
+            this.world,
+            playerStartPosition,
+            this.assetStore);
+
+        this.gameMap.SpawnEntitiesRandomlyOnMap(10,
+            pos => PrefabFactory.CreateEnemy(this.world, pos,
+                this.player, (int)this.level,
+                this.assetStore));
+
+        Random rng = Random.Shared;
+        List<StaticSprite> deco = [];
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bricks));
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bushes));
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Grass));
+        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.SmallStones));
+
+        this.gameMap.SpawnEntitiesRandomlyOnMap(10,
+            pos => PrefabFactory.CreateMapDeco(this.world, pos + new Vector2(ShiftInTile(), ShiftInTile()),
+                new Vector2(2f, 2f),
+                deco[rng.Next(deco.Count)]), false);
+
+        this.camera =
+            PrefabFactory.CreateFollowingCamera(this.world, this.player, this.FramebufferSize, playerStartPosition);
+
+        this.CursorState = CursorState.Confined;
+        this.Cursor = MouseCursor.Empty;
+
+        PrefabFactory.CreateCrossHairSpawner(this.world,
+            (w, p) => PrefabFactory.CreateCrossHair(w, p, this.assetStore));
+
+        this.UpdateLevelText();
+        this.InitSystems();
+        return;
+
+        float ShiftInTile()
+        {
+            return (rng.NextSingle() * Map.TileSize) - (Map.TileSize / 2);
+        }
+    }
+
+    private void UpdateLevelText()
+    {
+        PrefabFactory.CreateText(this.world, "Level: " + this.level, Color.White,
+            this.textFactoryMedium, Pivot.TopRight, UiAnchor.TopRight, new UiReferenceOffset(-10, 10));
+    }
+
+    private void InitSystems()
+    {
         // Rendering systems
         this.cameraSystem = new CameraSystem(this.world);
         this.entityRenderSystem = new EntityRenderSystem(this.world);
@@ -113,7 +194,6 @@ public class Game : GameWindow
         this.projectileRenderSystem = new ProjectileRenderingSystem(this.world);
         this.spriteAnimationSystem = new SpriteAnimationSystem(this.world);
         this.uiRenderSystem = new UiRenderSystem(this.world, this.assetStore);
-        // this.uiTextRenderSystem = new UiTextRenderSystem(this.world);
         this.enemyHealthRenderSystem = new EnemyHealthRenderSystem(this.world);
         this.mapPropsRenderingSystem = new MapPropsRenderSystem(this.world);
 
@@ -150,63 +230,9 @@ public class Game : GameWindow
         GL.Viewport(0, 0, this.FramebufferSize.X, this.FramebufferSize.Y);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-        GameSprites.Init(this.assetStore);
         this.renderContext =
             new RenderContext(this.assetStore, Shader.Setup("sprite.vert", "sprite.frag"), ReferenceUiResolution);
         this.ConfigureSchedulers();
-
-        this.textFactory =
-            new StaticTextTextureFactory(
-                Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "linkage-free.regular.ttf"), 48f);
-
-        this.gameMap.SpriteMapper = new SpriteMapper(this.assetStore);
-        this.gameMap.GenerateMap(
-            new Vector2i(-2, -2),
-            new Vector2i(2, 2));
-
-        this.gameMap.NextValidPosition(out Position portalPosition);
-        PrefabFactory.CreatePortal(
-            this.world,
-            portalPosition,
-            this.assetStore);
-
-        this.gameMap.NextValidPosition(out Position playerStartPosition);
-        this.player = PrefabFactory.CreatePlayer(
-            this.world,
-            playerStartPosition,
-            this.assetStore);
-
-        this.gameMap.SpawnEntitiesRandomlyOnMap(10,
-            pos => PrefabFactory.CreateEnemy(this.world, pos,
-                new EntityStats(20, 20), this.player,
-                this.assetStore));
-
-        Random rng = Random.Shared;
-        List<StaticSprite> deco = [];
-        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bricks));
-        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Bushes));
-        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.Grass));
-        deco.AddRange(this.assetStore.Get(GameAssets.MapDecoration.SmallStones));
-
-        this.gameMap.SpawnEntitiesRandomlyOnMap(10,
-            pos => PrefabFactory.CreateMapDeco(this.world, pos + new Vector2(ShiftInTile(), ShiftInTile()),
-                new Vector2(2f, 2f),
-                deco[rng.Next(deco.Count)]), false);
-
-        this.camera =
-            PrefabFactory.CreateFollowingCamera(this.world, this.player, this.FramebufferSize, playerStartPosition);
-
-        this.CursorState = CursorState.Confined;
-        this.Cursor = MouseCursor.Empty;
-
-        PrefabFactory.CreateCrossHairSpawner(this.world,
-            (w, p) => PrefabFactory.CreateCrossHair(w, p, this.assetStore));
-        return;
-
-        float ShiftInTile()
-        {
-            return (rng.NextSingle() * Map.TileSize) - (Map.TileSize / 2);
-        }
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -218,6 +244,14 @@ public class Game : GameWindow
         if (keyboard.IsKeyDown(Keys.Escape))
         {
             this.Close();
+        }
+
+        if (keyboard.IsKeyPressed(Keys.Space))
+        {
+            if (this.gameState.Equals(GameState.Lost) || this.gameState.Equals(GameState.Won))
+            {
+                this.Reset();
+            }
         }
 
         if (keyboard.IsKeyPressed(Keys.P) &&
@@ -304,14 +338,17 @@ public class Game : GameWindow
         {
             case GameState.Lost:
                 {
-                    PrefabFactory.CreateText(this.world, "You've died\n\nPress ESC to exit", Color.Red,
-                        this.textFactory, TextAlignment.Center);
+                    PrefabFactory.CreateCenteredText(this.world, "You've died\n\nPress Space to restart", Color.Red,
+                        this.textFactoryLarge);
+                    this.level = 1;
                 }
                 break;
             case GameState.Won:
                 {
-                    PrefabFactory.CreateText(this.world, "You've reached the end of this level.\nPress ESC to exit",
-                        Color.Green, this.textFactory, TextAlignment.Center);
+                    PrefabFactory.CreateCenteredText(this.world,
+                        "You've reached the end of this level.\nPress Space to continue",
+                        Color.Green, this.textFactoryLarge);
+                    this.level++;
                 }
                 break;
         }
