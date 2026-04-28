@@ -6,21 +6,20 @@ using engine.TextureProcessing;
 
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
+using unnamed.Resources;
 
-namespace unnamed.Rendering;
+namespace unnamed.Systems;
 
-public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(world,
+public sealed class SpriteAnimationSystem() : EntitySetSystem<DeltaTime>(
     new QueryBuilder()
         .With<AnimatedSprite>()
         .Without<Sleeping>()
         .Build()
 )
 {
-    protected override void Update(float dt, in Entity e)
+    protected override void Update(ref DeltaTime dt, EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
-
-        ref AnimatedSprite animatedSprite = ref handle.Get<AnimatedSprite>();
+        ref AnimatedSprite animatedSprite = ref e.Get<AnimatedSprite>();
 
         bool updated = HandleAnimationRequest(ref animatedSprite);
         if (animatedSprite.AnimationClip is null)
@@ -44,7 +43,7 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
         {
             if (!clip.Loop)
             {
-                handle.Remove<AnimatedSprite>();
+                e.Remove<AnimatedSprite>();
                 return;
             }
 
@@ -56,12 +55,12 @@ public sealed class SpriteAnimationSystem(World world) : EntitySetSystem<float>(
         }
 
         StaticSprite currentFrame = clip.Frames[animatedSprite.CurrentFrameIndex];
-        if (!handle.Has<Sprite>())
+        if (!e.Has<Sprite>())
         {
-            handle.Add(new Sprite(currentFrame));
+            e.Add(new Sprite(currentFrame));
         }
 
-        handle.Get<Sprite>().Frame = currentFrame;
+        e.Get<Sprite>().Frame = currentFrame;
     }
 
     private static bool HandleAnimationRequest(ref AnimatedSprite animatedSprite)

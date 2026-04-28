@@ -10,21 +10,17 @@ using unnamed.GameMap;
 
 namespace unnamed.Rendering;
 
-public class MapRenderSystem(World world)
-    : EntitySetSystem<(RenderContext.RenderContext ctx, int layer)>(world,
+public class MapRenderSystem(int layer)
+    : EntitySetSystem<RenderContext.RenderContext>(
         new QueryBuilder()
             .With<TileGrid>()
             .With<Loaded>()
             .Build())
 {
-    protected override void Update((RenderContext.RenderContext ctx, int layer) context, in Entity e)
+    protected override void Update(ref RenderContext.RenderContext ctx, EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
-
-        (RenderContext.RenderContext ctx, int layer) = context;
-
-        Vector2i chunkPosition = handle.Get<GridPosition>();
-        ref Tile[] tiles = ref handle.Get<TileGrid>().Tiles;
+        Vector2i chunkPosition = e.Get<GridPosition>();
+        ref Tile[] tiles = ref e.Get<TileGrid>().Tiles;
 
         for (int y = 0; y < Map.ChunkSize; y++)
         {

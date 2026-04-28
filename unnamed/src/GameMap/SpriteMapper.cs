@@ -7,7 +7,7 @@ using unnamed.Texture;
 
 namespace unnamed.GameMap;
 
-public class SpriteMapper(IAssetStore assetStore)
+public class SpriteMapper(AssetStore assetStore)
 {
     private readonly Random rng = Random.Shared;
 

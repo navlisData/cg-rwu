@@ -10,17 +10,19 @@ using unnamed.Resources;
 
 namespace unnamed.Systems;
 
-public sealed class CameraSystem(World world) : BaseSystem<float>(world)
+public sealed class CameraSystem : BaseSystem
 {
-    public override void Run(float dt)
+    private static readonly Query PlayerQuery = new QueryBuilder().With<Player>().Build();
+
+    public override void Run(World world)
     {
-        ref Camera2D camera = ref this.world.GetResource<Camera2D>();
+        ref Camera2D camera = ref world.GetResource<Camera2D>();
+        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
 
-        Entity player =
-            new QueryBuilder().With<Player>().Build().Single(this.world);
-        Position playerPos = this.world.Get<Position>(player);
+        Entity player = PlayerQuery.Single(world);
+        Position playerPos = world.Get<Position>(player);
 
-        camera.Position = Position.Lerp(camera.Position, playerPos, 5f * dt);
+        camera.Position = Position.Lerp(camera.Position, playerPos, 5f * dt.Value);
 
         Vector2 cameraPos = camera.Position.ToWorldPosition();
 

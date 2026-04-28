@@ -23,14 +23,15 @@ namespace unnamed.Prefabs;
 
 public static class PrefabFactory
 {
-    public static Entity CreatePlayer(World world, Position startPos,
-        IAssetStore assetStore)
+    public static Entity CreatePlayer(World world, Position startPos)
     {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+
         return world.Create()
+            .Add(new Player())
             .Add(startPos)
             .Add(new Velocity())
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 5f })
-            .Add(new ReceivesPlayerInput())
             .Add(new Sprite(assetStore.FirstAnimationFrame(GameAssets.Player.Run.South)))
             .Add(new AlignedCharacter
             {
@@ -38,7 +39,6 @@ public static class PrefabFactory
             })
             .Add(new VisibleEntity())
             .Add(new Character())
-            .Add(new Player())
             .Add(new HasShadow())
             .Add(new PlayerActionState())
             .Add(new EntityStats(10, 16) { MaxAttackCooldown = 1f })
@@ -47,8 +47,9 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateHealthIndicator(World world, IAssetStore assetStore, HeartStatus heartStatus)
+    public static Entity CreateHealthIndicator(World world, HeartStatus heartStatus)
     {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
         StaticSprite frame = assetStore.Get(heartStatus.GetAsset());
 
         return world.Create()
@@ -61,9 +62,10 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateEnemy(World world, Position startPos, Entity target, int level,
-        IAssetStore assetStore)
+    public static Entity CreateEnemy(World world, Position startPos, Entity target, int level)
     {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+
         return world.Create()
             .Add(startPos)
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 3 })
@@ -112,14 +114,14 @@ public static class PrefabFactory
             .Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport })
             .Add(new Follows { Target = target, Speed = 5f, FollowRadius = float.MaxValue })
             .Add(startPos)
-            .Add(new ReceivesCameraControl())
             .Add(new Hidden())
             .ToEntity();
     }
 
-    public static Entity CreateBullet(World world, Position startPos, Velocity velocity, float rotation, float height,
-        IAssetStore assetStore)
+    public static Entity CreateBullet(World world, Position startPos, Velocity velocity, float rotation, float height)
     {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+
         return world.Create()
             .Add(startPos)
             .Add(new Transform { Size = new Vector2(2f, 1f), Scale = 2.4f, Rotation = rotation, Height = height })
@@ -146,8 +148,9 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateCrossHair(World world, AbsolutePosition position, IAssetStore assetStore)
+    public static Entity CreateCrossHair(World world, AbsolutePosition position)
     {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
         Color4 baseTint = new(0.95f, 0.61f, 0.07f, 0.25f);
         Color4 tint = ColorUtils.CreateSlightColorVariation(baseTint, 0.15f, 0.55f,
             1.35f);
@@ -163,9 +166,10 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreateDrop(World world, DropType dropType, IAssetStore assetStore, Position position,
+    public static Entity CreateDrop(World world, DropType dropType, Position position,
         Entity player)
     {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
         StaticSprite frame = assetStore.Get(dropType.GetAsset());
         Transform transform = new() { Size = new Vector2(1f, 1f), Scale = 1.5f };
 
@@ -183,9 +187,11 @@ public static class PrefabFactory
         return dropHandle.ToEntity();
     }
 
-    public static Entity CreateExplosion(World world, IAssetStore assetStore, Position position, float height,
+    public static Entity CreateExplosion(World world, Position position, float height,
         AssetRef<AnimationClip> animationClip)
     {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+
         return world.Create()
             .Add(position)
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 5f, Height = height })
@@ -195,8 +201,10 @@ public static class PrefabFactory
             .ToEntity();
     }
 
-    public static Entity CreatePortal(World world, Position pos, IAssetStore assetStore)
+    public static Entity CreatePortal(World world, Position pos)
     {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+
         return world.Create()
             .Add(pos)
             .Add(new Transform { Size = new Vector2(1f, 1f), Scale = 16f })

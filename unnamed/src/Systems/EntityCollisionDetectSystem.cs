@@ -2,71 +2,81 @@ using Engine.Ecs;
 using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
-using engine.TextureProcessing;
-
 using unnamed.Components.General;
 using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.Tags;
 using unnamed.Prefabs;
+using unnamed.Resources;
 using unnamed.Utils.Health;
 
 namespace unnamed.systems;
 
-public class EntityCollisionDetectSystem(World world, IAssetStore assetStore) : EntitySetSystem<float>(world,
-    new QueryBuilder()
+public class EntityCollisionDetectSystem : BaseSystem
+{
+    private static readonly Query ProjectileQuery = new QueryBuilder()
         .With<Projectile>()
         .With<EntityCollisionBehavior>()
         .With<Position>()
-        .Build()
-)
-{
-    protected override void Update(float dt, in Entity e)
+        .Build();
+
+    private static readonly Query EnemyQuery = new QueryBuilder()
+        .With<Enemy>().With<EntityStats>().Build();
+
+    public override void Run(World world)
     {
-        EntityHandle handle = this.world.Handle(e);
+        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
 
-        ref Position projectilePos = ref handle.Get<Position>();
-        ref EntityCollisionBehavior collisionBehavior = ref handle.Get<EntityCollisionBehavior>();
-        ref Projectile projectile = ref handle.Get<Projectile>();
-
-        if (handle.Has<CollisionCooldown>())
+        foreach (Entity e in ProjectileQuery.AsEnumerator(world))
         {
-            handle.Get<CollisionCooldown>().RemainingTime -= dt;
-            if (handle.Get<CollisionCooldown>().RemainingTime <= 0f)
-            {
-                handle.Remove<CollisionCooldown>();
-            }
-            else
-            {
-                return;
-            }
-        }
+            EntityHandle projectile = world.Handle(e);
 
-        foreach (Entity enemy in new QueryBuilder().With<Enemy>().With<EntityStats>().Build().AsEnumerator(this.world))
-        {
-            EntityHandle enemyHandle = this.world.Handle(enemy);
+            ref Position projectilePos = ref projectile.Get<Position>();
+            ref EntityCollisionBehavior collisionBehavior = ref projectile.Get<EntityCollisionBehavior>();
+            ref Projectile projectileInfo = ref projectile.Get<Projectile>();
 
-            ref Position enemyPos = ref enemyHandle.Get<Position>();
-            Position distance = enemyPos - projectilePos;
-            if (distance.LengthFast() <= 1f)
+            if (projectile.Has<CollisionCooldown>())
             {
+                projectile.Get<CollisionCooldown>().RemainingTime -= dt;
+                if (projectile.Get<CollisionCooldown>().RemainingTime <= 0f)
+                {
+                    projectile.Remove<CollisionCooldown>();
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            foreach (Entity enemy in EnemyQuery.AsEnumerator(world))
+            {
+                EntityHandle enemyHandle = world.Handle(enemy);
+
+                ref Position enemyPos = ref enemyHandle.Get<Position>();
+                Position distance = enemyPos - projectilePos;
+
+                if (!(distance.LengthFast() <= 1f))
+                {
+                    continue;
+                }
+
                 if (collisionBehavior.Explode())
                 {
-                    PrefabFactory.CreateExplosion(this.world, assetStore, projectilePos,
-                        handle.Get<Transform>().Height, handle.Get<Projectile>().ExplosionAnimation);
+                    PrefabFactory.CreateExplosion(world, projectilePos,
+                        projectile.Get<Transform>().Height, projectileInfo.ExplosionAnimation);
                 }
 
                 if (collisionBehavior.DestroySelf())
                 {
-                    handle.Add(new MarkedToDestroy());
+                    projectile.Add(new MarkedToDestroy());
                 }
                 else
                 {
-                    handle.Add(new CollisionCooldown(0.5f));
+                    projectile.Add(new CollisionCooldown(0.5f));
                 }
 
                 enemyHandle.Add(new Collided());
-                enemyHandle.AddDamage(projectile.Damage);
+                enemyHandle.AddDamage(projectileInfo.Damage);
             }
         }
     }

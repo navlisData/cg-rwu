@@ -2,20 +2,23 @@ using unnamed.Enums;
 
 namespace unnamed.Texture.DirectedAction;
 
-public sealed class DirectedActionDatabase
+public readonly struct DirectedActionDatabase
 {
     private readonly Dictionary<CharacterType, IDirectedSpriteResolver> sets = new();
 
-    public IDirectedSpriteResolver GetByCharacterType(CharacterType type) => this.sets[type];
+    public IDirectedSpriteResolver GetByCharacterType(CharacterType type)
+    {
+        return this.sets[type];
+    }
 
     private void Register(CharacterType type, IDirectedSpriteResolver resolver)
-        => this.sets[type] = resolver;
-
-    public static DirectedActionDatabase CreateDefault()
     {
-        var db = new DirectedActionDatabase();
+        this.sets[type] = resolver;
+    }
 
-        var playerSet = new DirectedActionDirectedSpriteResolver<PlayerAction>
+    public DirectedActionDatabase()
+    {
+        DirectedActionDirectedSpriteResolver<PlayerAction> playerSet = new()
         {
             SpriteByDirectedAction =
             {
@@ -45,8 +48,6 @@ public sealed class DirectedActionDatabase
                 [PlayerAction.Shoot, CharacterDirection.NorthWest] = GameAssets.Player.Attack.NorthWest
             }
         };
-        db.Register(CharacterType.Player, playerSet);
-
-        return db;
+        this.Register(CharacterType.Player, playerSet);
     }
 }

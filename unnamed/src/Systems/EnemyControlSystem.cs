@@ -9,11 +9,12 @@ using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
+using unnamed.Resources;
 
 namespace unnamed.systems;
 
-public sealed class EnemyControlSystem(World world)
-    : EntitySetSystem<(float dt, ActionControlHandler<EnemyAction> actionHandler)>(world,
+public sealed class EnemyControlSystem()
+    : EntitySetSystem<DeltaTime, ActionControlHandler<EnemyAction>>(
         new QueryBuilder()
             .With<Enemy>()
             .With<NonDirectionalCharacter>()
@@ -21,18 +22,17 @@ public sealed class EnemyControlSystem(World world)
             .Build()
     )
 {
-    protected override void Update((float dt, ActionControlHandler<EnemyAction> actionHandler) args, in Entity e)
+    protected override void Update(ref DeltaTime dt, ref ActionControlHandler<EnemyAction> actionHandler,
+        EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
+        ref NonDirectionalCharacter nonDirectionalCharacter = ref e.Get<NonDirectionalCharacter>();
+        ref EnemyActionState enemyState = ref e.Get<EnemyActionState>();
 
-        ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
-        ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
-
-        EnemyAction action = handle.Has<Velocity>()
+        EnemyAction action = e.Has<Velocity>()
             ? EnemyAction.Move
             : EnemyAction.Idle;
 
-        EnemyAction currentState = args.actionHandler.TryUpdateAction(
+        EnemyAction currentState = actionHandler.TryUpdateAction(
             ref enemyState.CurrentAction,
             ref enemyState.RemainingTime,
             action,
@@ -40,9 +40,9 @@ public sealed class EnemyControlSystem(World world)
         );
 
         nonDirectionalCharacter.ActionIndex = (byte)currentState;
-        args.actionHandler.Sync(
+        actionHandler.Sync(
             ref enemyState.CurrentAction,
             ref enemyState.RemainingTime,
-            args.dt);
+            dt);
     }
 }

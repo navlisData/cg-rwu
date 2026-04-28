@@ -11,8 +11,8 @@ using unnamed.Utils;
 
 namespace unnamed.Rendering;
 
-public class EntityRenderSystem(World world) : EntitySetSystem<RenderContext.RenderContext>(
-    world, new QueryBuilder()
+public class EntityRenderSystem() : EntitySetSystem<RenderContext.RenderContext>(
+    new QueryBuilder()
         .With<VisibleEntity>()
         .With<Sprite>()
         .With<Position>()
@@ -21,13 +21,11 @@ public class EntityRenderSystem(World world) : EntitySetSystem<RenderContext.Ren
         .OrderWith(EntityOrder.ByPositionY)
         .Build())
 {
-    protected override void Update(RenderContext.RenderContext ctx, in Entity e)
+    protected override void Update(ref RenderContext.RenderContext ctx, EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
-
-        ref Sprite sprite = ref handle.Get<Sprite>();
-        Vector2 position = handle.Get<Position>().ToWorldPosition();
-        ref Transform transform = ref handle.Get<Transform>();
+        ref Sprite sprite = ref e.Get<Sprite>();
+        Vector2 position = e.Get<Position>().ToWorldPosition();
+        ref Transform transform = ref e.Get<Transform>();
         Vector2 pivot = sprite.Frame.Pivot;
 
         ctx.BeginDraw().WithPositionAndTransform(position, transform, transform.Size, pivot).WithSprite(sprite.Frame)

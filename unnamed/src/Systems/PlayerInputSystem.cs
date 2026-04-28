@@ -22,59 +22,59 @@ using unnamed.Utils.Health;
 
 namespace unnamed.systems;
 
-public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
-    : EntitySetSystem<(float dt, Vector2i windowSize, IAssetStore assets,
-        ActionControlHandler<PlayerAction> actionHandler)>(world,
-        new QueryBuilder()
-            .With<ReceivesPlayerInput>()
-            .With<AlignedCharacter>()
-            .With<Position>()
-            .With<Velocity>()
-            .Build()
-    )
+public sealed class PlayerInputSystem(Func<KeyboardState> keyboardProvider, Func<MouseState> mouseProvider)
+    : BaseSystem
 {
+    private static readonly Query PlayerQuery = new QueryBuilder().With<Player>().Build();
+
     private readonly Func<KeyboardState> keyboardStateProvider =
         keyboardProvider ?? throw new ArgumentNullException(nameof(keyboardProvider));
 
     private readonly Func<MouseState> mouseStateProvider =
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
-    protected override void Update(
-        (float dt, Vector2i windowSize, IAssetStore assets, ActionControlHandler<PlayerAction>
-            actionHandler) args, in Entity e)
+    public override void Run(World world)
     {
-        EntityHandle handle = this.world.Handle(e);
+        if (!PlayerQuery.TrySingle(world, out Entity e))
+        {
+            return;
+        }
+
+        EntityHandle player = world.Handle(e);
+        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
+        ref Camera2D camera2D = ref world.GetResource<Camera2D>();
+        ref WindowSize windowSize = ref world.GetResource<WindowSize>();
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+        ref ActionControlHandler<PlayerAction> actionHandler =
+            ref world.GetResource<ActionControlHandler<PlayerAction>>();
 
         KeyboardState keyboardState = this.keyboardStateProvider();
         MouseState mouseState = this.mouseStateProvider();
-        float dt = args.dt;
 
-        ref Velocity velocity = ref handle.Get<Velocity>();
-        ref Camera2D camera2D = ref this.world.GetResource<Camera2D>();
-        ref Position playerPosition = ref handle.Get<Position>();
-        ref PlayerActionState playerState = ref handle.Get<PlayerActionState>();
-        ref AlignedCharacter alignedCharacter = ref handle.Get<AlignedCharacter>();
+        ref Velocity velocity = ref player.Get<Velocity>();
+        ref Position playerPosition = ref player.Get<Position>();
+        ref PlayerActionState playerState = ref player.Get<PlayerActionState>();
+        ref AlignedCharacter alignedCharacter = ref player.Get<AlignedCharacter>();
 
         alignedCharacter.CharacterDirection =
-            mouseState.Get8WayDirectionFromPosition(args.windowSize, alignedCharacter.CharacterDirection);
+            mouseState.Get8WayDirectionFromPosition(windowSize, alignedCharacter.CharacterDirection);
 
-        if (handle.Has<Player>())
+#if DEBUG
+        if (keyboardState.IsKeyPressed(Keys.D1))
         {
-            if (keyboardState.IsKeyPressed(Keys.D1))
-            {
-                handle.AddDamage(2);
-            }
-
-            if (keyboardState.IsKeyPressed(Keys.D2))
-            {
-                handle.AddHealth(2);
-            }
-
-            if (keyboardState.IsKeyPressed(Keys.D3))
-            {
-                handle.SetMaxHealthUnits(15);
-            }
+            player.AddDamage(2);
         }
+
+        if (keyboardState.IsKeyPressed(Keys.D2))
+        {
+            player.AddHealth(2);
+        }
+
+        if (keyboardState.IsKeyPressed(Keys.D3))
+        {
+            player.SetMaxHealthUnits(15);
+        }
+#endif
 
         PlayerAction currentState;
         Vector2 direction = Vector2.Zero;
@@ -104,7 +104,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
 
         if (direction != Vector2.Zero)
         {
-            currentState = args.actionHandler.TryUpdateAction(
+            currentState = actionHandler.TryUpdateAction(
                 ref playerState.CurrentAction,
                 ref playerState.RemainingTime,
                 PlayerAction.Move,
@@ -125,7 +125,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 velocity.Speed = 0f;
             }
 
-            currentState = args.actionHandler.TryUpdateAction(
+            currentState = actionHandler.TryUpdateAction(
                 ref playerState.CurrentAction,
                 ref playerState.RemainingTime,
                 PlayerAction.Idle,
@@ -139,8 +139,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         }
 
 
-        ref EntityStats entityStats = ref handle.Get<EntityStats>();
-        entityStats.AttackCooldown -= args.dt;
+        ref EntityStats entityStats = ref player.Get<EntityStats>();
+        entityStats.AttackCooldown -= dt;
 
         if (mouseState.IsButtonPressed(Controls.PlayerShoot))
         {
@@ -149,8 +149,8 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                 return;
             }
 
-            AnimationClip clip = args.assets.Get(GameAssets.Player.Attack.East);
-            currentState = args.actionHandler.TryUpdateAction(
+            AnimationClip clip = assetStore.Get(GameAssets.Player.Attack.East);
+            currentState = actionHandler.TryUpdateAction(
                 ref playerState.CurrentAction,
                 ref playerState.RemainingTime,
                 PlayerAction.Shoot,
@@ -168,13 +168,11 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
                     -Vector2.NormalizeFast(playerPosition.ToWorldPosition() -
                                            new Vector2(mousePositionWorld.X, mousePositionWorld.Y));
 
-                PrefabFactory.CreateBullet(this.world, playerPosition,
+                PrefabFactory.CreateBullet(world, playerPosition,
                     new Velocity(bulletDirection, 7.5f), (float)MathHelper.Atan2(bulletDirection.Y, bulletDirection.X),
-                    2,
-                    args.assets);
+                    2);
 
                 entityStats.AttackCooldown = entityStats.MaxAttackCooldown;
-
 
 #if DEBUG
                 Console.WriteLine(
@@ -184,7 +182,7 @@ public sealed class PlayerInputSystem(World world, Func<KeyboardState> keyboardP
         }
 
         alignedCharacter.ActionIndex = (byte)currentState;
-        args.actionHandler.Sync(
+        actionHandler.Sync(
             ref playerState.CurrentAction,
             ref playerState.RemainingTime,
             dt);

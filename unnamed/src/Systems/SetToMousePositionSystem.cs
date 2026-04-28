@@ -6,13 +6,12 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using unnamed.Components.Tags;
 using unnamed.Components.UI;
-using unnamed.Systems.SystemScheduler;
 
 namespace unnamed.systems;
 
-public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouseProvider)
-    : EntitySetSystem<UpdateContext>(
-        world, new QueryBuilder()
+public sealed class SetToMousePositionSystem(Func<MouseState> mouseProvider)
+    : EntitySetSystem(
+        new QueryBuilder()
             .With<SetPositionToMouse>()
             .With<AbsolutePosition>()
             .Build()
@@ -21,13 +20,11 @@ public sealed class SetToMousePositionSystem(World world, Func<MouseState> mouse
     private readonly Func<MouseState> mouseStateProvider =
         mouseProvider ?? throw new ArgumentNullException(nameof(mouseProvider));
 
-    protected override void Update(UpdateContext unused, in Entity e)
+    protected override void Update(EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
-
         MouseState mouseState = this.mouseStateProvider();
 
-        ref AbsolutePosition screenPos = ref handle.Get<AbsolutePosition>();
+        ref AbsolutePosition screenPos = ref e.Get<AbsolutePosition>();
 
         try
         {

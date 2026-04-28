@@ -2,43 +2,54 @@ using Engine.Ecs;
 using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
-using engine.TextureProcessing;
-
 using unnamed.Components.General;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.Prefabs;
+using unnamed.Resources;
+using unnamed.Texture;
 using unnamed.Utils.Health;
 
 namespace unnamed.systems;
 
-public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
-    : EntitySetSystem<float>(world, new QueryBuilder()
+public sealed class HealthHudLayoutSystem : BaseSystem
+{
+    private static readonly Query Query = new QueryBuilder()
         .With<EntityStats>()
         .With<Player>()
         .With<HealthHudLayoutDirty>()
-        .Build())
-{
-    protected override void Update(float dt, in Entity e)
-    {
-        EntityHandle handle = this.world.Handle(e);
-        handle.Ensure(new HudHearts { hearts = [] });
+        .Build();
 
-        ref EntityStats stats = ref handle.Get<EntityStats>();
-        ref HudHearts hud = ref handle.Get<HudHearts>();
+    public override void Run(World world)
+    {
+        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+
+        foreach (Entity e in Query.AsEnumerator(world))
+        {
+            Update(world, ref dt, ref assetStore, world.Handle(e));
+        }
+    }
+
+    private static void Update(World world, ref DeltaTime dt, ref AssetStore assetStore, EntityHandle e)
+    {
+        e.Ensure(new HudHearts { hearts = [] });
+
+        ref EntityStats stats = ref e.Get<EntityStats>();
+        ref HudHearts hud = ref e.Get<HudHearts>();
 
         int requiredSlots = HeartStatusUtil.RequiredSlots(stats.MaxHealthUnits);
 
-        this.EnsureExactSlotCount(ref hud, requiredSlots);
+        EnsureExactSlotCount(ref hud, requiredSlots, world);
 
         const int gap = 8;
         const int offset = 10;
         for (int i = 0; i < requiredSlots; i++)
         {
-            Entity heart = this.ResolveOrCreateHeart(ref hud, i);
-            EntityHandle heartHandle = this.world.Handle(heart);
+            Entity heart = ResolveOrCreateHeart(ref hud, i, world);
+            EntityHandle heartHandle = world.Handle(heart);
 
             heartHandle.Ensure<UiReferenceOffset>();
             heartHandle.Ensure<UiReferenceSize>();
@@ -52,8 +63,8 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
             referenceOffset = new UiReferenceOffset(x, y);
         }
 
-        handle.Remove<HealthHudLayoutDirty>();
-        handle.Ensure<HealthHudVisualDirty>();
+        e.Remove<HealthHudLayoutDirty>();
+        e.Ensure<HealthHudVisualDirty>();
     }
 
     /// <summary>
@@ -62,7 +73,9 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
     /// </summary>
     /// <param name="hud">HUD binding component.</param>
     /// <param name="requiredSlots">Exact required slot count.</param>
-    private void EnsureExactSlotCount(ref HudHearts hud, int requiredSlots)
+    /// <param name="assetStore">AssetStore</param>
+    /// <param name="world">World</param>
+    private static void EnsureExactSlotCount(ref HudHearts hud, int requiredSlots, World world)
     {
         requiredSlots = Math.Max(0, requiredSlots);
 
@@ -77,7 +90,7 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
         {
             for (int i = current - 1; i >= requiredSlots; i--)
             {
-                this.world.DestroyEntity(hud.hearts[i]);
+                world.DestroyEntity(hud.hearts[i]);
             }
 
             Array.Resize(ref hud.hearts, requiredSlots);
@@ -88,7 +101,7 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
         Array.Resize(ref hud.hearts, requiredSlots);
         for (int i = current; i < requiredSlots; i++)
         {
-            hud.hearts[i] = PrefabFactory.CreateHealthIndicator(this.world, assets, HeartStatus.Empty);
+            hud.hearts[i] = PrefabFactory.CreateHealthIndicator(world, HeartStatus.Empty);
         }
     }
 
@@ -97,16 +110,18 @@ public sealed class HealthHudLayoutSystem(World world, IAssetStore assets)
     /// </summary>
     /// <param name="hud">HUD binding component.</param>
     /// <param name="slotIndex">Slot index to resolve or create.</param>
+    /// <param name="assetStore">Asset Store</param>
+    /// <param name="world">World</param>
     /// <returns>the resolved/created heart entity.</returns>
-    private Entity ResolveOrCreateHeart(ref HudHearts hud, int slotIndex)
+    private static Entity ResolveOrCreateHeart(ref HudHearts hud, int slotIndex, World world)
     {
         Entity heartEntity = hud.hearts[slotIndex];
-        if (this.world.IsAlive(heartEntity))
+        if (world.IsAlive(heartEntity))
         {
             return heartEntity;
         }
 
-        Entity heart = PrefabFactory.CreateHealthIndicator(this.world, assets, HeartStatus.Empty);
+        Entity heart = PrefabFactory.CreateHealthIndicator(world, HeartStatus.Empty);
         hud.hearts[slotIndex] = heart;
 
         return heart;
