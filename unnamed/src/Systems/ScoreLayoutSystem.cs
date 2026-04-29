@@ -200,12 +200,12 @@ public sealed class ScoreLayoutSystem : BaseSystem
     /// <param name="value">The positive integer value.</param>
     /// <returns>The decimal digit count.</returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     Thrown when <paramref name="value"/> is less than one.
+    ///     Thrown when <paramref name="value"/> is negative.
     /// </exception>
     private static int CountDigits(int value)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
-        return (int)Math.Log10(value) + 1;
+        ArgumentOutOfRangeException.ThrowIfNegative(value);
+        return value > 0 ? (int)Math.Log10(value) + 1 : 1;
     }
 
     /// <summary>
