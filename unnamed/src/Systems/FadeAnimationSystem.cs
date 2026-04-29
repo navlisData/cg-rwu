@@ -5,25 +5,24 @@ using Engine.Ecs.Systems;
 using OpenTK.Mathematics;
 
 using unnamed.Components.Rendering;
+using unnamed.Resources;
 
-namespace unnamed.Rendering;
+namespace unnamed.Systems;
 
-public sealed class FadeAnimationSystem(World world) : EntitySetSystem<float>(world, new QueryBuilder()
+public sealed class FadeAnimationSystem() : EntitySetSystem<DeltaTime>(new QueryBuilder()
     .With<FadeAnimation>()
     .With<Sprite>()
     .Build()
 )
 {
-    protected override void Update(float dt, in Entity e)
+    protected override void Update(ref DeltaTime dt, EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
-
-        ref FadeAnimation fade = ref handle.Get<FadeAnimation>();
-        ref Sprite sprite = ref handle.Get<Sprite>();
+        ref FadeAnimation fade = ref e.Get<FadeAnimation>();
+        ref Sprite sprite = ref e.Get<Sprite>();
 
         if (!sprite.Tint.HasValue)
         {
-            handle.Remove<FadeAnimation>();
+            e.Remove<FadeAnimation>();
             return;
         }
 
@@ -41,7 +40,7 @@ public sealed class FadeAnimationSystem(World world) : EntitySetSystem<float>(wo
             }
             else
             {
-                handle.Remove<FadeAnimation>();
+                e.Remove<FadeAnimation>();
                 return;
             }
         }

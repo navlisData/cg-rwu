@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 using Engine.Ecs;
 using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
@@ -7,57 +5,38 @@ using Engine.Ecs.Systems;
 using unnamed.Components.Physics;
 using unnamed.Components.Tags;
 
-namespace unnamed.Rendering;
+namespace unnamed.Systems;
 
-public sealed class FollowingSystem(World world) : EntitySetSystem<float>(world, new QueryBuilder()
-    .With<Follows>()
-    .With<Position>()
-    .Without<Sleeping>()
-    .Build()
-)
+public sealed class FollowingSystem : BaseSystem
 {
-    protected override void Update(float dt, in Entity e)
+    private static readonly Query Query = new QueryBuilder()
+        .With<Follows>()
+        .With<Position>()
+        .Without<Sleeping>()
+        .Build();
+
+    public override void Run(World world)
     {
-        EntityHandle handle = this.world.Handle(e);
-
-        ref Entity target = ref handle.Get<Follows>().Target;
-        ref Position selfPosition = ref handle.Get<Position>();
-        ref Position targetPosition = ref this.world.Get<Position>(target);
-        ref Follows follows = ref handle.Get<Follows>();
-
-        Position positionDifference = targetPosition - selfPosition;
-        float distance = positionDifference.LengthFast();
-
-        if (distance > follows.FollowRadius)
+        foreach (Entity e in Query.AsEnumerator(world))
         {
-            switch (follows.Type)
+            EntityHandle handle = world.Handle(e);
+
+            ref Follows follows = ref handle.Get<Follows>();
+            Entity target = follows.Target;
+
+            ref Position selfPosition = ref handle.Get<Position>();
+            ref Position targetPosition = ref world.Get<Position>(target);
+
+            Position positionDifference = targetPosition - selfPosition;
+            float distance = positionDifference.LengthFast();
+
+            if (distance > follows.FollowRadius)
             {
-                case FollowType.Linear:
-                    handle.Remove<Velocity>();
-                    break;
-                case FollowType.Lerp:
-                    // Shouldn't happen, as the lerp following directly updates the Position and is only really useful globally 
-                    Debug.WriteLine("Lerp following is out of range of target");
-                    break;
-                default:
-                    Debug.Fail($"Unknown follow type {follows.Type}");
-                    break;
+                handle.Remove<Velocity>();
+                continue;
             }
 
-            return;
-        }
-
-        switch (follows.Type)
-        {
-            case FollowType.Linear:
-                handle.Add(new Velocity { Direction = positionDifference.NormalizeFast(), Speed = follows.Speed });
-                break;
-            case FollowType.Lerp:
-                selfPosition = Position.Lerp(selfPosition, targetPosition, follows.Speed * dt);
-                break;
-            default:
-                Debug.Fail($"Unknown follow type {follows.Type}");
-                break;
+            handle.Add(new Velocity { Direction = positionDifference.NormalizeFast(), Speed = follows.Speed });
         }
     }
 }

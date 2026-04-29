@@ -10,7 +10,7 @@ namespace unnamed.Texture;
 
 public static class GameSprites
 {
-    public static void Init(IAssetStore assetStore)
+    public static void Init(AssetStore assetStore)
     {
         InitPlayerSprites(assetStore);
         InitEnemySprites(assetStore);
@@ -27,7 +27,7 @@ public static class GameSprites
         InitFallback(assetStore);
     }
 
-    private static void InitPlayerSprites(IAssetStore assetStore)
+    private static void InitPlayerSprites(AssetStore assetStore)
     {
         SpriteSheet playerSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "player_sheet.png"));
@@ -107,7 +107,7 @@ public static class GameSprites
         }
     }
 
-    private static void InitEnemySprites(IAssetStore assetStore)
+    private static void InitEnemySprites(AssetStore assetStore)
     {
         Vector2 enemyPivot = Pivot.BottomCenter;
         SpriteSheet enemySpriteSheet =
@@ -134,7 +134,7 @@ public static class GameSprites
         assetStore.Register(GameAssets.Enemy.Slime1.Damage, damageAnimation);
     }
 
-    private static void InitProjectileSprites(IAssetStore assetStore)
+    private static void InitProjectileSprites(AssetStore assetStore)
     {
         SpriteSheet projectileSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "fireball.png"));
@@ -145,7 +145,7 @@ public static class GameSprites
         assetStore.Register(GameAssets.Projectile.Fireball, idleAnimation);
     }
 
-    private static void InitExplosionSprites(IAssetStore assetStore)
+    private static void InitExplosionSprites(AssetStore assetStore)
     {
         SpriteSheet explosionSpriteSheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "explosion.png"));
@@ -157,7 +157,7 @@ public static class GameSprites
         assetStore.Register(GameAssets.Explosion.BulletExplosion, explosionAnimation);
     }
 
-    private static void InitMapTiles(IAssetStore assetStore)
+    private static void InitMapTiles(AssetStore assetStore)
     {
         Vector2 pivot = Pivot.BottomLeft;
         SpriteSheet mapTileSpriteSheet =
@@ -176,7 +176,7 @@ public static class GameSprites
         assetStore.Register(GameAssets.MapTiles.Grass, grassTiles);
     }
 
-    private static void InitWallTiles(IAssetStore assetStore)
+    private static void InitWallTiles(AssetStore assetStore)
     {
         Vector2 pivot = Pivot.BottomLeft;
         SpriteSheet wallTileSpriteSheet =
@@ -224,7 +224,7 @@ public static class GameSprites
             SpriteSlicer.FromRect(wallTileSpriteSheet, new Rectangle(160, 64, 32, 32), pivot));
     }
 
-    private static void InitCrosshair(IAssetStore assetStore)
+    private static void InitCrosshair(AssetStore assetStore)
     {
         SpriteSheet crossHair =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "crosshair.png"));
@@ -232,7 +232,7 @@ public static class GameSprites
             SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64), Pivot.Center));
     }
 
-    private static void InitCrosshair2(IAssetStore assetStore)
+    private static void InitCrosshair2(AssetStore assetStore)
     {
         SpriteSheet crossHair =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "crosshair2.png"));
@@ -240,7 +240,7 @@ public static class GameSprites
             SpriteSlicer.FromRect(crossHair, new Rectangle(0, 0, 64, 64), Pivot.Center));
     }
 
-    private static void InitDrops(IAssetStore assetStore)
+    private static void InitDrops(AssetStore assetStore)
     {
         SpriteSheet dropsSpritesheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "drops.png"));
@@ -252,7 +252,7 @@ public static class GameSprites
             SpriteSlicer.FromRect(dropsSpritesheet, new Rectangle(1, 34, 14, 13), Pivot.Center));
     }
 
-    private static void InitPlayerHearts(IAssetStore assetStore)
+    private static void InitPlayerHearts(AssetStore assetStore)
     {
         Vector2 pivot = Pivot.TopLeft;
         SpriteSheet heartSpritesheet =
@@ -268,7 +268,7 @@ public static class GameSprites
             SpriteSlicer.FromRect(heartSpritesheet, new Rectangle(44, 0, 19, 18), pivot));
     }
 
-    private static void InitMapDecoration(IAssetStore assetStore)
+    private static void InitMapDecoration(AssetStore assetStore)
     {
         Vector2 pivot = Pivot.Center;
         SpriteSheet plantsSpritesheet =
@@ -294,7 +294,7 @@ public static class GameSprites
         assetStore.Register(GameAssets.MapDecoration.Bricks, brickTiles);
     }
 
-    private static void InitProps(IAssetStore assetStore)
+    private static void InitProps(AssetStore assetStore)
     {
         SpriteSheet propsSpritesheet =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "props.png"));
@@ -303,7 +303,7 @@ public static class GameSprites
             SpriteSlicer.FromRect(propsSpritesheet, new Rectangle(353, 269, 94, 72), Pivot.Center));
     }
 
-    private static void InitFallback(IAssetStore assetStore)
+    private static void InitFallback(AssetStore assetStore)
     {
         SpriteSheet fallback =
             assetStore.LoadSpriteSheet(Path.Combine(AppContext.BaseDirectory, "Assets", "fallback.png"));

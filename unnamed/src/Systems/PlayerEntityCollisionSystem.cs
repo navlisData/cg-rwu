@@ -16,51 +16,63 @@ using unnamed.Texture;
 
 namespace unnamed.systems;
 
-public class PlayerEntityCollisionSystem(
-    World world,
-    IAssetStore assetStore,
-    ActionControlHandler<EnemyAction> actionHandler)
-    : EntitySetSystem<Entity>(world,
-        new QueryBuilder()
-            .With<CanCollideWithPlayer>()
-            .With<Position>()
-            .Without<MarkedToDestroy>()
-            .Without<Sleeping>()
-            .Build()
-    )
+public class PlayerEntityCollisionSystem : BaseSystem
 {
-    protected override void Update(Entity player, in Entity e)
-    {
-        EntityHandle handle = this.world.Handle(e);
-        EntityHandle playerHandle = this.world.Handle(player);
+    private static readonly Query Query = new QueryBuilder()
+        .With<CanCollideWithPlayer>()
+        .With<Position>()
+        .Without<MarkedToDestroy>()
+        .Without<Sleeping>()
+        .Build();
 
-        ref Position playerPos = ref playerHandle.Get<Position>();
-        ref Position entityPos = ref handle.Get<Position>();
+    private static readonly Query PlayerQuery = new QueryBuilder()
+        .With<Player>().Build();
+
+    public override void Run(World world)
+    {
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+        ref ActionControlHandler<EnemyAction> ach = ref world.GetResource<ActionControlHandler<EnemyAction>>();
+
+        Entity player = PlayerQuery.Single(world);
+
+        foreach (Entity e in Query.AsEnumerator(world))
+        {
+            Update(ref ach, ref assetStore, world.Handle(player), world.Handle(e));
+        }
+    }
+
+    private static void Update(ref ActionControlHandler<EnemyAction> actionHandlerEntityHandle,
+        ref AssetStore assetStore, EntityHandle player, EntityHandle e)
+    {
+        ref Position playerPos = ref player.Get<Position>();
+        ref Position entityPos = ref e.Get<Position>();
 
         Position distance = playerPos - entityPos;
-        float collisionRange = handle.Get<CanCollideWithPlayer>().Range;
+        float collisionRange = e.Get<CanCollideWithPlayer>().Range;
         if (distance.LengthFast() > collisionRange)
         {
             return;
         }
 
-        playerHandle.Add(new Collided { CollidedWith = e });
+        player.Add(new Collided { CollidedWith = e.ToEntity() });
 
-        if (handle.Has<Enemy>())
+        if (e.Has<Enemy>())
         {
-            this.EnemyCollision(handle);
+            EnemyCollision(e, ref assetStore, ref actionHandlerEntityHandle);
         }
         else
         {
-            handle.Add(new Collided { CollidedWith = player });
+            e.Add(new Collided { CollidedWith = player.ToEntity() });
         }
     }
 
-    private void EnemyCollision(EntityHandle enemyHandle)
+    private static void EnemyCollision(EntityHandle enemyHandle, ref AssetStore assetStore,
+        ref ActionControlHandler<EnemyAction> actionHandler)
     {
         ref EnemyActionState enemyState = ref enemyHandle.Get<EnemyActionState>();
         ref NonDirectionalCharacter nonDirectionalCharacter = ref enemyHandle.Get<NonDirectionalCharacter>();
 
+        //TODO: Check if this makes sense to be hardcoded here
         AnimationClip clip = assetStore.Get(GameAssets.Enemy.Slime1.Attack);
         EnemyAction currentState = actionHandler.TryUpdateAction(
             ref enemyState.CurrentAction,

@@ -4,26 +4,25 @@ using Engine.Ecs.Systems;
 
 using unnamed.Components.General;
 using unnamed.Components.Map;
+using unnamed.Resources;
 
 namespace unnamed.systems;
 
-public sealed class LifespanSystem(World world)
-    : EntitySetSystem<float>(world,
+public sealed class LifespanSystem()
+    : EntitySetSystem<DeltaTime>(
         new QueryBuilder()
             .With<Lifespan>()
             .Build()
     )
 {
-    protected override void Update(float dt, in Entity e)
+    protected override void Update(ref DeltaTime dt, EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
-
-        ref Lifespan lifespan = ref handle.Get<Lifespan>();
+        ref Lifespan lifespan = ref e.Get<Lifespan>();
 
         lifespan.Current += dt;
         if (lifespan.Current > lifespan.Max)
         {
-            handle.Add<MarkedToDestroy>();
+            e.Add<MarkedToDestroy>();
         }
     }
 }

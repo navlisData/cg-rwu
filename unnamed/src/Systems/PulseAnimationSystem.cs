@@ -6,10 +6,11 @@ using OpenTK.Mathematics;
 
 using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
+using unnamed.Resources;
 
-namespace unnamed.Rendering;
+namespace unnamed.Systems;
 
-public sealed class PulseAnimationSystem(World world) : EntitySetSystem<float>(world, new QueryBuilder()
+public sealed class PulseAnimationSystem() : EntitySetSystem<DeltaTime>(new QueryBuilder()
     .With<PulseAnimation>()
     .With<Sprite>()
     .With<Transform>()
@@ -21,12 +22,10 @@ public sealed class PulseAnimationSystem(World world) : EntitySetSystem<float>(w
     /// </summary>
     /// <param name="dt">Delta time in seconds.</param>
     /// <param name="e">Entity to update.</param>
-    protected override void Update(float dt, in Entity e)
+    protected override void Update(ref DeltaTime dt, EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
-
-        ref Transform transform = ref handle.Get<Transform>();
-        ref PulseAnimation pulse = ref handle.Get<PulseAnimation>();
+        ref Transform transform = ref e.Get<Transform>();
+        ref PulseAnimation pulse = ref e.Get<PulseAnimation>();
 
         pulse.TimeSeconds += dt;
 

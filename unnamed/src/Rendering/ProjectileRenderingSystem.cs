@@ -10,8 +10,7 @@ using unnamed.Components.Tags;
 
 namespace unnamed.Rendering;
 
-public class ProjectileRenderingSystem(World world) : EntitySetSystem<RenderContext.RenderContext>(
-    world,
+public class ProjectileRenderingSystem() : EntitySetSystem<RenderContext.RenderContext>(
     new QueryBuilder()
         .With<Projectile>()
         .With<Sprite>()
@@ -20,13 +19,11 @@ public class ProjectileRenderingSystem(World world) : EntitySetSystem<RenderCont
         .Without<Sleeping>()
         .Build())
 {
-    protected override void Update(RenderContext.RenderContext ctx, in Entity e)
+    protected override void Update(ref RenderContext.RenderContext ctx, EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
-
-        ref Sprite sprite = ref handle.Get<Sprite>();
-        Vector2 position = handle.Get<Position>().ToWorldPosition();
-        ref Transform transform = ref handle.Get<Transform>();
+        ref Sprite sprite = ref e.Get<Sprite>();
+        Vector2 position = e.Get<Position>().ToWorldPosition();
+        ref Transform transform = ref e.Get<Transform>();
 
         ctx.BeginDraw().WithPositionAndTransform(position, transform, transform.Size, sprite.Frame.Pivot)
             .WithSprite(sprite.Frame).WithoutColoration()

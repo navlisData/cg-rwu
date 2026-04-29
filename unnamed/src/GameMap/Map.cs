@@ -17,7 +17,7 @@ namespace unnamed.GameMap;
 ///     Central manager for spatial world data. Owns chunk entities, handles tile lookup,
 ///     and bridges static tile data with ECS-driven entities.
 /// </summary>
-public sealed class Map
+public struct Map
 {
     /// <summary>
     ///     Amount of vertical/horizontal cells in a map chunk
@@ -30,22 +30,13 @@ public sealed class Map
     public const float TileSize = 4;
 
     private readonly Dictionary<Vector2i, Entity> chunks = new();
-    private readonly Random rng = Random.Shared;
     private readonly List<Position> validPositions;
-
-    private readonly World world;
-    public IMapGenerator MapGenerator;
-
-    public SpriteMapper?
-        SpriteMapper;
 
     private int validPositionsIndex;
 
-    public Map(World world, IMapGenerator? mapGenerator = null)
+    public Map()
     {
-        this.world = world;
-        this.MapGenerator = mapGenerator ?? new RandomTileGenerator();
-        this.validPositions = new List<Position>();
+        this.validPositions = [];
     }
 
     /// <summary>
@@ -75,13 +66,13 @@ public sealed class Map
     /// <summary>
     ///     Returns the chunk entity for a position in chunk-space, creating one if necessary.
     /// </summary>
-    public Entity GetOrCreateChunk(Vector2i chunkPos)
+    public Entity GetOrCreateChunk(World world, Vector2i chunkPos)
     {
         if (!this.chunks.TryGetValue(chunkPos, out Entity chunk))
         {
-            chunk = this.world.CreateEntity();
-            this.world.Add(chunk, new GridPosition(chunkPos));
-            this.world.Add(chunk, new TileGrid { Tiles = new Tile[ChunkSize * ChunkSize] });
+            chunk = world.CreateEntity();
+            world.Add(chunk, new GridPosition(chunkPos));
+            world.Add(chunk, new TileGrid { Tiles = new Tile[ChunkSize * ChunkSize] });
             this.chunks.Add(chunkPos, chunk);
         }
 
@@ -104,25 +95,25 @@ public sealed class Map
     /// <summary>
     ///     Destroys a chunk and its ECS entity, freeing its resources.
     /// </summary>
-    public void RemoveChunk(Vector2i chunkPos)
+    public void RemoveChunk(World world, Vector2i chunkPos)
     {
         if (this.chunks.Remove(chunkPos, out Entity chunk))
         {
-            this.world.DestroyEntity(chunk);
+            world.DestroyEntity(chunk);
         }
     }
 
     /// <summary>
     ///     Retrieves a tile using an entity's Position component.
     /// </summary>
-    public Tile? GetTileAt(in Position pos)
+    public Tile? GetTileAt(World world, in Position pos)
     {
         if (!this.chunks.TryGetValue(pos.Chunk, out Entity chunk))
         {
             return null;
         }
 
-        ref TileGrid grid = ref this.world.Get<TileGrid>(chunk);
+        ref TileGrid grid = ref world.Get<TileGrid>(chunk);
         int index = pos.Tile.X + (pos.Tile.Y * ChunkSize);
         return grid.Tiles[index];
     }
@@ -133,9 +124,9 @@ public sealed class Map
     ///         Returns <c>true</c> for tiles that are empty or outside the current map
     ///     </remarks>
     /// </summary>
-    public bool IsWallAt(in Position pos)
+    public bool IsWallAt(World world, in Position pos)
     {
-        Tile? tile = this.GetTileAt(in pos);
+        Tile? tile = this.GetTileAt(world, in pos);
 
         return !tile.HasValue || tile.Value.Flags.IsWall();
     }
@@ -143,9 +134,9 @@ public sealed class Map
     /// <summary>
     ///     Returns <c>true</c> if the tile at the position is a path else <c>false</c>.
     /// </summary>
-    public bool IsPathAt(in Position pos)
+    public bool IsPathAt(World world, in Position pos)
     {
-        Tile? tile = this.GetTileAt(in pos);
+        Tile? tile = this.GetTileAt(world, in pos);
 
         return !tile.HasValue || tile.Value.Flags.IsPath();
     }
@@ -153,10 +144,10 @@ public sealed class Map
     /// <summary>
     ///     Sets a tile type at a world-space tile coordinate, creating the chunk if needed.
     /// </summary>
-    public void SetTile(Position position, Tile tile)
+    public void SetTile(World world, Position position, Tile tile)
     {
-        Entity chunk = this.GetOrCreateChunk(position.Chunk);
-        ref TileGrid grid = ref this.world.Get<TileGrid>(chunk);
+        Entity chunk = this.GetOrCreateChunk(world, position.Chunk);
+        ref TileGrid grid = ref world.Get<TileGrid>(chunk);
 
         Vector2i tilePos = position.Tile;
 
@@ -164,12 +155,12 @@ public sealed class Map
     }
 
     /// <summary>
-    ///     Generates a rectangular region of chunks using the current <see cref="MapGenerator" />
+    ///     Generates a rectangular region of chunks />
     ///     surrounded by a one chunk border of walls.
     /// </summary>
-    public void GenerateMap(Vector2i minChunk, Vector2i maxChunk)
+    public void GenerateMap(World world, IMapGenerator mapGenerator, SpriteMapper spriteMapper, Vector2i minChunk,
+        Vector2i maxChunk)
     {
-        Debug.Assert(this.SpriteMapper != null);
         Debug.Assert(minChunk.X <= maxChunk.X && minChunk.Y <= maxChunk.Y);
 
         this.CurrentWorldBounds = (minChunk.X, maxChunk.X, maxChunk.Y, minChunk.Y);
@@ -181,18 +172,18 @@ public sealed class Map
         IntermediateMap map = new TileFlags[widthTiles, heightTiles];
 
         this.validPositions.Clear();
-        List<Vector2i> rooms = this.MapGenerator.GenerateMap(map);
+        List<Vector2i> rooms = mapGenerator.GenerateMap(map);
         this.validPositions
             .AddRange(rooms.Select(p =>
                     bottomLeftCorner + new Position(Vector2i.Zero, p, Vector2i.Zero))
-                .OrderBy(_ => this.rng.Next()));
+                .OrderBy(_ => Random.Shared.Next()));
 
         for (int cy = minChunk.Y - 1, my = -1; cy <= maxChunk.Y + 1; cy += 1, my += 1)
         for (int cx = minChunk.X - 1, mx = -1; cx <= maxChunk.X + 1; cx += 1, mx += 1)
         {
             Vector2i chunkPos = new(cx, cy);
-            Entity chunk = this.GetOrCreateChunk(chunkPos);
-            TileGrid tileGrid = this.world.Get<TileGrid>(chunk);
+            Entity chunk = this.GetOrCreateChunk(world, chunkPos);
+            TileGrid tileGrid = world.Get<TileGrid>(chunk);
 
             for (int ty = 0; ty < ChunkSize; ty += 1)
             for (int tx = 0; tx < ChunkSize; tx += 1)
@@ -203,7 +194,7 @@ public sealed class Map
                 TileFlags flags = map[x, y];
 
                 (StaticSprite sprite, StaticSprite? overlay, ushort layer) =
-                    this.SpriteMapper.MapToSprite(x, y, map);
+                    spriteMapper.MapToSprite(x, y, map);
                 tileGrid.Tiles[tx + (ty * ChunkSize)] = Tile.Filled(flags, layer, sprite, overlay);
             }
         }
@@ -257,8 +248,11 @@ public sealed class Map
     ///         to place the entity within the tile bounds.
     ///     </para>
     /// </remarks>
-    public void SpawnEntitiesRandomlyOnMap(int spawnOdds, Func<Position, Entity> spawnEntity, bool spawnOnPaths = true)
+    public void SpawnEntitiesRandomlyOnMap(World world, int spawnOdds, Func<Position, Entity> spawnEntity,
+        bool spawnOnPaths = true)
     {
+        Random rng = Random.Shared;
+
         for (int mcY = this.CurrentWorldBounds.Down; mcY <= this.CurrentWorldBounds.Up; mcY++)
         for (int mcX = this.CurrentWorldBounds.Left; mcX <= this.CurrentWorldBounds.Right; mcX++)
         {
@@ -267,12 +261,12 @@ public sealed class Map
             {
                 Position pos = new(mcX, mcY, mtX, mtY, 2, 2);
 
-                if (this.IsWallAt(pos) || (!spawnOnPaths && this.IsPathAt(pos)))
+                if (this.IsWallAt(world, pos) || (!spawnOnPaths && this.IsPathAt(world, pos)))
                 {
                     continue;
                 }
 
-                if (this.rng.Next(spawnOdds) == 0)
+                if (rng.Next(spawnOdds) == 0)
                 {
                     spawnEntity(pos);
                 }

@@ -2,6 +2,8 @@ using System.Runtime.CompilerServices;
 
 using Engine.Ecs.Pools;
 
+using engine.Ecs.State;
+
 namespace Engine.Ecs;
 
 /// <summary>
@@ -16,6 +18,7 @@ public sealed class World
 {
     private readonly List<int> freeIds = new();
     private readonly Dictionary<Type, IComponentPool> pools = new();
+    private readonly Dictionary<Type, object> resources = new();
     private bool[] alive = new bool[256];
     private int nextId;
     private int[] versions = new int[256];
@@ -261,5 +264,168 @@ public sealed class World
         {
             pool.EnsureEntityCapacity(newCap);
         }
+    }
+
+    /// <summary>
+    ///     Adds a new resource of type <typeparamref name="T" /> with the specified initial value.
+    /// </summary>
+    /// <typeparam name="T">The resource type. Only one instance per type can be stored.</typeparam>
+    /// <param name="value">The initial value of the resource.</param>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown when a resource of type <typeparamref name="T" /> is already registered.
+    /// </exception>
+    public void AddResource<T>(T value) where T : struct
+    {
+        Type type = typeof(T);
+
+        if (this.resources.ContainsKey(type))
+        {
+            throw new InvalidOperationException($"Type {type} already registered.");
+        }
+
+        this.resources[type] = new BoxedRes<T>(value);
+    }
+
+    /// <summary>
+    ///     Adds a resource of type <typeparamref name="T" /> or updates the existing value if one is already registered.
+    /// </summary>
+    /// <typeparam name="T">The resource type.</typeparam>
+    /// <param name="value">The value to store.</param>
+    public void AddOrUpdateResource<T>(T value) where T : struct
+    {
+        Type type = typeof(T);
+
+        if (this.resources.ContainsKey(type))
+        {
+            ref T res = ref this.GetResource<T>();
+            res = value;
+        }
+        else
+        {
+            this.resources[type] = new BoxedRes<T>(value);
+        }
+    }
+
+    /// <summary>
+    ///     Gets a mutable reference to the resource of type <typeparamref name="T" />.
+    /// </summary>
+    /// <typeparam name="T">The resource type.</typeparam>
+    /// <returns>
+    ///     A reference to the stored resource. Mutating the returned value updates the stored instance.
+    /// </returns>
+    /// <exception cref="KeyNotFoundException">
+    ///     Thrown when no resource of type <typeparamref name="T" /> is registered.
+    /// </exception>
+    public ref T GetResource<T>() where T : struct
+    {
+        if (!this.resources.TryGetValue(typeof(T), out object? obj))
+        {
+            throw new KeyNotFoundException($"Type {typeof(T)} not found.");
+        }
+
+        return ref ((BoxedRes<T>)obj).Value;
+    }
+
+    /// <summary>
+    ///     Attempts to get the resource of type <typeparamref name="T" />.
+    /// </summary>
+    /// <typeparam name="T">The resource type.</typeparam>
+    /// <param name="value">
+    ///     When this method returns, contains a copy of the resource if found; otherwise, the default value of
+    ///     <typeparamref name="T" />.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true" /> if the resource exists; otherwise, <see langword="false" />.
+    /// </returns>
+    /// <remarks>
+    ///     This method returns a copy of the resource. Use <see cref="GetResource{T}" /> to obtain a mutable reference.
+    /// </remarks>
+    public bool TryGetResource<T>(out T value) where T : struct
+    {
+        if (this.resources.TryGetValue(typeof(T), out object? obj))
+        {
+            value = ((BoxedRes<T>)obj).Value;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    /// <summary>
+    ///     Removes the resource of type <typeparamref name="T" />, if it exists.
+    /// </summary>
+    /// <typeparam name="T">The resource type.</typeparam>
+    public void RemoveResource<T>() where T : struct
+    {
+        this.resources.Remove(typeof(T));
+    }
+
+    /// <summary>
+    ///     Determines whether a resource of type <typeparamref name="T" /> is registered.
+    /// </summary>
+    /// <typeparam name="T">The resource type.</typeparam>
+    /// <returns>
+    ///     <see langword="true" /> if a resource of the specified type exists; otherwise, <see langword="false" />.
+    /// </returns>
+    public bool ContainsResource<T>() where T : struct
+    {
+        return this.resources.ContainsKey(typeof(T));
+    }
+
+    /// <summary>
+    ///     Adds a new state of type <typeparamref name="T" /> with the specified initial value.
+    /// </summary>
+    /// <typeparam name="T">The resource type. Only one instance per type can be stored.</typeparam>
+    /// <param name="value">The initial value of the resource.</param>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown when a resource of type <typeparamref name="T" /> is already registered.
+    /// </exception>
+    public void AddState<T>(T value) where T : Enum
+    {
+        Type type = typeof(State<T>);
+
+        if (this.resources.ContainsKey(type))
+        {
+            throw new InvalidOperationException($"Type {type} already registered.");
+        }
+
+        this.resources[type] = new BoxedRes<State<T>>(new State<T>(value));
+    }
+
+    /// <summary>
+    ///     Removes the state of type <typeparamref name="T" />, if it exists.
+    /// </summary>
+    /// <typeparam name="T">The state type.</typeparam>
+    public void RemoveState<T>() where T : Enum
+    {
+        this.resources.Remove(typeof(State<T>));
+    }
+
+    /// <summary>
+    ///     Gets a mutable reference to the state of type <typeparamref name="T" />.
+    /// </summary>
+    /// <typeparam name="T">The state type.</typeparam>
+    /// <returns>
+    ///     A reference to the stored state. Mutating the returned value updates the stored instance.
+    /// </returns>
+    /// <exception cref="KeyNotFoundException">
+    ///     Thrown when no resource of type <typeparamref name="T" /> is registered.
+    /// </exception>
+    public ref State<T> GetState<T>() where T : Enum
+    {
+        if (!this.resources.TryGetValue(typeof(State<T>), out object? obj))
+        {
+            throw new KeyNotFoundException($"Type {typeof(State<T>)} not found.");
+        }
+
+        return ref ((BoxedRes<State<T>>)obj).Value;
+    }
+
+
+    private class BoxedRes<T>(T value)
+        where T : struct
+    {
+        public T Value = value;
     }
 }

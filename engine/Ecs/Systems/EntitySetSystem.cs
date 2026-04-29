@@ -2,59 +2,93 @@ using Engine.Ecs.Querying;
 
 namespace Engine.Ecs.Systems;
 
-/// <summary>
-///     Base class for systems that operate on a set of entities selected by a <see cref="Query" />.
-///     Iterates allocation-free using the query's <see cref="EntityEnumerator" /> and calls <see cref="Update" />
-///     for each matching entity.
-/// </summary>
-/// <typeparam name="T">
-///     Any context payload passed to <see cref="Run(T)" /> and
-///     <see cref="Update(T, in Entity)" />.
-/// </typeparam>
-/// <remarks>
-///     - Not thread-safe.
-///     - Avoid structural changes that would invalidate the anchor pool during iteration
-///     (e.g., removing a component that is part of the query's required set on the current entity),
-///     as this can perturb enumeration order. Non-anchor mutations are typically safe.
-/// </remarks>
-public abstract class EntitySetSystem<T>
+// INFO: In the future a source gen that can resolve more complex parameters (multiple queries etc...) might be useful
+
+public abstract class EntitySetSystem(Query query) : BaseSystem
 {
-    private readonly Query query;
-
-    /// <summary>
-    ///     The ECS world this system operates on.
-    /// </summary>
-    protected readonly World world;
-
-    /// <summary>
-    ///     Creates a new system bound to a world and a precompiled query.
-    /// </summary>
-    /// <param name="world">The ECS world.</param>
-    /// <param name="query">The entity filter used by this system.</param>
-    protected EntitySetSystem(World world, Query query)
+    public override void Run(World world)
     {
-        this.world = world ?? throw new ArgumentNullException(nameof(world));
-        this.query = query ?? throw new ArgumentNullException(nameof(query));
-    }
-
-    /// <summary>
-    ///     Executes the system once for all entities matching the query.
-    /// </summary>
-    /// <param name="context">Context payload forwarded to <see cref="Update(T, in Entity)" />.</param>
-    public void Run(T context)
-    {
-        EntityEnumerator it = this.query.AsEnumerator(this.world);
-
-        foreach (Entity e in it)
+        foreach (Entity e in query.AsEnumerator(world))
         {
-            this.Update(context, in e);
+            this.Update(world.Handle(e));
         }
     }
 
-    /// <summary>
-    ///     Per-entity update hook. Implement system behavior here.
-    /// </summary>
-    /// <param name="context">Context payload.</param>
-    /// <param name="e">Current entity (validated handle).</param>
-    protected abstract void Update(T context, in Entity e);
+    protected abstract void Update(EntityHandle e);
+}
+
+public abstract class EntitySetSystem<T1>(Query query) : BaseSystem
+    where T1 : struct
+{
+    public override void Run(World world)
+    {
+        ref T1 ctx1 = ref world.GetResource<T1>();
+
+        foreach (Entity e in query.AsEnumerator(world))
+        {
+            this.Update(ref ctx1, world.Handle(e));
+        }
+    }
+
+    protected abstract void Update(ref T1 ctx1, EntityHandle e);
+}
+
+public abstract class EntitySetSystem<T1, T2>(Query query) : BaseSystem
+    where T1 : struct
+    where T2 : struct
+{
+    public override void Run(World world)
+    {
+        ref T1 ctx1 = ref world.GetResource<T1>();
+        ref T2 ctx2 = ref world.GetResource<T2>();
+
+        foreach (Entity e in query.AsEnumerator(world))
+        {
+            this.Update(ref ctx1, ref ctx2, world.Handle(e));
+        }
+    }
+
+    protected abstract void Update(ref T1 ctx1, ref T2 ctx2, EntityHandle e);
+}
+
+public abstract class EntitySetSystem<T1, T2, T3>(Query query) : BaseSystem
+    where T1 : struct
+    where T2 : struct
+    where T3 : struct
+{
+    public override void Run(World world)
+    {
+        ref T1 ctx1 = ref world.GetResource<T1>();
+        ref T2 ctx2 = ref world.GetResource<T2>();
+        ref T3 ctx3 = ref world.GetResource<T3>();
+
+        foreach (Entity e in query.AsEnumerator(world))
+        {
+            this.Update(ref ctx1, ref ctx2, ref ctx3, world.Handle(e));
+        }
+    }
+
+    protected abstract void Update(ref T1 ctx1, ref T2 ctx2, ref T3 ctx3, EntityHandle e);
+}
+
+public abstract class EntitySetSystem<T1, T2, T3, T4>(Query query) : BaseSystem
+    where T1 : struct
+    where T2 : struct
+    where T3 : struct
+    where T4 : struct
+{
+    public override void Run(World world)
+    {
+        ref T1 ctx1 = ref world.GetResource<T1>();
+        ref T2 ctx2 = ref world.GetResource<T2>();
+        ref T3 ctx3 = ref world.GetResource<T3>();
+        ref T4 ctx4 = ref world.GetResource<T4>();
+
+        foreach (Entity e in query.AsEnumerator(world))
+        {
+            this.Update(ref ctx1, ref ctx2, ref ctx3, ref ctx4, world.Handle(e));
+        }
+    }
+
+    protected abstract void Update(ref T1 ctx1, ref T2 ctx2, ref T3 ctx3, ref T4 ctx4, EntityHandle e);
 }

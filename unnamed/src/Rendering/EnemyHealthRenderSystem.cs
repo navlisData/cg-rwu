@@ -11,8 +11,8 @@ using unnamed.Components.Tags;
 
 namespace unnamed.Rendering;
 
-public sealed class EnemyHealthRenderSystem(World world)
-    : EntitySetSystem<RenderContext.RenderContext>(world, new QueryBuilder()
+public class EnemyHealthRenderSystem() : EntitySetSystem<RenderContext.RenderContext>(
+    new QueryBuilder()
         .With<Enemy>()
         .With<Sprite>()
         .With<Position>()
@@ -22,20 +22,18 @@ public sealed class EnemyHealthRenderSystem(World world)
         .Without<Sleeping>()
         .Build())
 {
-    private readonly Color4 bgColor = new(0f, 0f, 0f, 0.55f);
-    private readonly Color4 fgColorGreen = new(0.20f, 0.85f, 0.25f, 0.95f);
-    private readonly Color4 fgColorOrange = new(0.95f, 0.85f, 0.15f, 0.95f);
-    private readonly Color4 fgColorRed = new(0.90f, 0.20f, 0.20f, 0.95f);
+    private static readonly Color4 BgColor = new(0f, 0f, 0f, 0.55f);
+    private static readonly Color4 FgColorGreen = new(0.20f, 0.85f, 0.25f, 0.95f);
+    private static readonly Color4 FgColorOrange = new(0.95f, 0.85f, 0.15f, 0.95f);
+    private static readonly Color4 FgColorRed = new(0.90f, 0.20f, 0.20f, 0.95f);
 
-    protected override void Update(RenderContext.RenderContext ctx, in Entity e)
+    protected override void Update(ref RenderContext.RenderContext ctx, EntityHandle e)
     {
-        EntityHandle handle = this.world.Handle(e);
+        ref Transform transform = ref e.Get<Transform>();
+        Vector2 position = e.Get<Position>().ToWorldPosition();
+        ref EntityStats stats = ref e.Get<EntityStats>();
 
-        ref Transform transform = ref handle.Get<Transform>();
-        Vector2 position = handle.Get<Position>().ToWorldPosition();
-        ref EntityStats stats = ref handle.Get<EntityStats>();
-
-        ref Sprite sprite = ref handle.Get<Sprite>();
+        ref Sprite sprite = ref e.Get<Sprite>();
 
         Transform bgTransform = transform with
         {
@@ -58,15 +56,15 @@ public sealed class EnemyHealthRenderSystem(World world)
 
         Color4 fgColor = ((float)stats.Hitpoints / stats.MaxHealthUnits) switch
         {
-            > 0.6f => this.fgColorGreen,
-            > 0.3f => this.fgColorOrange,
-            _ => this.fgColorRed
+            > 0.6f => FgColorGreen,
+            > 0.3f => FgColorOrange,
+            _ => FgColorRed
         };
 
         Vector2 healthbarPivot = new(sprite.Frame.Pivot.X, 0.5f);
 
         ctx.BeginDraw().WithPositionAndTransform(position, bgTransform, bgTransform.Size, healthbarPivot)
-            .WithoutSprite().WithColoration(in this.bgColor, 1f).Draw();
+            .WithoutSprite().WithColoration(in BgColor, 1f).Draw();
 
         ctx.BeginDraw().WithPositionAndTransform(fgPosition, fgTransform, fgTransform.Size, healthbarPivot)
             .WithoutSprite().WithColoration(in fgColor, 1f).Draw();

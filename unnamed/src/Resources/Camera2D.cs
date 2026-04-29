@@ -1,6 +1,8 @@
 using OpenTK.Mathematics;
 
-namespace unnamed.Components.Rendering;
+using unnamed.Components.Physics;
+
+namespace unnamed.Resources;
 
 public struct Camera2D
 {
@@ -21,4 +23,7 @@ public struct Camera2D
 
     /// View * Projection
     public Matrix4 ViewProjection;
+
+    /// In World camera position
+    public Position Position;
 }

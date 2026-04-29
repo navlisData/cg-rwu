@@ -19,8 +19,8 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
     public IDrawStep WithColoration(in Color4 color, float blendFactor)
     {
         Debug.Assert(blendFactor is >= 0f and <= 1f);
-        GL.Uniform4(renderContext.uOverrideColor, color);
-        GL.Uniform1(renderContext.uBlendFactor, blendFactor);
+        GL.Uniform4(renderContext.UOverrideColor, color);
+        GL.Uniform1(renderContext.UBlendFactor, blendFactor);
         return this;
     }
 
@@ -46,7 +46,7 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
 
     public ISpriteStep WithModelViewProjection(ref Matrix4 modelViewProjection)
     {
-        GL.UniformMatrix4(renderContext.uModelViewProjection, false, ref modelViewProjection);
+        GL.UniformMatrix4(renderContext.UModelViewProjection, false, ref modelViewProjection);
         return this;
     }
 
@@ -94,7 +94,7 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
 
     public IColorWithTextureStep WithSprite(in StaticSprite sprite)
     {
-        Texture2D texture = renderContext.assetStore.GetTextureById(sprite.SpriteSheetId);
+        Texture2D texture = renderContext.AssetStore.GetTextureById(sprite.SpriteSheetId);
         GL.BindTexture(TextureTarget.Texture2D, texture.Handle);
         GL.ActiveTexture(TextureUnit.Texture0);
         this.drawContext.SpriteSize = sprite.RectPx;
@@ -114,7 +114,7 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
 
     public IColorWithoutTextureStep WithoutSprite()
     {
-        this.WithSprite(renderContext.fallbackSprite);
+        this.WithSprite(renderContext.FallbackSprite);
         return this;
     }
 
@@ -131,7 +131,7 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
 
         this.FillVertexArray(0f, 1f, 0f, 1f, u0, u1, v0, v1);
 
-        GL.BufferData(BufferTarget.ArrayBuffer, RenderContext.VerticesLength, renderContext.vertices,
+        GL.BufferData(BufferTarget.ArrayBuffer, RenderContext.VerticesLength, renderContext.Vertices,
             BufferUsageHint.StaticDraw);
         GL.DrawElements(PrimitiveType.Triangles, RenderContext.QuadIndices.Length, DrawElementsType.UnsignedInt, 0);
     }
@@ -144,7 +144,7 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
         AbsolutePosition resolvedPosition = position;
         if (resolvedPosition.AllowWrapping)
         {
-            resolvedPosition = resolvedPosition.WrapToScreen(renderContext.camera.Viewport);
+            resolvedPosition = resolvedPosition.WrapToScreen(renderContext.Camera.Viewport);
         }
 
         Vector2 topLeft = resolvedPosition - (size * pivot);
@@ -164,7 +164,7 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
         Vector2 finalSize = referenceSize * scale;
         Vector2 finalOffset = referenceOffset * scale;
 
-        Vector2 anchorPosition = renderContext.uiViewportSize * anchor;
+        Vector2 anchorPosition = renderContext.UiViewportSize * anchor;
         Vector2 topLeft = anchorPosition + finalOffset - (finalSize * pivot);
 
         Matrix4 model =
@@ -195,24 +195,24 @@ public struct DrawBuilder(RenderContext renderContext, Matrix4 projectionMatrix)
         float v0, float v1)
     {
         // Bottom-Left
-        renderContext.vertices[0] = x0;
-        renderContext.vertices[1] = y0;
-        renderContext.vertices[2] = u0;
-        renderContext.vertices[3] = v0;
+        renderContext.Vertices[0] = x0;
+        renderContext.Vertices[1] = y0;
+        renderContext.Vertices[2] = u0;
+        renderContext.Vertices[3] = v0;
         // Bottom-Right
-        renderContext.vertices[4] = x1;
-        renderContext.vertices[5] = y0;
-        renderContext.vertices[6] = u1;
-        renderContext.vertices[7] = v0;
+        renderContext.Vertices[4] = x1;
+        renderContext.Vertices[5] = y0;
+        renderContext.Vertices[6] = u1;
+        renderContext.Vertices[7] = v0;
         // Top-Left
-        renderContext.vertices[8] = x0;
-        renderContext.vertices[9] = y1;
-        renderContext.vertices[10] = u0;
-        renderContext.vertices[11] = v1;
+        renderContext.Vertices[8] = x0;
+        renderContext.Vertices[9] = y1;
+        renderContext.Vertices[10] = u0;
+        renderContext.Vertices[11] = v1;
         // Top-Right
-        renderContext.vertices[12] = x1;
-        renderContext.vertices[13] = y1;
-        renderContext.vertices[14] = u1;
-        renderContext.vertices[15] = v1;
+        renderContext.Vertices[12] = x1;
+        renderContext.Vertices[13] = y1;
+        renderContext.Vertices[14] = u1;
+        renderContext.Vertices[15] = v1;
     }
 }

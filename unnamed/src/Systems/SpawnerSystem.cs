@@ -9,23 +9,31 @@ using unnamed.Components.Map;
 using unnamed.Components.Physics;
 using unnamed.Components.UI;
 using unnamed.GameMap;
+using unnamed.Resources;
 
 namespace unnamed.systems;
 
-public sealed class SpawnerSystem(World world)
-    : EntitySetSystem<(float, Map)>(world,
-        new QueryBuilder()
-            .With<Spawner>()
-            .WithAny<Position, AbsolutePosition>()
-            .Build()
-    )
+public sealed class SpawnerSystem : BaseSystem
 {
-    protected override void Update((float, Map) args, in Entity e)
-    {
-        (float dt, Map map) = args;
-        EntityHandle handle = this.world.Handle(e);
+    private static readonly Query Query = new QueryBuilder()
+        .With<Spawner>()
+        .WithAny<Position, AbsolutePosition>()
+        .Build();
 
-        ref Spawner spawner = ref handle.Get<Spawner>();
+    public override void Run(World world)
+    {
+        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
+        ref Map map = ref world.GetResource<Map>();
+
+        foreach (Entity e in Query.AsEnumerator(world))
+        {
+            Update(world, ref dt, ref map, world.Handle(e));
+        }
+    }
+
+    private static void Update(World world, ref DeltaTime dt, ref Map map, EntityHandle e)
+    {
+        ref Spawner spawner = ref e.Get<Spawner>();
 
         spawner.SpawnTime += dt;
         if (spawner.SpawnTime < spawner.SpawnTimeMax)
@@ -35,9 +43,9 @@ public sealed class SpawnerSystem(World world)
 
         Random rng = Random.Shared;
 
-        if (handle.Has<Position>())
+        if (e.Has<Position>())
         {
-            Position position = handle.Get<Position>();
+            Position position = e.Get<Position>();
 
             if (spawner.SpawnEntity == null)
             {
@@ -57,19 +65,19 @@ public sealed class SpawnerSystem(World world)
 
                 if (spawner.AllowedSpawnLocations.HasValue)
                 {
-                    Tile? tile = map.GetTileAt(position);
+                    Tile? tile = map.GetTileAt(world, position);
                     if (!tile.HasValue || !((spawner.AllowedSpawnLocations & tile.Value.Flags) > 0))
                     {
                         continue;
                     }
                 }
 
-                spawner.SpawnEntity(this.world, position);
+                spawner.SpawnEntity(world, position);
             }
         }
         else
         {
-            AbsolutePosition position = handle.Get<AbsolutePosition>();
+            AbsolutePosition position = e.Get<AbsolutePosition>();
 
             if (spawner.SpawnEntityA == null)
             {
@@ -86,7 +94,7 @@ public sealed class SpawnerSystem(World world)
                 Vector2 variance = new((rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius,
                     (rng.NextSingle() * 2 * spawner.SpawnRadius) - spawner.SpawnRadius);
                 position += variance;
-                spawner.SpawnEntityA(this.world, new AbsolutePosition(position.X, position.Y, false));
+                spawner.SpawnEntityA(world, new AbsolutePosition(position.X, position.Y, false));
             }
         }
 

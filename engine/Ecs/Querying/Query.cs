@@ -37,4 +37,73 @@ public sealed class Query
     {
         return new EntityEnumerator(world, this.with, this.without, this.withAny, this.compare);
     }
+
+    /// <summary>
+    ///     Returns the single entity matching this query in the specified world.
+    /// </summary>
+    /// <remarks>
+    ///     This method enforces that exactly one entity matches the query.
+    /// </remarks>
+    /// <param name="world">The ECS world to query.</param>
+    /// <returns>
+    ///     The single matching entity.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown when no entities match the query, or when more than one entity matches.
+    /// </exception>
+    public Entity Single(World world)
+    {
+        EntityEnumerator e = this.AsEnumerator(world);
+
+        if (!e.MoveNext())
+        {
+            throw new InvalidOperationException("Query returned no entities.");
+        }
+
+        Entity result = e.Current;
+
+        if (e.MoveNext())
+        {
+            throw new InvalidOperationException("Query returned more than one entity.");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Attempts to retrieve the single entity matching this query in the specified world.
+    /// </summary>
+    /// <remarks>
+    ///     This method succeeds only if exactly one entity matches the query.
+    ///     It does not throw on failure conditions.
+    /// </remarks>
+    /// <param name="world">The ECS world to query.</param>
+    /// <param name="entity">
+    ///     When this method returns, contains the matching entity if exactly one was found;
+    ///     otherwise, the default <see cref="Entity" /> value.
+    /// </param>
+    /// <returns>
+    ///     <see langword="true" /> if exactly one entity matches the query; otherwise <see langword="false" />.
+    /// </returns>
+    public bool TrySingle(World world, out Entity entity)
+    {
+        EntityEnumerator e = this.AsEnumerator(world);
+
+        if (!e.MoveNext())
+        {
+            entity = default;
+            return false;
+        }
+
+        Entity first = e.Current;
+
+        if (e.MoveNext())
+        {
+            entity = default;
+            return false;
+        }
+
+        entity = first;
+        return true;
+    }
 }

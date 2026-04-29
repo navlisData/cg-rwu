@@ -2,59 +2,71 @@ using Engine.Ecs;
 using Engine.Ecs.Querying;
 using Engine.Ecs.Systems;
 
-using engine.TextureProcessing;
-
 using unnamed.Components.Drops;
 using unnamed.Components.Map;
 using unnamed.Components.Physics;
+using unnamed.Components.Tags;
 using unnamed.Enums;
 using unnamed.Prefabs;
+using unnamed.Resources;
 using unnamed.Utils.Loot;
 
 namespace unnamed.systems;
 
-public sealed class DestroyEntitySystem(World world, IAssetStore assetStore)
-    : EntitySetSystem<(float dt, Entity player)>(world,
-        new QueryBuilder()
-            .With<MarkedToDestroy>()
-            .Build()
-    )
+public sealed class DestroyEntitySystem : BaseSystem
 {
-    protected override void Update((float dt, Entity player) args, in Entity e)
-    {
-        (float dt, Entity player) = args;
-        EntityHandle handle = this.world.Handle(e);
+    private static readonly Query Query = new QueryBuilder()
+        .With<MarkedToDestroy>()
+        .Build();
 
-        ref MarkedToDestroy mtd = ref handle.Get<MarkedToDestroy>();
-        mtd.RemainingLifetime -= dt;
-        if (mtd.RemainingLifetime <= 0f)
+    private static readonly Query PlayerQuery = new QueryBuilder().With<Player>().Build();
+
+    public override void Run(World world)
+    {
+        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
+        Entity player = PlayerQuery.Single(world);
+
+        foreach (Entity e in Query.AsEnumerator(world))
         {
-            if (handle.Has<LootTable>())
+            EntityHandle handle = world.Handle(e);
+
+            ref MarkedToDestroy mtd = ref handle.Get<MarkedToDestroy>();
+            mtd.RemainingLifetime -= dt;
+
+            if (mtd.RemainingLifetime > 0f)
             {
-                this.DropLoot(handle, player);
+                continue;
             }
 
-            this.world.DestroyEntity(e);
+            if (handle.Has<LootTable>())
+            {
+                DropLoot(handle, player, world);
+            }
+
+            world.DestroyEntity(e);
         }
     }
 
-    private void DropLoot(EntityHandle handle, Entity player)
+    private static void DropLoot(EntityHandle handle, Entity player, World world)
     {
         ref LootTable lootTable = ref handle.Get<LootTable>();
         ref Position position = ref handle.Get<Position>();
 
         Span<DropType> drops = stackalloc DropType[lootTable.DropCount];
-        Random rng = new();
-        int count = LootApi.Roll(lootTable, rng, drops);
+        int count = LootApi.Roll(lootTable, Random.Shared, drops);
         for (int i = 0; i < count; i++)
         {
+#if DEBUG
             Console.WriteLine("Loot dropped: " + drops[i]);
-            PrefabFactory.CreateDrop(this.world, drops[i], assetStore, position, player);
+#endif
+            PrefabFactory.CreateDrop(world, drops[i], position, player);
         }
 
+#if DEBUG
         if (count == 0)
         {
             Console.WriteLine("no drop this time :(");
         }
+#endif
     }
 }

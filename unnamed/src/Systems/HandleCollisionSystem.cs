@@ -4,6 +4,9 @@ using engine.Control;
 
 using Engine.Ecs;
 using Engine.Ecs.Querying;
+
+using engine.Ecs.State;
+
 using Engine.Ecs.Systems;
 
 using engine.TextureProcessing;
@@ -15,49 +18,62 @@ using unnamed.Components.Physics;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
+using unnamed.Resources;
 using unnamed.Texture;
 using unnamed.Utils.Health;
 using unnamed.Utils.Loot;
 
 namespace unnamed.systems;
 
-public class HandleCollisionSystem(World world)
-    : EntitySetSystem<(float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore,
-        Action<GameState> gameStateChanged)>(world,
-        new QueryBuilder()
-            .With<Collided>()
-            .Build()
-    )
+public class HandleCollisionSystem : BaseSystem
 {
-    protected override void Update(
-        (float dt, ActionControlHandler<EnemyAction> actionHandler, IAssetStore assetStore, Action<GameState>
-            gameStateChanged) args, in Entity e)
-    {
-        EntityHandle handle = this.world.Handle(e);
+    private static readonly Query Query = new QueryBuilder()
+        .With<Collided>()
+        .Build();
 
+    private static readonly Query PlayerQuery = new QueryBuilder()
+        .With<Player>()
+        .Build();
+
+    public override void Run(World world)
+    {
+        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
+        ref ActionControlHandler<EnemyAction> ach = ref world.GetResource<ActionControlHandler<EnemyAction>>();
+        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
+        ref State<GameState> gameState = ref world.GetState<GameState>();
+
+        foreach (Entity e in Query.AsEnumerator(world))
+        {
+            Update(world, ref dt, ref ach, ref assetStore, ref gameState, world.Handle(e));
+        }
+    }
+
+    private static void Update(World world, ref DeltaTime dt, ref ActionControlHandler<EnemyAction> actionHandler,
+        ref AssetStore assetStore, ref State<GameState> gameState, EntityHandle e)
+    {
         try
         {
-            ref Collided collided = ref handle.Get<Collided>();
+            ref Collided collided = ref e.Get<Collided>();
 
-            if (handle.Has<Enemy>())
+            if (e.Has<Enemy>())
             {
-                Debug.Assert(handle.Has<EnemyActionState>());
-                Debug.Assert(handle.Has<NonDirectionalCharacter>());
-                Debug.Assert(handle.Has<EntityStats>());
+                Debug.Assert(e.Has<EnemyActionState>());
+                Debug.Assert(e.Has<NonDirectionalCharacter>());
+                Debug.Assert(e.Has<EntityStats>());
 
-                ref EntityStats stats = ref handle.Get<EntityStats>();
-                ref EnemyActionState enemyState = ref handle.Get<EnemyActionState>();
-                ref NonDirectionalCharacter nonDirectionalCharacter = ref handle.Get<NonDirectionalCharacter>();
+                ref EntityStats stats = ref e.Get<EntityStats>();
+                ref EnemyActionState enemyState = ref e.Get<EnemyActionState>();
+                ref NonDirectionalCharacter nonDirectionalCharacter = ref e.Get<NonDirectionalCharacter>();
 
                 if (stats.Hitpoints <= 0)
                 {
-                    handle.Add(new MarkedToDestroy());
-                    handle.Add(LootTableProvider.SlimeLootTable);
+                    e.Add(new MarkedToDestroy());
+                    e.Add(LootTableProvider.SlimeLootTable);
                 }
                 else
                 {
-                    AnimationClip clip = args.assetStore.Get(GameAssets.Enemy.Slime1.Damage);
-                    EnemyAction currentState = args.actionHandler.TryUpdateAction(
+                    AnimationClip clip = assetStore.Get(GameAssets.Enemy.Slime1.Damage);
+                    EnemyAction currentState = actionHandler.TryUpdateAction(
                         ref enemyState.CurrentAction,
                         ref enemyState.RemainingTime,
                         EnemyAction.Damage,
@@ -66,83 +82,83 @@ public class HandleCollisionSystem(World world)
                     );
                     nonDirectionalCharacter.ActionIndex = (byte)currentState;
 
-                    if (handle.Has<Follows>() && !handle.Has<Velocity>())
+                    if (e.Has<Follows>() && !e.Has<Velocity>())
                     {
-                        ref Follows follows = ref handle.Get<Follows>();
-                        EntityEnumerator playerQuery =
-                            new QueryBuilder().With<Player>().Build().AsEnumerator(this.world);
+                        ref Follows follows = ref e.Get<Follows>();
 
-                        if (playerQuery.MoveNext())
+                        if (PlayerQuery.TrySingle(world, out Entity player))
                         {
-                            Entity player = playerQuery.Current;
-                            ref Position playerPos = ref this.world.Get<Position>(player);
-                            follows.FollowRadius = (playerPos - handle.Get<Position>()).LengthFast();
+                            ref Position playerPos = ref world.Get<Position>(player);
+                            follows.FollowRadius = (playerPos - e.Get<Position>()).LengthFast();
                         }
                     }
                 }
             }
 
-            if (handle.Has<Player>())
+            if (e.Has<Player>())
             {
-                Debug.Assert(handle.Has<EntityStats>());
-                ref EntityStats stats = ref handle.Get<EntityStats>();
+                Debug.Assert(e.Has<EntityStats>());
+                ref EntityStats stats = ref e.Get<EntityStats>();
 
-                if (!this.world.IsAlive(collided.CollidedWith))
+                if (!world.IsAlive(collided.CollidedWith))
                 {
-                    handle.Remove<Collided>();
+                    e.Remove<Collided>();
                     return;
                 }
 
-                EntityHandle collidedEntityHandle = this.world.Handle(collided.CollidedWith);
+                EntityHandle collidedEntityHandle = world.Handle(collided.CollidedWith);
                 if (collidedEntityHandle.Has<DoAttack>())
                 {
-                    this.HandleAttack(handle, ref stats, args.gameStateChanged);
+                    HandleAttack(e, ref stats, ref gameState);
                     return;
                 }
 
                 if (collidedEntityHandle.Has<DropType>())
                 {
-                    this.HandleDropPickup(handle, collidedEntityHandle);
+                    HandleDropPickup(e, collidedEntityHandle);
                     return;
                 }
             }
 
-            if (handle.Has<TriggerStageEnd>())
+            if (e.Has<TriggerStageEnd>())
             {
-                this.HandleWinCountdown(handle, args.dt, args.gameStateChanged);
+                HandleWinCountdown(e, dt, ref gameState, world);
             }
         }
         finally
         {
-            handle.Remove<Collided>();
+            e.Remove<Collided>();
         }
     }
 
-    private void HandleWinCountdown(EntityHandle handle, float dt, Action<GameState> gameStateChanged)
+    private static void HandleWinCountdown(EntityHandle handle, float dt, ref State<GameState> gameState,
+        World world)
     {
         ref TriggerStageEnd stageEnd = ref handle.Get<TriggerStageEnd>();
         ref Entity player = ref handle.Get<Collided>().CollidedWith;
 
         stageEnd.TimeRemaining -= dt;
-        if (stageEnd.TimeRemaining <= 0)
+        if (!(stageEnd.TimeRemaining <= 0))
         {
-            this.world.Remove<VisibleEntity>(player);
-            gameStateChanged(GameState.Won);
+            return;
         }
+
+        world.Remove<VisibleEntity>(player);
+        gameState.QueueChange(GameState.Won);
     }
 
-    private void HandleAttack(EntityHandle playerHandle, ref EntityStats stats, Action<GameState> gameStateChanged)
+    private static void HandleAttack(EntityHandle playerHandle, ref EntityStats stats,
+        ref State<GameState> gameState)
     {
         playerHandle.AddDamage(1);
 
         if (stats.Hitpoints <= 0)
         {
-            // TODO: End game?
-            gameStateChanged(GameState.Lost);
+            gameState.QueueChange(GameState.Lost);
         }
     }
 
-    private void HandleDropPickup(EntityHandle playerHandle, EntityHandle collidedEntityHandle)
+    private static void HandleDropPickup(EntityHandle playerHandle, EntityHandle collidedEntityHandle)
     {
         ref DropType type = ref collidedEntityHandle.Get<DropType>();
 
