@@ -204,7 +204,6 @@ public sealed class ScoreLayoutSystem : BaseSystem
     /// </exception>
     private static int CountDigits(int value)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(value);
         return value > 0 ? (int)Math.Log10(value) + 1 : 1;
     }
 
