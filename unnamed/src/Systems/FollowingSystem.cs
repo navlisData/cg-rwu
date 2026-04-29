@@ -17,11 +17,7 @@ public sealed class FollowingSystem : BaseSystem
 
     public override void Run(World world)
     {
-        foreach (Entity e in new QueryBuilder()
-                     .With<Follows>()
-                     .With<Position>()
-                     .Without<Sleeping>()
-                     .Build().AsEnumerator(world))
+        foreach (Entity e in Query.AsEnumerator(world))
         {
             EntityHandle handle = world.Handle(e);
 
