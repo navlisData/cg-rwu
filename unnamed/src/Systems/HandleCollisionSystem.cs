@@ -20,6 +20,7 @@ using unnamed.Components.Tags;
 using unnamed.Enums;
 using unnamed.Resources;
 using unnamed.Texture;
+using unnamed.Utils;
 using unnamed.Utils.Health;
 using unnamed.Utils.Loot;
 
@@ -69,6 +70,11 @@ public class HandleCollisionSystem : BaseSystem
                 {
                     e.Add(new MarkedToDestroy());
                     e.Add(LootTableProvider.SlimeLootTable);
+
+                    if (PlayerQuery.TrySingle(world, out Entity player))
+                    {
+                        world.IncreasePlayerScore(player, stats.ScoreReward);
+                    }
                 }
                 else
                 {
