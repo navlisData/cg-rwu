@@ -195,21 +195,17 @@ public sealed class ScoreLayoutSystem : BaseSystem
     }
 
     /// <summary>
-    ///     Counts the decimal digits needed to represent a non-negative integer.
+    ///     Counts the decimal digits needed to represent a positive integer.
     /// </summary>
-    /// <param name="value">Non-negative integer value.</param>
+    /// <param name="value">The positive integer value.</param>
     /// <returns>The decimal digit count.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    ///     Thrown when <paramref name="value"/> is less than one.
+    /// </exception>
     private static int CountDigits(int value)
     {
-        int count = 1;
-
-        while (value >= 10)
-        {
-            value /= 10;
-            count++;
-        }
-
-        return count;
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
+        return (int)Math.Log10(value) + 1;
     }
 
     /// <summary>
@@ -219,13 +215,6 @@ public sealed class ScoreLayoutSystem : BaseSystem
     /// <returns>The highest decimal divisor.</returns>
     private static int GetHighestDecimalDivisor(int digitCount)
     {
-        int divisor = 1;
-
-        for (int i = 1; i < digitCount; i++)
-        {
-            divisor *= 10;
-        }
-
-        return divisor;
+        return (int)Math.Pow(10, digitCount - 1);
     }
 }
