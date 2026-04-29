@@ -283,7 +283,7 @@ public sealed class World
             throw new InvalidOperationException($"Type {type} already registered.");
         }
 
-        this.resources[type] = new BoxRes<T> { Value = value };
+        this.resources[type] = new BoxedRes<T>(value);
     }
 
     /// <summary>
@@ -302,7 +302,7 @@ public sealed class World
         }
         else
         {
-            this.resources[type] = new BoxRes<T> { Value = value };
+            this.resources[type] = new BoxedRes<T>(value);
         }
     }
 
@@ -323,7 +323,7 @@ public sealed class World
             throw new KeyNotFoundException($"Type {typeof(T)} not found.");
         }
 
-        return ref ((BoxRes<T>)obj).Value;
+        return ref ((BoxedRes<T>)obj).Value;
     }
 
     /// <summary>
@@ -344,7 +344,7 @@ public sealed class World
     {
         if (this.resources.TryGetValue(typeof(T), out object? obj))
         {
-            value = ((BoxRes<T>)obj).Value;
+            value = ((BoxedRes<T>)obj).Value;
             return true;
         }
 
@@ -390,7 +390,7 @@ public sealed class World
             throw new InvalidOperationException($"Type {type} already registered.");
         }
 
-        this.resources[type] = new BoxRes<State<T>> { Value = new State<T>(value) };
+        this.resources[type] = new BoxedRes<State<T>>(new State<T>(value));
     }
 
     /// <summary>
@@ -419,12 +419,13 @@ public sealed class World
             throw new KeyNotFoundException($"Type {typeof(State<T>)} not found.");
         }
 
-        return ref ((BoxRes<State<T>>)obj).Value;
+        return ref ((BoxedRes<State<T>>)obj).Value;
     }
 
 
-    private class BoxRes<T>
+    private class BoxedRes<T>(T value)
+        where T : struct
     {
-        public T Value;
+        public T Value = value;
     }
 }

@@ -2,7 +2,7 @@ using Engine.Ecs.Querying;
 
 namespace Engine.Ecs.Systems;
 
-// TODO: Write a macro or whatever its called in c# for this
+// INFO: In the future a source gen that can resolve more complex parameters (multiple queries etc...) might be useful
 
 public abstract class EntitySetSystem(Query query) : BaseSystem
 {
