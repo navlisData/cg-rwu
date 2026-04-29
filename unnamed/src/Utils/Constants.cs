@@ -14,3 +14,9 @@ public static class Controls
 
     public const MouseButton PlayerShoot = MouseButton.Left;
 }
+
+public static class PlayerScoreConstants
+{
+    public const int InitialValue = 150;
+    public const int ScoreLossPerTick = 5;
+}

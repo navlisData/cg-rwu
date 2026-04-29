@@ -104,7 +104,7 @@ public sealed class StaticTextTextureFactory
         TextOptions measureOptions = new(this.font);
 
         float maxWidth = 1f;
-        
+
         foreach (string line in lines)
         {
             FontRectangle lineSize = TextMeasurer.MeasureSize(line, measureOptions);

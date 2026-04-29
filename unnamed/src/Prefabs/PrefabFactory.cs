@@ -44,6 +44,8 @@ public static class PrefabFactory
             .Add(new EntityStats(10, 16) { MaxAttackCooldown = 1f })
             .Add(new HudHearts { hearts = [] })
             .Add(new HealthHudLayoutDirty())
+            .Add(new ScoreDigits { digits = [] })
+            .Add(new ScoreLayoutDirty())
             .ToEntity();
     }
 
@@ -62,6 +64,19 @@ public static class PrefabFactory
             .ToEntity();
     }
 
+    public static Entity CreateDigit(World world, Texture2D texture, int digitValue, UiReferenceOffset offset)
+    {
+        return world.Create()
+            .Add(offset)
+            .Add(UiAnchor.TopRight)
+            .Add(new UiReferenceSize(texture.Width, texture.Height))
+            .Add(UiScaleMode.Uniform)
+            .Add(new UiElement())
+            .Add(new ScoreDigit(digitValue))
+            .Add(new StaticTextTexture(texture, Pivot.TopRight))
+            .ToEntity();
+    }
+
     public static Entity CreateEnemy(World world, Position startPos, Entity target, int level)
     {
         ref AssetStore assetStore = ref world.GetResource<AssetStore>();
@@ -75,12 +90,7 @@ public static class PrefabFactory
             .Add(new Character())
             .Add(new CanCollideWithPlayer { Range = 2f })
             .Add(new Enemy())
-            .Add(new Follows
-            {
-                Target = target,
-                FollowRadius = 15 + (level * 2.5f),
-                Speed = 2f + (0.5f * level)
-            })
+            .Add(new Follows { Target = target, FollowRadius = 15 + (level * 2.5f), Speed = 2f + (0.5f * level) })
             .Add(new HasShadow())
             .Add(new EnemyActionState())
             .Add(new EntityStats(20 * level * 5, 20 + (level * 5)))

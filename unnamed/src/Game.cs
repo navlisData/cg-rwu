@@ -18,6 +18,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using SixLabors.ImageSharp;
 
+using unnamed.Components.General;
 using unnamed.Components.Physics;
 using unnamed.Components.UI;
 using unnamed.Enums;
@@ -31,6 +32,7 @@ using unnamed.systems;
 using unnamed.Systems;
 using unnamed.Systems.SystemScheduler;
 using unnamed.Texture;
+using unnamed.Texture.DigitTextures;
 using unnamed.Texture.DirectedAction;
 using unnamed.Texture.NonDirectionalAction;
 using unnamed.Utils;
@@ -76,6 +78,9 @@ public class Game : GameWindow
     private readonly PlayerInputSystem playerInput;
     private readonly ProjectileRenderingSystem projectileRenderSystem;
     private readonly PulseAnimationSystem pulseAnimationSystem;
+    private readonly ScoreLayoutSystem scoreLayoutSystem;
+    private readonly ScoreSyncSystem scoreSyncSystem;
+    private readonly PlayerScoreDecaySystem playerScoreDecaySystem;
     private readonly SystemScheduler<GameState, World> renderScheduler = new();
 
     private readonly SetToMousePositionSystem setToMousePositionSystem;
@@ -128,6 +133,9 @@ public class Game : GameWindow
         this.healthSyncSystem = new HealthHudSyncSystem();
         this.healthLayoutSystem = new HealthHudLayoutSystem();
         this.pulseAnimationSystem = new PulseAnimationSystem();
+        this.scoreLayoutSystem = new ScoreLayoutSystem();
+        this.scoreSyncSystem = new ScoreSyncSystem();
+        this.playerScoreDecaySystem = new PlayerScoreDecaySystem();
         this.spawnerSystem = new SpawnerSystem();
         this.lifespanSystem = new LifespanSystem();
         this.windSystem = new WindSystem();
@@ -153,12 +161,12 @@ public class Game : GameWindow
         this.deco.AddRange(assetStore.Get(GameAssets.MapDecoration.Grass));
         this.deco.AddRange(assetStore.Get(GameAssets.MapDecoration.SmallStones));
 
-        this.Reset(assetStore, 1);
+        this.Reset(assetStore, 1, PlayerScoreConstants.InitialValue);
     }
 
     // INFO: Ideally we would only clear Entities and leave most Resources alone I guess (or even provide an api for partial entity drops)
     //       this preserves the AssetStore at least
-    private void Reset(AssetStore assetStore, int level)
+    private void Reset(AssetStore assetStore, int level, int score)
     {
         this.world = new World();
         this.world.AddResource(assetStore);
@@ -199,14 +207,17 @@ public class Game : GameWindow
         this.world.AddResource(new ActionControlHandler<EnemyAction>(EnemyActionExtensions.Priority));
         this.world.AddResource(new NonDirectionalActionDatabase());
         this.world.AddResource(new DirectedActionDatabase());
+        this.world.AddResource(new DigitTextureDatabase(this.textFactoryMedium));
         this.world.AddResource(new Level(level));
+        this.world.AddResource(new PlayerScore(score));
+        this.world.AddResource(new PlayerScoreDecayTimer());
         this.world.AddState(GameState.InGame);
 
         this.CursorState = CursorState.Confined;
         this.Cursor = MouseCursor.Empty;
 
         PrefabFactory.CreateText(this.world, $"Level: {level}", Color.White,
-            this.textFactoryMedium, Pivot.TopRight, UiAnchor.TopRight, new UiReferenceOffset(-10, 10));
+            this.textFactoryMedium, Pivot.TopLeft, UiAnchor.TopLeft, new UiReferenceOffset(10, 32));
 
         PrefabFactory.CreateCrossHairSpawner(this.world,
             PrefabFactory.CreateCrossHair);
@@ -291,6 +302,9 @@ public class Game : GameWindow
             .DuringGameplay(this.playerEntityCollisionSystem.Run)
             .DuringGameplay(this.handleCollisionSystem.Run)
             .DuringGameplay(this.pulseAnimationSystem.Run)
+            .DuringGameplay(this.playerScoreDecaySystem.Run)
+            .DuringGameplay(this.scoreLayoutSystem.Run)
+            .DuringGameplay(this.scoreSyncSystem.Run)
             .Always(this.fadeAnimationSystem.Run)
             .DuringGameplay(this.lifespanSystem.Run)
             .DuringGameplay(this.destroyEntitySystem.Run);
@@ -320,6 +334,7 @@ public class Game : GameWindow
                     PrefabFactory.CreateCenteredText(this.world, "You've died\n\nPress Space to restart", Color.Red,
                         this.textFactoryLarge);
                     this.world.GetResource<Level>().Value = 1;
+                    this.world.GetResource<PlayerScore>().Value = PlayerScoreConstants.InitialValue;
                 }
                 break;
             case GameState.Won:
@@ -335,7 +350,8 @@ public class Game : GameWindow
                 {
                     if (currentState.Equals(GameState.Lost) || currentState.Equals(GameState.Won))
                     {
-                        this.Reset(this.world.GetResource<AssetStore>(), this.world.GetResource<Level>());
+                        this.Reset(this.world.GetResource<AssetStore>(), this.world.GetResource<Level>(),
+                            this.world.GetResource<PlayerScore>());
                     }
                     else
                     {
