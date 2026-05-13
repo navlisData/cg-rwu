@@ -8,8 +8,6 @@ using unnamed.Components.Tags;
 using unnamed.Components.UI;
 using unnamed.Enums;
 using unnamed.Prefabs;
-using unnamed.Resources;
-using unnamed.Texture;
 using unnamed.Utils.Health;
 
 namespace unnamed.systems;
@@ -24,16 +22,13 @@ public sealed class HealthHudLayoutSystem : BaseSystem
 
     public override void Run(World world)
     {
-        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
-        ref AssetStore assetStore = ref world.GetResource<AssetStore>();
-
         foreach (Entity e in Query.AsEnumerator(world))
         {
-            Update(world, ref dt, ref assetStore, world.Handle(e));
+            Update(world, world.Handle(e));
         }
     }
 
-    private static void Update(World world, ref DeltaTime dt, ref AssetStore assetStore, EntityHandle e)
+    private static void Update(World world, EntityHandle e)
     {
         e.Ensure(new HudHearts { hearts = [] });
 
@@ -73,7 +68,6 @@ public sealed class HealthHudLayoutSystem : BaseSystem
     /// </summary>
     /// <param name="hud">HUD binding component.</param>
     /// <param name="requiredSlots">Exact required slot count.</param>
-    /// <param name="assetStore">AssetStore</param>
     /// <param name="world">World</param>
     private static void EnsureExactSlotCount(ref HudHearts hud, int requiredSlots, World world)
     {
@@ -110,7 +104,6 @@ public sealed class HealthHudLayoutSystem : BaseSystem
     /// </summary>
     /// <param name="hud">HUD binding component.</param>
     /// <param name="slotIndex">Slot index to resolve or create.</param>
-    /// <param name="assetStore">Asset Store</param>
     /// <param name="world">World</param>
     /// <returns>the resolved/created heart entity.</returns>
     private static Entity ResolveOrCreateHeart(ref HudHearts hud, int slotIndex, World world)

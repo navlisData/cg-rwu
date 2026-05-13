@@ -15,7 +15,6 @@ using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Components.UI;
 using unnamed.Enums;
-using unnamed.Resources;
 using unnamed.Texture;
 using unnamed.Utils;
 
@@ -116,16 +115,6 @@ public static class PrefabFactory
     {
         return CreateText(world, text, color, textFactory, Pivot.Center, UiAnchor.Center, new Vector2(),
             TextAlignment.Center);
-    }
-
-    public static Entity CreateFollowingCamera(World world, in Entity target, Vector2i viewport, Position startPos)
-    {
-        return world.Create()
-            .Add(new Camera2D { Zoom = 1f, OrthographicSize = 20f, Viewport = viewport })
-            .Add(new Follows { Target = target, Speed = 5f, FollowRadius = float.MaxValue })
-            .Add(startPos)
-            .Add(new Hidden())
-            .ToEntity();
     }
 
     public static Entity CreateBullet(World world, Position startPos, Velocity velocity, float rotation, float height)
