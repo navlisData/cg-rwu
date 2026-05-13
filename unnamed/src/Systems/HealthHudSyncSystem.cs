@@ -6,7 +6,6 @@ using unnamed.Components.General;
 using unnamed.Components.Rendering;
 using unnamed.Components.Tags;
 using unnamed.Enums;
-using unnamed.Resources;
 using unnamed.Texture;
 using unnamed.Utils.Health;
 
@@ -22,19 +21,18 @@ public sealed class HealthHudSyncSystem : BaseSystem
 
     public override void Run(World world)
     {
-        ref DeltaTime dt = ref world.GetResource<DeltaTime>();
         ref AssetStore assetStore = ref world.GetResource<AssetStore>();
 
         foreach (Entity e in Query.AsEnumerator(world))
         {
-            Update(world, ref dt, ref assetStore, world.Handle(e));
+            Update(world, ref assetStore, world.Handle(e));
         }
     }
 
     /// <summary>
     ///     Updates heart sprites for a single entity when the visuals are marked dirty.
     /// </summary>
-    private static void Update(World world, ref DeltaTime dt, ref AssetStore assetStore, EntityHandle e)
+    private static void Update(World world, ref AssetStore assetStore, EntityHandle e)
     {
         ref EntityStats stats = ref e.Get<EntityStats>();
         ref HudHearts hud = ref e.Get<HudHearts>();
